@@ -34,7 +34,6 @@ import AssetOverview from './AssetOverview'
 
 type Props = {
   siteName: string
-  onBack: () => void
   selectedUnitPath?: string[]
 }
 
@@ -141,7 +140,7 @@ function TreeBranch({
   )
 }
 
-function HierarchyPanel({ siteName, onBack, onSelect, selectedUnitPath, selectedPath, collapsed, setCollapsed }: { siteName: string; onBack: () => void; onSelect: (path: string[]) => void; selectedUnitPath?: string[]; selectedPath: string[]; collapsed: boolean; setCollapsed: (v: boolean) => void }) {
+function HierarchyPanel({ siteName, onSelect, selectedUnitPath, selectedPath, collapsed, setCollapsed }: { siteName: string; onSelect: (path: string[]) => void; selectedUnitPath?: string[]; selectedPath: string[]; collapsed: boolean; setCollapsed: (v: boolean) => void }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [tooltip, setTooltip] = useState<{ text: string; x: number; y: number } | null>(null)
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
@@ -737,7 +736,7 @@ function Placeholder({ name }: { name: string }) {
   )
 }
 
-export default function DashboardPage({ siteName, onBack, selectedUnitPath }: Props) {
+export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
   const [tab, setTab] = useState('Overview')
   const [selectedPath, setSelectedPath] = useState<string[]>(selectedUnitPath?.length ? selectedUnitPath : [siteName])
   const [rpCollapsed, setRpCollapsed] = useState(false)
@@ -747,7 +746,7 @@ export default function DashboardPage({ siteName, onBack, selectedUnitPath }: Pr
 
   return (
     <div className="flex flex-1 min-h-0 overflow-hidden bg-[#F8FAFC]">
-      <HierarchyPanel siteName={siteName} onBack={onBack} onSelect={setSelectedPath} selectedUnitPath={selectedUnitPath} selectedPath={selectedPath} collapsed={ahCollapsed} setCollapsed={setAhCollapsed} />
+      <HierarchyPanel siteName={siteName} onSelect={setSelectedPath} selectedUnitPath={selectedUnitPath} selectedPath={selectedPath} collapsed={ahCollapsed} setCollapsed={setAhCollapsed} />
 
       <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-white">
         <div className="px-4 lg:px-6 pt-3 shrink-0">

@@ -82,9 +82,6 @@ export default function App() {
     <div className="flex flex-col h-screen bg-[var(--bg-main)] overflow-hidden">
       {/* Full-width Header top bar */}
       <Header
-        title="Dashboard"
-        breadcrumbs={['Home', 'Keep Cooling']}
-        current={currentLabel}
         customer={currentCustomer}
         customers={customers}
         dark={dark}
@@ -136,10 +133,6 @@ export default function App() {
           ) : page === 'dashboard' ? (
             <DashboardPage
               siteName={dashboardSite}
-              onBack={() => {
-                setPage('customers')
-                setIconNav('home')
-              }}
               selectedUnitPath={selectedUnitPath}
             />
           ) : (

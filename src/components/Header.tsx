@@ -1,13 +1,10 @@
-import { Bell, Building2, ChevronDown, Moon, Sun, Sparkles } from 'lucide-react'
+import { Bell, ChevronDown, Moon, Sun, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 import CustomerLogo from './Logos'
 import type { Customer } from '../data/dashboard'
 import type { Persona, PersonaType, PersonaView } from '../data/personas'
 
 type Props = {
-  title: string
-  breadcrumbs: string[]
-  current: string
   customer?: Customer | null
   customers?: Customer[]
   dark: boolean
@@ -19,7 +16,7 @@ type Props = {
   onSelectPersona?: (type: PersonaType, view: PersonaView) => void
 }
 
-export default function Header({ title, breadcrumbs, current, customer, customers, dark, isDashboard, persona, onToggleDark, onOpenAICopilot, onSwitchCustomer, onSelectPersona }: Props) {
+export default function Header({ customer, customers, dark, isDashboard, persona, onToggleDark, onOpenAICopilot, onSwitchCustomer, onSelectPersona }: Props) {
   const [profileOpen, setProfileOpen] = useState(false)
   const [customerOpen, setCustomerOpen] = useState(false)
   const [customerQuery, setCustomerQuery] = useState('')
