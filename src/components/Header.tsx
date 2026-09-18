@@ -62,7 +62,7 @@ export default function Header({ title, breadcrumbs, current, customer, customer
             <div className="relative shrink-0">
               <button
                 onClick={() => setCustomerOpen((o) => !o)}
-                className="flex items-center gap-2 h-9 px-3 rounded-lg border border-gray-200 bg-white shadow-sm text-[15px] hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer"
+                className="flex items-center gap-2 h-9 px-3 rounded-lg border border-gray-200 bg-white text-[15px] hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer"
               >
                 <span className="max-w-[160px] truncate text-gray-800 font-medium">{customer?.name ?? customers[0]?.name}</span>
                 <ChevronDown className="w-3.5 h-3.5 text-gray-400" />

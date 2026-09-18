@@ -9,9 +9,9 @@ export type Persona = {
 export const personaKey = (p: Persona): string => `${p.type}:${p.view}`
 
 export const personaNav: Record<string, string[]> = {
-  'internal:management': ['home', 'dashboard', 'incidents', 'maintenance', 'checklist', 'tasks', 'tags'],
-  'internal:buhead': ['home', 'dashboard', 'incidents', 'checklist', 'tags'],
-  'internal:operator': ['home', 'dashboard', 'incidents', 'maintenance', 'checklist', 'tasks'],
-  'external:management': ['home', 'dashboard', 'tasks', 'tags'],
-  'external:operator': ['home', 'dashboard', 'incidents', 'checklist'],
+  'internal:management': ['home', 'dashboard', 'incidents', 'tasks', 'report'],
+  'internal:buhead': ['home', 'dashboard', 'incidents', 'tasks', 'report'],
+  'internal:operator': ['home', 'dashboard', 'incidents', 'tasks', 'report'],
+  'external:management': ['home', 'dashboard', 'tasks', 'report'],
+  'external:operator': ['home', 'dashboard', 'incidents', 'report'],
 }

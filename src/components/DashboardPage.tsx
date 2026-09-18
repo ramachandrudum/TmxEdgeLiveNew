@@ -8,14 +8,10 @@ import {
   LineChart,
   MapPin,
   MonitorPlay,
-  MoreVertical,
   Plus,
   Rocket,
   Search,
-  Settings,
-  SlidersHorizontal,
   Tag,
-  Trash2,
   Workflow,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -61,6 +57,8 @@ function TreeBranch({
   path,
   onSelect,
   selectedPath,
+  onShowTooltip,
+  onHideTooltip,
 }: {
   node: TreeNode
   depth: number
@@ -69,6 +67,8 @@ function TreeBranch({
   path: string[]
   onSelect: (path: string[]) => void
   selectedPath: string[]
+  onShowTooltip: (text: string, el: HTMLElement) => void
+  onHideTooltip: () => void
 }) {
   const hasKids = !!node.children && node.children.length > 0
   const open = !!expanded[node.id]
@@ -86,13 +86,12 @@ function TreeBranch({
             : 'text-gray-700 hover:bg-gray-100'
         }`}
         style={{ paddingLeft: pad }}
+        onMouseEnter={(e) => onShowTooltip(node.name, e.currentTarget)}
+        onMouseLeave={onHideTooltip}
       >
         <Dot status={node.status ?? 'off'} />
         <span className="relative flex-1 min-w-0">
           <span className="block truncate uppercase">{node.name}</span>
-          <span className="absolute left-0 top-full mt-1 px-2.5 py-1 rounded-md bg-black text-white text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-            {node.name}
-          </span>
         </span>
         <span className="opacity-0 group-hover:opacity-100 text-gray-400 text-lg leading-none">⋮</span>
       </div>
@@ -108,6 +107,8 @@ function TreeBranch({
             : 'text-gray-700 hover:bg-gray-50'
         }`}
         style={{ paddingLeft: node.kind === 'system' ? 35 : pad }}
+        onMouseEnter={(e) => onShowTooltip(node.name, e.currentTarget)}
+        onMouseLeave={onHideTooltip}
       >
         {node.kind !== 'system' ? (
           <span
@@ -123,19 +124,16 @@ function TreeBranch({
         ) : null}
         <span
           onClick={() => onSelect(currentPath)}
-          className={`relative flex-1 min-w-0 cursor-pointer ${node.kind === 'system' ? 'font-semibold text-gray-400' : ''}`}
+          className={`flex-1 min-w-0 cursor-pointer ${node.kind === 'system' ? 'font-semibold text-gray-400' : ''}`}
         >
           <span className="block truncate uppercase">{node.name}</span>
-          <span className="absolute left-0 top-full mt-1 px-2.5 py-1 rounded-md bg-black text-white text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-            {node.name}
-          </span>
         </span>
         <span className="opacity-0 group-hover:opacity-100 text-gray-400 text-lg leading-none">⋮</span>
       </div>
       {hasKids && open && (
         <div>
           {node.children!.map((c) => (
-            <TreeBranch key={c.id} node={c} depth={depth + 1} expanded={expanded} onToggle={onToggle} path={currentPath} onSelect={onSelect} selectedPath={selectedPath} />
+            <TreeBranch key={c.id} node={c} depth={depth + 1} expanded={expanded} onToggle={onToggle} path={currentPath} onSelect={onSelect} selectedPath={selectedPath} onShowTooltip={onShowTooltip} onHideTooltip={onHideTooltip} />
           ))}
         </div>
       )}
@@ -145,6 +143,7 @@ function TreeBranch({
 
 function HierarchyPanel({ siteName, onBack, onSelect, selectedUnitPath, selectedPath, collapsed, setCollapsed }: { siteName: string; onBack: () => void; onSelect: (path: string[]) => void; selectedUnitPath?: string[]; selectedPath: string[]; collapsed: boolean; setCollapsed: (v: boolean) => void }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [tooltip, setTooltip] = useState<{ text: string; x: number; y: number } | null>(null)
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
     HVAC: true,
     Compressors: true,
@@ -255,12 +254,29 @@ function HierarchyPanel({ siteName, onBack, onSelect, selectedUnitPath, selected
             path={[hierarchy.name]}
             onSelect={onSelect}
             selectedPath={selectedPath}
+            onShowTooltip={(text, el) => {
+              const r = el.getBoundingClientRect()
+              setTooltip({ text, x: r.right + 12, y: r.top + r.height / 2 })
+            }}
+            onHideTooltip={() => setTooltip(null)}
           />
         ))}
         {query && (
           <div className="px-2 pt-2 text-[10px] text-gray-400">Filtering: “{query}”</div>
         )}
       </div>
+
+      {tooltip && (
+        <div
+          className="pointer-events-none fixed z-[999] px-2.5 py-1 rounded-md bg-black text-white text-xs font-medium whitespace-nowrap flex items-center"
+          style={{ left: tooltip.x, top: tooltip.y, transform: 'translateY(-50%)' }}
+        >
+          <svg width="8" height="12" viewBox="0 0 8 12" fill="none" className="absolute -left-1.5 top-1/2 -translate-y-1/2">
+            <path d="M7 1L1 6L7 11" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          {tooltip.text}
+        </div>
+      )}
     </aside>
   )
 }
@@ -443,47 +459,10 @@ function PaletteSection({
 }
 
 function CommandPalette() {
-  const [menuOpen, setMenuOpen] = useState(false)
   return (
     <div className="relative bg-white border border-gray-200 rounded-md flex flex-col min-h-0 h-[240px]">
-      <div className="flex items-center px-3 h-9 border-b border-gray-200 shrink-0">
+      <div className="flex items-center px-3 h-9 shrink-0">
         <span className="text-[13px] font-bold text-gray-800">Recent Activity</span>
-        <button
-          onClick={() => setMenuOpen((o) => !o)}
-          className="ml-auto w-6 h-6 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
-          title="More options"
-        >
-          <MoreVertical className="w-3.5 h-3.5" />
-        </button>
-        {menuOpen && (
-          <>
-            <button
-              className="fixed inset-0 z-20 cursor-default"
-              onClick={() => setMenuOpen(false)}
-              aria-label="Close menu"
-            />
-            <div className="absolute right-3 top-9 w-40 bg-white rounded-lg border border-gray-200 py-1 z-30">
-              <button
-                onClick={() => setMenuOpen(false)}
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-gray-700 hover:bg-gray-50 cursor-pointer"
-              >
-                <Settings className="w-3.5 h-3.5 text-gray-400" /> Quick Settings
-              </button>
-              <button
-                onClick={() => setMenuOpen(false)}
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-gray-700 hover:bg-gray-50 cursor-pointer"
-              >
-                <Trash2 className="w-3.5 h-3.5 text-gray-400" /> Clear History
-              </button>
-              <button
-                onClick={() => setMenuOpen(false)}
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-gray-700 hover:bg-gray-50 cursor-pointer"
-              >
-                <SlidersHorizontal className="w-3.5 h-3.5 text-gray-400" /> Customize
-              </button>
-            </div>
-          </>
-        )}
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto">
@@ -610,7 +589,7 @@ function ColumnShell({
 }) {
   return (
     <div className="bg-white border border-gray-200 rounded-md flex flex-col min-h-0">
-      <div className="px-4 pt-3 pb-2 border-b border-gray-100 shrink-0">
+      <div className="px-4 pt-3 shrink-0">
         <div className="text-[13px] font-bold text-gray-800 mb-2">{title}</div>
         <Chips items={chips} />
       </div>
@@ -774,12 +753,22 @@ export default function DashboardPage({ siteName, onBack, selectedUnitPath }: Pr
         <div className="px-4 lg:px-6 pt-3 shrink-0">
           <div className="flex items-center gap-1.5 text-[12px] text-gray-500 flex-wrap">
             {ahCollapsed && (
-              <button onClick={() => setAhCollapsed(false)} className="rp-collapse-btn rounded-md" title="Expand" style={{ padding: 6, background: '#f3f4f6' }}>
+              <button
+                onClick={() => setAhCollapsed(false)}
+                className="rp-collapse-btn group relative rounded-md"
+                style={{ padding: 6, background: '#f3f4f6' }}
+              >
                 <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6">
                   <rect x="3" y="3.5" width="14" height="13" rx="2" />
                   <line x1="7.5" y1="3.5" x2="7.5" y2="16.5" />
                   <path d="M9 7.5l2.5 2.5-2.5 2.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
+                <span className="absolute left-full ml-3 px-2.5 py-1 rounded-md bg-black text-white text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                  <svg width="8" height="12" viewBox="0 0 8 12" fill="none" className="absolute -left-1.5 top-1/2 -translate-y-1/2">
+                    <path d="M7 1L1 6L7 11" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Asset hierarchy
+                </span>
               </button>
             )}
             {selectedPath.map((item, i) => (
