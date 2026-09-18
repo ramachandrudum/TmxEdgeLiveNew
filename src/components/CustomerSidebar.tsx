@@ -1,4 +1,4 @@
-import { ChevronLeft, FolderOpen, Search, Star } from 'lucide-react'
+import { ChevronLeft, Search, Star } from 'lucide-react'
 import { useState } from 'react'
 import CustomerLogo from './Logos'
 import { customers } from '../data/dashboard'
@@ -134,7 +134,7 @@ export default function CustomerSidebar({ active, onSelect }: Props) {
           }`}
         >
           <div className="w-7 h-7 rounded-md flex items-center justify-center shrink-0" style={{ background: '#2563EB' }}>
-            <FolderOpen className="w-3.5 h-3.5 text-white" />
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M4 21V7a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v14M12 21v-9a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-white" /></svg>
           </div>
           {!collapsed && (
             <div className="min-w-0 text-left flex-1">

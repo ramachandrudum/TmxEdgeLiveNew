@@ -82,7 +82,7 @@ export default function App() {
     <div className="flex flex-col h-screen bg-[var(--bg-main)] overflow-hidden">
       {/* Full-width Header top bar */}
       <Header
-        customer={currentCustomer}
+        customer={currentCustomer ?? (persona.type === 'external' ? customers[0] : null)}
         customers={customers}
         dark={dark}
         isDashboard={page === 'dashboard'}
@@ -149,11 +149,16 @@ export default function App() {
                 {/* Section header */}
                 {activeCustomer === 'all' ? (
                   <div className="section-head flex items-center justify-between flex-wrap gap-3" style={{ marginBottom: 14 }}>
-                    <h3 className="text-base font-bold text-gray-900">All Customers</h3>
+                    <div className="header-title flex items-center gap-2.5">
+                      <div className="header-icon w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                        <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M4 21V7a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v14M12 21v-9a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"></path></svg>
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold text-gray-900 leading-tight">All Customers</h3>
+                        <div className="header-sub text-xs text-gray-500">{customers.length} customers</div>
+                      </div>
+                    </div>
                     <div className="flex items-center gap-3">
-                      <span className="section-sub text-xs text-gray-500">
-                        All customers · updated live
-                      </span>
                       <button className="sidebar-add-btn flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold shadow-sm hover:bg-blue-700 transition-all cursor-pointer">
                         <Plus className="w-3.5 h-3.5" strokeWidth={2.4} />
                         Add Customer
