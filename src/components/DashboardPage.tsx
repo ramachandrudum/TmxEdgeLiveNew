@@ -293,7 +293,7 @@ function KpiStrip() {
       {kpis.map((k, i) => (
         <div
           key={k.label}
-          className="bg-white border border-gray-200 rounded-xl pt-3 px-4 overflow-hidden flex flex-col"
+          className="bg-white border border-gray-200 rounded-md pt-3 px-4 overflow-hidden flex flex-col"
         >
           <div className="text-[11px] font-semibold text-gray-500">{k.label}</div>
           <div className="flex items-baseline justify-between mt-1">
@@ -316,7 +316,7 @@ function KpiStrip() {
 
 function KpiStatusCard() {
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col h-[240px] min-h-0">
+    <div className="bg-white border border-gray-200 rounded-md p-4 flex flex-col h-[240px] min-h-0">
       <div className="text-[13px] font-bold text-gray-800">KPI Status ({kpiStatus.total})</div>
       <div className="flex h-2 rounded-full overflow-hidden mt-3">
         <span style={{ width: '92%', background: 'var(--gm)' }} />
@@ -347,7 +347,7 @@ function KpiStatusCard() {
 
 function IncidentsTrendCard() {
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col h-[240px] min-h-0">
+    <div className="bg-white border border-gray-200 rounded-md p-4 flex flex-col h-[240px] min-h-0">
       <div className="text-[13px] font-bold text-gray-800">Incidents Trend</div>
       <div className="flex-1 min-h-0 relative mt-3">
         <svg viewBox="0 0 460 210" preserveAspectRatio="none" className="w-full h-full block">
@@ -445,7 +445,7 @@ function PaletteSection({
 function CommandPalette() {
   const [menuOpen, setMenuOpen] = useState(false)
   return (
-    <div className="relative bg-white border border-gray-200 rounded-xl flex flex-col min-h-0 h-[240px]">
+    <div className="relative bg-white border border-gray-200 rounded-md flex flex-col min-h-0 h-[240px]">
       <div className="flex items-center px-3 h-9 border-b border-gray-200 shrink-0">
         <span className="text-[13px] font-bold text-gray-800">Recent Activity</span>
         <button
@@ -609,7 +609,7 @@ function ColumnShell({
   children: React.ReactNode
 }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-xl flex flex-col min-h-0">
+    <div className="bg-white border border-gray-200 rounded-md flex flex-col min-h-0">
       <div className="px-4 pt-3 pb-2 border-b border-gray-100 shrink-0">
         <div className="text-[13px] font-bold text-gray-800 mb-2">{title}</div>
         <Chips items={chips} />
@@ -752,7 +752,7 @@ function OverviewTab() {
 
 function Placeholder({ name }: { name: string }) {
   return (
-    <div className="flex-1 flex items-center justify-center border border-dashed border-gray-300 rounded-xl text-[13px] text-gray-400 bg-white">
+    <div className="flex-1 flex items-center justify-center border border-dashed border-gray-300 rounded-md text-[13px] text-gray-400 bg-white">
       {name}
     </div>
   )

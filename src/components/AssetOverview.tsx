@@ -259,7 +259,7 @@ export default function AssetOverview({ rpCollapsed, onToggleRp }: { rpCollapsed
         <div className="fade-in">
           {/* Asset Summary Card */}
           <div className="mb-4">
-            <div className="bg-white border border-gray-200 rounded-xl px-5 py-3 flex items-center gap-0">
+            <div className="bg-white border border-gray-200 rounded-md px-5 py-3 flex items-center gap-0">
               <div className="flex flex-col items-center px-5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Asset Type</span>
                 <span className="text-[14px] font-bold text-gray-900 mt-0.5">📦 Chiller</span>

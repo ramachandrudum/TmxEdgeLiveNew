@@ -6,7 +6,7 @@ export const DOT_COLOR: Record<NodeStatus, string> = {
   ok: 'var(--gm)',
   off: 'var(--tt)',
   wr: 'var(--am)',
-  dv: '#F9A825',
+  dv: '#ffc107',
 }
 
 export type TreeNode = {
@@ -231,10 +231,10 @@ export const miniDonuts: MiniDonut[] = [
     legends: [
       { label: 'Critical', value: 3, color: 'var(--rm)' },
       { label: 'Warning', value: 3, color: 'var(--am)' },
-      { label: 'Deviation', value: 1, color: '#F9A825' },
+      { label: 'Deviation', value: 1, color: '#ffc107' },
     ],
     gradient:
-      'conic-gradient(var(--rm) 0deg 154.3deg, var(--am) 154.3deg 308.6deg, #F9A825 308.6deg 360deg)',
+      'conic-gradient(var(--rm) 0deg 154.3deg, var(--am) 154.3deg 308.6deg, #ffc107 308.6deg 360deg)',
   },
   {
     title: 'Tasks',

@@ -52,7 +52,7 @@ export default function SummaryCards({ active }: { active: string }) {
       bars: [
         { width: pct(s.incidentsBreakdown.critical, s.incidents), color: 'var(--rm)' },
         { width: pct(s.incidentsBreakdown.warning, s.incidents), color: 'var(--am)' },
-        { width: pct(s.incidentsBreakdown.deviation, s.incidents), color: '#F9A825' },
+        { width: pct(s.incidentsBreakdown.deviation, s.incidents), color: '#ffc107' },
       ],
       legends: [
         { label: 'Critical', value: String(s.incidentsBreakdown.critical), color: 'var(--rm)' },
@@ -62,7 +62,7 @@ export default function SummaryCards({ active }: { active: string }) {
         {
           label: 'Deviation',
           value: String(s.incidentsBreakdown.deviation),
-          color: '#F9A825',
+          color: '#ffc107',
         },
       ],
     },
@@ -104,7 +104,7 @@ export default function SummaryCards({ active }: { active: string }) {
   return (
     <div className="hs5-row grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       {cards.map((card) => (
-        <div key={card.key} className="hs5-card bg-white border border-gray-200 rounded-xl p-4">
+        <div key={card.key} className="hs5-card bg-white border border-gray-200 rounded-md p-4">
           {card.caption ? (
             <div className="hs5-top hs5-top-spread flex items-start justify-between gap-2">
               <span className="hs5-numlabel flex items-baseline gap-1.5">

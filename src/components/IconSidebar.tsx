@@ -105,6 +105,7 @@ const railBottom: RailItem[] = [
 type Props = {
   active: string
   onSelect: (id: string) => void
+  navIds?: string[]
 }
 
 function RailButton({ item, active, onClick }: { item: RailItem; active: boolean; onClick: () => void }) {
@@ -128,13 +129,14 @@ function RailButton({ item, active, onClick }: { item: RailItem; active: boolean
   )
 }
 
-export default function IconSidebar({ active, onSelect }: Props) {
+export default function IconSidebar({ active, onSelect, navIds }: Props) {
+  const items = navIds ? railNav.filter((item) => navIds.includes(item.id)) : railNav
   return (
     <aside className="bg-[#121212] flex flex-col z-[110] border-r border-white/5 shrink-0 overflow-hidden w-[70px]">
 
       <div className="flex-1 py-2 flex flex-col justify-between min-h-0">
         <div className="rail space-y-1">
-          {railNav.map((item) => (
+          {items.map((item) => (
             <RailButton
               key={item.id}
               item={item}

@@ -7,15 +7,15 @@ const metrics = [
     iconColor: '#E65100',
     num: '46%',
     label: 'Avg Risk Score',
-    caption: 'Across all assets, fleet-wide',
+    caption: (name?: string) => `Across all assets, ${name ? name : 'fleet-wide'}`,
   },
   {
     icon: AlertTriangle,
     iconBg: '#FFEBEE',
-    iconColor: '#C62828',
+    iconColor: '#dc3545',
     num: '16%',
     label: 'Critical Asset Ratio',
-    caption: 'Share of assets in critical state',
+    caption: () => 'Share of assets in critical state',
   },
   {
     icon: CheckCircle,
@@ -23,7 +23,7 @@ const metrics = [
     iconColor: '#2E7D32',
     num: '33%',
     label: 'Task Completion Rate',
-    caption: 'Of all tasks raised, fleet-wide',
+    caption: (name?: string) => `Of all tasks raised, ${name ? name : 'fleet-wide'}`,
   },
   {
     icon: Clock,
@@ -31,11 +31,11 @@ const metrics = [
     iconColor: '#1565C0',
     num: '50%',
     label: 'On-Time Task Rate',
-    caption: 'Not overdue, fleet-wide',
+    caption: (name?: string) => `Not overdue, ${name ? name : 'fleet-wide'}`,
   },
 ]
 
-export default function PerformanceMetrics() {
+export default function PerformanceMetrics({ customerName }: { customerName?: string }) {
   return (
     <div style={{ marginTop: 28 }}>
       <div className="text-sm font-bold text-gray-800 mb-3">Performance Metrics</div>
@@ -45,7 +45,7 @@ export default function PerformanceMetrics() {
           return (
             <div
               key={m.label}
-              className="bg-white border border-gray-200 rounded-xl px-2 py-[5px] flex items-center gap-3"
+              className="bg-white border border-gray-200 rounded-md px-2 py-[5px] flex items-center gap-3"
             >
               <div
                 className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
@@ -58,7 +58,7 @@ export default function PerformanceMetrics() {
                   <span className="text-xl font-bold text-gray-900">{m.num}</span>
                   <span className="text-xs text-gray-900 font-semibold">{m.label}</span>
                 </div>
-                <div className="text-[11px] text-gray-500 truncate">{m.caption}</div>
+                <div className="text-[11px] text-gray-500 truncate">{m.caption(customerName)}</div>
               </div>
             </div>
           )

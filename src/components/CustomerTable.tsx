@@ -48,7 +48,7 @@ function SiteCard({ site, onOpenDashboard }: { site: SiteStat; onOpenDashboard: 
   return (
     <div
       onClick={() => onOpenDashboard(site.name)}
-      className={`grid ${columns} gap-2 items-center bg-white border border-gray-200 rounded-xl px-4 py-3 ml-[30px] hover:border-blue-200 transition-all cursor-pointer group/site`}
+      className={`grid ${columns} gap-2 items-center bg-white border border-gray-200 rounded-md px-4 py-3 ml-[30px] hover:border-blue-200 transition-all cursor-pointer group/site`}
     >
       <div className="min-w-0 max-w-[180px]">
         <div className="text-sm font-semibold text-gray-900 truncate">{site.name}</div>
@@ -185,7 +185,7 @@ function UnitTable({ units, onSelectUnit }: { units: UnitStat[]; onSelectUnit: (
                     <div className="flex items-center gap-2 whitespace-nowrap mt-1.5">
                       <LegendSquare color="var(--rm)" label="Critical" value={unit.incidents.critical} />
                       <LegendSquare color="var(--am)" label="Warning" value={unit.incidents.warning} />
-                      <LegendSquare color="#F9A825" label="Deviation" value={unit.incidents.deviation} />
+                      <LegendSquare color="#ffc107" label="Deviation" value={unit.incidents.deviation} />
                     </div>
                   </div>
                 </td>
@@ -332,7 +332,7 @@ export default function CustomerTable({
     const sites = customer ? generateSites(customer.id) : []
 
     return (
-      <div className="sites-table-wrap bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <div className="sites-table-wrap bg-white border border-gray-200 rounded-md overflow-hidden">
         <SitesHeadRow />
         {sites.map((site) => (
           <SiteRow key={site.id} site={site} onOpenDashboard={onOpenDashboard} onSelectUnit={onSelectUnit} />
@@ -344,7 +344,7 @@ export default function CustomerTable({
   const toggle = (id: string) => setExpanded((e) => ({ ...e, [id]: !e[id] }))
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+    <div className="bg-white border border-gray-200 rounded-md overflow-hidden">
       <div
         className={`grid ${columns} gap-2 items-center px-4 py-2.5 border-b border-gray-100 bg-[#ECF2FA]`}
       >

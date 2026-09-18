@@ -494,7 +494,7 @@ export function generateSites(customerId: string): SiteStat[] {
         legends: [
           { label: 'Critical', value: iCrit, color: 'var(--rm)' },
           { label: 'Warning', value: iWarn, color: 'var(--am)' },
-          { label: 'Deviation', value: iDev, color: '#F9A825' },
+          { label: 'Deviation', value: iDev, color: '#ffc107' },
         ],
       },
       tasks: {

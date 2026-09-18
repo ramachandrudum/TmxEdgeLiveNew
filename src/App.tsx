@@ -9,11 +9,15 @@ import SummaryCards from './components/SummaryCards'
 import PerformanceMetrics from './components/PerformanceMetrics'
 import CustomerTable from './components/CustomerTable'
 import DashboardPage from './components/DashboardPage'
+import OperatorView from './components/OperatorView'
+import ExternalOperatorView from './components/ExternalOperatorView'
 import { budgetUnits, customers, generateSites } from './data/dashboard'
+import { personaKey, personaNav, type Persona, type PersonaType, type PersonaView } from './data/personas'
 
 export default function App() {
   const [iconNav, setIconNav] = useState('home')
   const [activeBU, setActiveBU] = useState('ums')
+  const [persona, setPersona] = useState<Persona>({ type: 'internal', view: 'management' })
   const [activeCustomer, setActiveCustomer] = useState('all')
   const [dark, setDark] = useState(false)
   const [page, setPage] = useState<'customers' | 'dashboard'>('customers')
@@ -23,6 +27,10 @@ export default function App() {
 
   const currentCustomer = customers.find((c) => c.id === activeCustomer)
   const currentLabel = currentCustomer?.name ?? 'Polar Thermal Systems'
+  const showOperatorView = persona.view === 'operator' && page === 'customers' && iconNav === 'home'
+  const showExternalOperatorView = persona.type === 'external' && showOperatorView
+  const showExternalManagementView = persona.type === 'external' && persona.view === 'management' && page === 'customers' && iconNav === 'home'
+  const showCustomGrid = showExternalOperatorView || showExternalManagementView || (showOperatorView && !showExternalOperatorView)
 
   const openDashboard = (siteName: string) => {
     setDashboardSite(siteName)
@@ -56,6 +64,20 @@ export default function App() {
     setPage('dashboard')
   }
 
+  const handleSelectPersona = (type: PersonaType, view: PersonaView) => {
+    const nav = personaNav[personaKey({ type, view })]
+    const first = nav[0] ?? 'home'
+    setPersona({ type, view })
+    setIconNav(first)
+    if (first === 'dashboard') {
+      setDashboardSite((s) => s || generateSites(customers[0].id)[0]?.name || '')
+      setSelectedUnitPath([])
+      setPage('dashboard')
+    } else {
+      setPage('customers')
+    }
+  }
+
   return (
     <div className="flex flex-col h-screen bg-[var(--bg-main)] overflow-hidden">
       {/* Full-width Header top bar */}
@@ -67,19 +89,21 @@ export default function App() {
         customers={customers}
         dark={dark}
         isDashboard={page === 'dashboard'}
+        persona={persona}
         onToggleDark={() => setDark((d) => !d)}
         onOpenAICopilot={() => setShowAICopilot(true)}
         onSwitchCustomer={handleSwitchCustomer}
+        onSelectPersona={handleSelectPersona}
       />
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Left icon rail */}
-        <IconSidebar active={iconNav} onSelect={handleIconNav} />
+        <IconSidebar active={iconNav} onSelect={handleIconNav} navIds={personaNav[personaKey(persona)]} />
 
         {/* Right side */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* BU bar below header */}
-          {page !== 'dashboard' && (
+          {!showCustomGrid && page !== 'dashboard' && (
             <BUBar
               items={budgetUnits as BUItem[]}
               active={activeBU}
@@ -88,7 +112,28 @@ export default function App() {
           )}
 
           {/* Content area */}
-          {page === 'dashboard' ? (
+          {showExternalOperatorView ? (
+            <main className="flex-1 px-4 lg:px-8 pt-[15px] pb-0 overflow-y-auto min-h-0 flex flex-col bg-white">
+              <div className="max-w-[1050px] mx-auto space-y-6 w-full pb-8 shrink-0 min-[1920px]:w-[1500px] min-[1920px]:max-w-[1500px]">
+                <ExternalOperatorView
+                  customer={currentCustomer ?? customers[0]}
+                  onOpenDashboard={openDashboard}
+                  onSelectUnit={handleSelectUnit}
+                />
+              </div>
+            </main>
+          ) : showExternalManagementView || showOperatorView ? (
+            <main className="flex-1 px-4 lg:px-8 pt-[15px] pb-0 overflow-y-auto min-h-0 flex flex-col bg-white">
+              <div className="max-w-[1050px] mx-auto space-y-6 w-full pb-8 shrink-0 min-[1920px]:w-[1500px] min-[1920px]:max-w-[1500px]">
+                <OperatorView
+                  customer={currentCustomer ?? customers[0]}
+                  onOpenDashboard={openDashboard}
+                  onSelectUnit={handleSelectUnit}
+                  hideHeaderBorder={showExternalManagementView}
+                />
+              </div>
+            </main>
+          ) : page === 'dashboard' ? (
             <DashboardPage
               siteName={dashboardSite}
               onBack={() => {
