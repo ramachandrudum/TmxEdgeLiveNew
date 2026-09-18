@@ -75,7 +75,7 @@ export default function CustomerSidebar({ active, onSelect }: Props) {
           title={favs.includes(c.id) ? 'Remove from favorites' : 'Add to favorites'}
         >
           <Star
-            className="w-4 h-4"
+            className="w-[10px] h-[10px]"
             fill={favs.includes(c.id) ? '#F59E0B' : 'none'}
             color={favs.includes(c.id) ? '#F59E0B' : 'currentColor'}
           />

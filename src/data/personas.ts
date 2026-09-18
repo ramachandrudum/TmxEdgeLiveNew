@@ -12,6 +12,6 @@ export const personaNav: Record<string, string[]> = {
   'internal:management': ['home', 'dashboard', 'incidents', 'tasks', 'report'],
   'internal:buhead': ['home', 'dashboard', 'incidents', 'tasks', 'report'],
   'internal:operator': ['home', 'dashboard', 'incidents', 'tasks', 'report'],
-  'external:management': ['home', 'dashboard', 'tasks', 'report'],
-  'external:operator': ['home', 'dashboard', 'incidents', 'report'],
+  'external:management': ['home', 'dashboard', 'incidents', 'tasks', 'report'],
+  'external:operator': ['home', 'dashboard', 'incidents', 'tasks', 'report'],
 }

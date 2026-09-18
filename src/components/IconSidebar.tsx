@@ -42,10 +42,10 @@ function RailButton({ item, active, onClick }: { item: RailItem; active: boolean
   return (
     <button
       onClick={onClick}
-      className={`group relative rail-item w-full flex flex-col items-center justify-center gap-[3px] rounded-none transition-all cursor-pointer mb-[15px] overflow-visible ${
+      className={`group relative rail-item w-full flex flex-col items-center justify-center gap-[3px] transition-all cursor-pointer mb-[15px] overflow-visible pt-[10px] pb-[10px] ${
         active
-          ? 'bg-[#005EDB] text-white rounded-[5px] pt-[10px] pb-[10px]'
-          : 'text-white/70 hover:text-white hover:bg-white/10 pt-[5px] pb-1'
+          ? 'bg-[#005EDB] text-white rounded-[10px]'
+          : 'text-white/70 hover:text-white hover:bg-white/10'
       }`}
     >
       <img
