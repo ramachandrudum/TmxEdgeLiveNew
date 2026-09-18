@@ -555,11 +555,11 @@ function CommandPalette() {
 
 function Chips({ items }: { items: { status: NodeStatus; label: string; count: number }[] }) {
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-thin hover:overflow-x-scroll pb-1">
       {items.map((c) => (
         <button
           key={c.label}
-          className="flex items-center gap-1 px-2 py-1 rounded-full border border-gray-200 bg-white text-[10px] text-gray-600 hover:bg-gray-50"
+          className="flex items-center gap-1 px-2 py-1 rounded-full border border-gray-200 bg-white text-[10px] text-gray-600 hover:bg-gray-50 shrink-0"
         >
           <Dot status={c.status} size={7} />
           {c.label} ({c.count})
@@ -622,7 +622,7 @@ function ColumnShell({
 function OverviewTab() {
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.15fr_0.85fr] gap-4 shrink-0">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 shrink-0">
         <KpiStatusCard />
         <IncidentsTrendCard />
         <CommandPalette />

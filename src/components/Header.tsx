@@ -49,7 +49,7 @@ export default function Header({ title, breadcrumbs, current, customer, customer
     <header className="h-[50px] border-b border-gray-200 bg-[#ecf2fa] flex items-center justify-between px-4 shrink-0 z-50 shadow-sm">
       <div className="flex items-center gap-6 flex-1 min-w-0">
         <div className="flex items-center gap-4 min-w-0">
-          <img alt="TMX EdgeLive" className="h-[38px] w-auto object-contain shrink-0" src="/tmxEdgeLive.png?v=2" />
+          <img alt="TMX EdgeLive" className="h-[30px] w-auto object-contain shrink-0" src="/Thermax-EDGE-Live-Logo-V1.png" />
           {customer && persona?.type === 'external' && (
             <>
               <div className="w-px h-6 bg-gray-300 shrink-0" />
