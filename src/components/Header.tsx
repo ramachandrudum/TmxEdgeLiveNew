@@ -55,7 +55,7 @@ export default function Header({ customer, customers, dark, isDashboard, persona
               </div>
             </>
           )}
-          {isDashboard && customers && (
+          {isDashboard && customers && persona?.type !== 'external' && (
             <div className="relative shrink-0">
               <button
                 onClick={() => setCustomerOpen((o) => !o)}
