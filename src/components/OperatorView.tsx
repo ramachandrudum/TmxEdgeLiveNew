@@ -1,20 +1,15 @@
-import { AlertTriangle, Building2, CheckCircle, ChevronDown, Clock, ExternalLink, Zap } from 'lucide-react'
-import { useState } from 'react'
-import { generateSites, type Customer, type SiteStat, type UnitStat } from '../data/dashboard'
+import { AlertTriangle, Building2, CheckCircle, ChevronRight, Clock, Zap } from 'lucide-react'
+import { generateSites, type Customer } from '../data/dashboard'
 import SummaryCards from './SummaryCards'
 
 type Props = {
   customer: Customer
   onOpenDashboard: (siteName: string) => void
-  onSelectUnit: (siteName: string, unitName: string) => void
   hideHeaderBorder?: boolean
+  hideMetrics?: boolean
 }
 
-const STATUS_COLOR: Record<UnitStat['status'], string> = {
-  healthy: '#0A6347',
-  critical: '#C1292E',
-  offline: '#C1292E',
-}
+const columns = 'grid-cols-[minmax(220px,2fr)_1fr_1fr_1.2fr_1fr_1.4fr]'
 
 const metrics = [
   {
@@ -51,89 +46,7 @@ const metrics = [
   },
 ]
 
-const siteColumns = 'grid-cols-[24px_minmax(220px,2fr)_1fr_1fr_1.2fr_1fr_1.4fr]'
-const unitColumns = 'grid-cols-[24px_minmax(160px,2fr)_1fr_1fr_1.2fr_1fr]'
-
-function UnitTable({ units, onSelectUnit }: { units: UnitStat[]; onSelectUnit: (unitName: string) => void }) {
-  return (
-    <div className="border bg-[#F8FAFC]">
-      <div className={`grid ${unitColumns} gap-2 items-center px-3 py-2 border-y border-gray-100 bg-[#ECF2FA]`}>
-        <span />
-        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Units</span>
-        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Availability</span>
-        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Assets</span>
-        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Incidents</span>
-        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Tasks</span>
-      </div>
-      {units.map((unit) => {
-        const color = STATUS_COLOR[unit.status]
-        return (
-          <div
-            key={unit.id}
-            onClick={() => onSelectUnit(unit.name)}
-            className={`grid ${unitColumns} gap-2 items-center px-3 py-2 border-b border-gray-100 last:border-b-0 hover:bg-blue-50/50 transition-colors cursor-pointer`}
-          >
-            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
-            <div className="min-w-0">
-              <div className="text-sm text-gray-900 truncate">{unit.name}</div>
-            </div>
-            <div className="text-sm text-gray-700">{unit.health}%</div>
-            <div className="text-sm text-gray-700">{unit.assets.total}</div>
-            <div className="text-sm text-gray-700">{unit.incidents.total}</div>
-            <div className="text-sm text-gray-700">{unit.tasks.total}</div>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-function SiteRow({ site, onOpenDashboard, onSelectUnit }: { site: SiteStat; onOpenDashboard: (siteName: string) => void; onSelectUnit: (siteName: string, unitName: string) => void }) {
-  const [open, setOpen] = useState(false)
-  const totals = site.unitList.reduce(
-    (acc, unit) => ({
-      assets: acc.assets + unit.assets.total,
-      incidents: acc.incidents + unit.incidents.total,
-      tasks: acc.tasks + unit.tasks.total,
-    }),
-    { assets: 0, incidents: 0, tasks: 0 },
-  )
-
-  return (
-    <div className="border-b border-gray-100 last:border-b-0">
-      <div
-        onClick={() => setOpen((o) => !o)}
-        className={`grid ${siteColumns} gap-2 items-center px-3 py-3 transition-colors hover:bg-gray-50 cursor-pointer group/site`}
-      >
-        <ChevronDown
-          className={`w-4 h-4 text-gray-300 group-hover/site:text-blue-500 transition-transform ${open ? 'rotate-180' : ''}`}
-        />
-        <div className="min-w-0 max-w-[220px]">
-          <div className="text-sm font-semibold text-gray-900 truncate">{site.name}</div>
-          <div className="text-xs text-gray-500">Last updated {site.updated}</div>
-        </div>
-        <div className="text-sm text-gray-700">{site.units} units</div>
-        <div className="text-sm text-gray-700">{totals.assets} assets</div>
-        <div className="text-sm text-gray-700">{totals.incidents} incidents</div>
-        <div className="text-sm text-gray-700">{totals.tasks} tasks</div>
-        <div className="flex justify-end">
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              onOpenDashboard(site.name)
-            }}
-            className="btn btn-md text-[#005EDB] border border-[#005EDB]/25 hover:bg-[#005EDB] hover:text-white hover:shadow-md"
-          >
-            Go to Dashboard <ExternalLink className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-      {open && <UnitTable units={site.unitList} onSelectUnit={(unitName) => onSelectUnit(site.name, unitName)} />}
-    </div>
-  )
-}
-
-export default function OperatorView({ customer, onOpenDashboard, onSelectUnit, hideHeaderBorder }: Props) {
+export default function OperatorView({ customer, onOpenDashboard, hideHeaderBorder, hideMetrics }: Props) {
   const sites = generateSites(customer.id)
 
   return (
@@ -156,51 +69,106 @@ export default function OperatorView({ customer, onOpenDashboard, onSelectUnit, 
 
       <SummaryCards active={customer.id} />
 
-      <div style={{ marginTop: 28 }}>
-        <div className="text-sm font-bold text-gray-800 mb-3">Performance Metrics</div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {metrics.map((m) => {
-            const Icon = m.icon
-            return (
-              <div
-                key={m.label}
-                className="bg-white border border-gray-200 rounded-md px-2 py-[5px] flex items-center gap-3"
-              >
+      {!hideMetrics && (
+        <div style={{ marginTop: 28 }}>
+          <div className="text-sm font-bold text-gray-800 mb-3">Performance Metrics</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {metrics.map((m) => {
+              const Icon = m.icon
+              return (
                 <div
-                  className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-                  style={{ background: m.bg, color: m.color }}
+                  key={m.label}
+                  className="bg-white border border-gray-200 rounded-md px-2 py-[5px] flex items-center gap-3"
                 >
-                  <Icon className="w-[15px] h-[15px]" strokeWidth={1.7} />
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-xl font-bold text-gray-900">{m.num}</span>
-                    <span className="text-xs text-gray-900 font-semibold">{m.label}</span>
+                  <div
+                    className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                    style={{ background: m.bg, color: m.color }}
+                  >
+                    <Icon className="w-[15px] h-[15px]" strokeWidth={1.7} />
                   </div>
-                  <div className="text-[11px] text-gray-500 truncate">{m.caption(customer.name)}</div>
+                  <div className="min-w-0">
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-xl font-bold text-gray-900">{m.num}</span>
+                      <span className="text-xs text-gray-900 font-semibold">{m.label}</span>
+                    </div>
+                    <div className="text-[11px] text-gray-500 truncate">{m.caption(customer.name)}</div>
+                  </div>
                 </div>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       <div style={{ marginTop: 28 }}>
-        <div className="bg-white border border-gray-200 rounded-md overflow-hidden">
-          <div
-            className={`grid ${siteColumns} gap-2 items-center px-3 py-2.5 border-b border-gray-100 bg-[#ECF2FA]`}
-          >
-            <span />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Site</span>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Units</span>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Assets</span>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Incidents</span>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Tasks</span>
-            <span />
-          </div>
-          {sites.map((site) => (
-            <SiteRow key={site.id} site={site} onOpenDashboard={onOpenDashboard} onSelectUnit={onSelectUnit} />
+        <div className="bg-white border border-gray-200 rounded-md overflow-hidden p-3">
+          <div className="space-y-3">
+            {sites.map((site) => (
+            <div
+              key={site.id}
+              onClick={() => onOpenDashboard(site.name)}
+              className={`grid ${columns} gap-2 items-center bg-white border border-gray-200 rounded-md px-4 py-3 ml-[30px] hover:border-blue-200 transition-all cursor-pointer group/site`}
+            >
+              <div className="min-w-0 max-w-[180px]">
+                <div className="text-sm font-semibold text-gray-900 truncate">{site.name}</div>
+                <div className="text-xs text-gray-500">{site.units} units</div>
+              </div>
+              <div />
+
+              <div className="pr-4">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-base font-bold text-gray-900">{site.assets.value}</span>
+                  <span className="text-[10px] text-gray-500">Assets</span>
+                </div>
+                <div className="mt-1.5 flex items-center gap-3 whitespace-nowrap">
+                  {site.assets.legends.map((l) => (
+                    <div key={l.label} className="flex items-center gap-1 text-[10px] text-gray-500">
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: l.color }} />
+                      {l.label}
+                      <b className="text-gray-900 ml-0.5">{l.value}</b>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pr-4">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-base font-bold text-gray-900">{site.incidents.value}</span>
+                  <span className="text-[10px] text-gray-500">Incidents</span>
+                </div>
+                <div className="mt-1.5 flex items-center gap-3 whitespace-nowrap">
+                  {site.incidents.legends.map((l) => (
+                    <div key={l.label} className="flex items-center gap-1 text-[10px] text-gray-500">
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: l.color }} />
+                      {l.label}
+                      <b className="text-gray-900 ml-0.5">{l.value}</b>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pr-4">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-base font-bold text-gray-900">{site.tasks.value}</span>
+                  <span className="text-[10px] text-gray-500">Tasks</span>
+                </div>
+                <div className="mt-1.5 flex items-center gap-3 whitespace-nowrap">
+                  {site.tasks.legends.map((l) => (
+                    <div key={l.label} className="flex items-center gap-1 text-[10px] text-gray-500">
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: l.color }} />
+                      {l.label}
+                      <b className="text-gray-900 ml-0.5">{l.value}</b>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <ChevronRight className="w-4 h-4 text-gray-300 group-hover/site:text-blue-500 transition-colors" />
+              </div>
+            </div>
           ))}
+          </div>
         </div>
       </div>
     </>

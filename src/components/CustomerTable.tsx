@@ -300,7 +300,7 @@ function SiteRow({ site, onOpenDashboard, onSelectUnit }: { site: SiteStat; onOp
               e.stopPropagation()
               onOpenDashboard(site.name)
             }}
-            className="text-[#005EDB] text-sm font-semibold inline-flex items-center gap-1 px-3 py-1.5 rounded-md hover:bg-[#005EDB] hover:text-white hover:shadow-md transition-all"
+            className="text-[#005EDB] text-sm font-semibold inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-[#005EDB] hover:bg-[#005EDB] hover:text-white hover:shadow-md transition-all"
           >
             Go to Dashboard <ExternalLink className="w-4 h-4" />
           </button>
@@ -402,7 +402,7 @@ export default function CustomerTable({
                     e.stopPropagation()
                     onOpenDashboard(sites[0]?.name ?? c.name)
                   }}
-                  className="text-[#005EDB] text-sm font-semibold inline-flex items-center gap-1 px-3 py-1.5 rounded-md hover:bg-[#005EDB] hover:text-white hover:shadow-md transition-all"
+                  className="text-[#005EDB] text-sm font-semibold inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-[#005EDB] hover:bg-[#005EDB] hover:text-white hover:shadow-md transition-all"
                 >
                   Go to Dashboard <ExternalLink className="w-4 h-4" />
                 </button>

@@ -1,4 +1,4 @@
-import { ChevronLeft, Search, Star } from 'lucide-react'
+import { Search, Star } from 'lucide-react'
 import { useState } from 'react'
 import CustomerLogo from './Logos'
 import { customers } from '../data/dashboard'
@@ -98,10 +98,14 @@ export default function CustomerSidebar({ active, onSelect }: Props) {
         )}
         <button
           onClick={() => setCollapsed((c) => !c)}
-          className="text-gray-400 hover:text-gray-900 transition-colors p-1 shrink-0 mx-auto"
+          className="rp-collapse-btn"
           title={collapsed ? 'Expand' : 'Collapse'}
         >
-          <ChevronLeft className={`w-4 h-4 transition-transform ${collapsed ? 'rotate-180' : ''}`} />
+          <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6">
+            <rect x="3" y="3.5" width="14" height="13" rx="2" />
+            <line x1="7.5" y1="3.5" x2="7.5" y2="16.5" />
+            <path d="M13 7.5l-2.5 2.5 2.5 2.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </button>
       </div>
 
