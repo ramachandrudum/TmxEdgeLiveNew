@@ -12,32 +12,34 @@ type Props = {
 const metrics = ['Level', 'Active Incidents', 'At Risk', 'Availability', 'Total Assets', 'Offline', 'Critical', 'Warning', 'Healthy']
 
 const mockData: Record<string, { level: string; incidents: number; atRisk: number; availability: number; totalAssets: number; offline: number; critical: number; warning: number; healthy: number; color: string }> = {
-  'COMPRESSOR': { level: 'Equipment', incidents: 4, atRisk: 1, availability: 96.3, totalAssets: 0, offline: 0, critical: 1, warning: 1, healthy: 0, color: '#7C3AED' },
-  'ABSORBER': { level: 'Equipment', incidents: 2, atRisk: 1, availability: 95.7, totalAssets: 0, offline: 0, critical: 1, warning: 1, healthy: 0, color: '#7C3AED' },
-  'HVAC': { level: 'Unit', incidents: 6, atRisk: 2, availability: 94.5, totalAssets: 12, offline: 1, critical: 2, warning: 3, healthy: 7, color: '#2563EB' },
-  'Compressors': { level: 'Unit', incidents: 3, atRisk: 1, availability: 97.2, totalAssets: 8, offline: 0, critical: 1, warning: 1, healthy: 6, color: '#2563EB' },
-  'Nestle UAE': { level: 'Site', incidents: 10, atRisk: 3, availability: 93.8, totalAssets: 20, offline: 2, critical: 3, warning: 4, healthy: 13, color: '#006D4E' },
-  'Cairo Plant': { level: 'Site', incidents: 8, atRisk: 2, availability: 95.1, totalAssets: 18, offline: 1, critical: 2, warning: 3, healthy: 12, color: '#006D4E' },
-  'Lagos Plant': { level: 'Site', incidents: 5, atRisk: 1, availability: 96.7, totalAssets: 15, offline: 0, critical: 1, warning: 2, healthy: 12, color: '#006D4E' },
-  'Riyadh Plant': { level: 'Site', incidents: 7, atRisk: 2, availability: 94.9, totalAssets: 16, offline: 1, critical: 2, warning: 2, healthy: 11, color: '#006D4E' },
-  'Primary Cooling Water System': { level: 'System', incidents: 4, atRisk: 1, availability: 96.3, totalAssets: 6, offline: 0, critical: 1, warning: 1, healthy: 4, color: '#DC2626' },
-  'Secondary Cooling Water System': { level: 'System', incidents: 2, atRisk: 0, availability: 98.1, totalAssets: 3, offline: 0, critical: 0, warning: 1, healthy: 2, color: '#DC2626' },
-  'Cooling Water Condensor': { level: 'System', incidents: 0, atRisk: 0, availability: 100, totalAssets: 2, offline: 0, critical: 0, warning: 0, healthy: 2, color: '#DC2626' },
-  'Compressor System 1': { level: 'System', incidents: 2, atRisk: 1, availability: 97.2, totalAssets: 4, offline: 0, critical: 1, warning: 0, healthy: 3, color: '#DC2626' },
-  'Compressor System 2': { level: 'System', incidents: 1, atRisk: 0, availability: 98.5, totalAssets: 2, offline: 0, critical: 0, warning: 1, healthy: 1, color: '#DC2626' },
-  'Chiller 10': { level: 'Asset', incidents: 2, atRisk: 1, availability: 96.3, totalAssets: 0, offline: 0, critical: 1, warning: 0, healthy: 0, color: '#7C3AED' },
-  'Chiller 20': { level: 'Asset', incidents: 1, atRisk: 0, availability: 97.8, totalAssets: 0, offline: 0, critical: 0, warning: 1, healthy: 0, color: '#7C3AED' },
-  'Chiller 30': { level: 'Asset', incidents: 0, atRisk: 0, availability: 99.1, totalAssets: 0, offline: 0, critical: 0, warning: 0, healthy: 0, color: '#7C3AED' },
-  'Cooling Tower A': { level: 'Asset', incidents: 1, atRisk: 0, availability: 95.5, totalAssets: 0, offline: 0, critical: 1, warning: 0, healthy: 0, color: '#7C3AED' },
-  'Cooling Tower B': { level: 'Asset', incidents: 0, atRisk: 0, availability: 98.9, totalAssets: 0, offline: 0, critical: 0, warning: 0, healthy: 0, color: '#7C3AED' },
-  'Primary Pump 1': { level: 'Asset', incidents: 0, atRisk: 0, availability: 99.5, totalAssets: 0, offline: 0, critical: 0, warning: 0, healthy: 0, color: '#7C3AED' },
-  'Pump 3': { level: 'Asset', incidents: 1, atRisk: 0, availability: 97.2, totalAssets: 0, offline: 0, critical: 0, warning: 1, healthy: 0, color: '#7C3AED' },
-  'Compressor 1': { level: 'Asset', incidents: 0, atRisk: 0, availability: 99.8, totalAssets: 0, offline: 0, critical: 0, warning: 0, healthy: 0, color: '#7C3AED' },
-  'Compressor 2': { level: 'Asset', incidents: 1, atRisk: 1, availability: 95.2, totalAssets: 0, offline: 0, critical: 1, warning: 0, healthy: 0, color: '#7C3AED' },
-  'Compressor 3': { level: 'Asset', incidents: 0, atRisk: 0, availability: 98.7, totalAssets: 0, offline: 0, critical: 0, warning: 0, healthy: 0, color: '#7C3AED' },
+  'COMPRESSOR': { level: 'Equipment', incidents: 4, atRisk: 1, availability: 96.3, totalAssets: 0, offline: 0, critical: 1, warning: 1, healthy: 0, color: '#0968db' },
+  'ABSORBER': { level: 'Equipment', incidents: 2, atRisk: 1, availability: 95.7, totalAssets: 0, offline: 0, critical: 1, warning: 1, healthy: 0, color: '#0968db' },
+  'HVAC': { level: 'Unit', incidents: 6, atRisk: 2, availability: 94.5, totalAssets: 12, offline: 1, critical: 2, warning: 3, healthy: 7, color: '#0968db' },
+  'Compressors': { level: 'Unit', incidents: 3, atRisk: 1, availability: 97.2, totalAssets: 8, offline: 0, critical: 1, warning: 1, healthy: 6, color: '#0968db' },
+  'Nestle UAE': { level: 'Site', incidents: 10, atRisk: 3, availability: 93.8, totalAssets: 20, offline: 2, critical: 3, warning: 4, healthy: 13, color: '#0968db' },
+  'Cairo Plant': { level: 'Site', incidents: 8, atRisk: 2, availability: 95.1, totalAssets: 18, offline: 1, critical: 2, warning: 3, healthy: 12, color: '#0968db' },
+  'Lagos Plant': { level: 'Site', incidents: 5, atRisk: 1, availability: 96.7, totalAssets: 15, offline: 0, critical: 1, warning: 2, healthy: 12, color: '#0968db' },
+  'Riyadh Plant': { level: 'Site', incidents: 7, atRisk: 2, availability: 94.9, totalAssets: 16, offline: 1, critical: 2, warning: 2, healthy: 11, color: '#0968db' },
+  'Primary Cooling Water System': { level: 'System', incidents: 4, atRisk: 1, availability: 96.3, totalAssets: 6, offline: 0, critical: 1, warning: 1, healthy: 4, color: '#0968db' },
+  'Secondary Cooling Water System': { level: 'System', incidents: 2, atRisk: 0, availability: 98.1, totalAssets: 3, offline: 0, critical: 0, warning: 1, healthy: 2, color: '#0968db' },
+  'Cooling Water Condensor': { level: 'System', incidents: 0, atRisk: 0, availability: 100, totalAssets: 2, offline: 0, critical: 0, warning: 0, healthy: 2, color: '#0968db' },
+  'Compressor System 1': { level: 'System', incidents: 2, atRisk: 1, availability: 97.2, totalAssets: 4, offline: 0, critical: 1, warning: 0, healthy: 3, color: '#0968db' },
+  'Compressor System 2': { level: 'System', incidents: 1, atRisk: 0, availability: 98.5, totalAssets: 2, offline: 0, critical: 0, warning: 1, healthy: 1, color: '#0968db' },
+  'Chiller 10': { level: 'Asset', incidents: 2, atRisk: 1, availability: 96.3, totalAssets: 0, offline: 0, critical: 1, warning: 0, healthy: 0, color: '#0968db' },
+  'Chiller 20': { level: 'Asset', incidents: 1, atRisk: 0, availability: 97.8, totalAssets: 0, offline: 0, critical: 0, warning: 1, healthy: 0, color: '#0968db' },
+  'Chiller 30': { level: 'Asset', incidents: 0, atRisk: 0, availability: 99.1, totalAssets: 0, offline: 0, critical: 0, warning: 0, healthy: 0, color: '#0968db' },
+  'Cooling Tower A': { level: 'Asset', incidents: 1, atRisk: 0, availability: 95.5, totalAssets: 0, offline: 0, critical: 1, warning: 0, healthy: 0, color: '#0968db' },
+  'Cooling Tower B': { level: 'Asset', incidents: 0, atRisk: 0, availability: 98.9, totalAssets: 0, offline: 0, critical: 0, warning: 0, healthy: 0, color: '#0968db' },
+  'Primary Pump 1': { level: 'Asset', incidents: 0, atRisk: 0, availability: 99.5, totalAssets: 0, offline: 0, critical: 0, warning: 0, healthy: 0, color: '#0968db' },
+  'Pump 3': { level: 'Asset', incidents: 1, atRisk: 0, availability: 97.2, totalAssets: 0, offline: 0, critical: 0, warning: 1, healthy: 0, color: '#0968db' },
+  'Compressor 1': { level: 'Asset', incidents: 0, atRisk: 0, availability: 99.8, totalAssets: 0, offline: 0, critical: 0, warning: 0, healthy: 0, color: '#0968db' },
+  'Compressor 2': { level: 'Asset', incidents: 1, atRisk: 1, availability: 95.2, totalAssets: 0, offline: 0, critical: 1, warning: 0, healthy: 0, color: '#0968db' },
+  'Compressor 3': { level: 'Asset', incidents: 0, atRisk: 0, availability: 98.7, totalAssets: 0, offline: 0, critical: 0, warning: 0, healthy: 0, color: '#0968db' },
 }
 
-function SparkArea({ color }: { color: string }) {
+const PLOT_COLOR = '#0968db'
+
+function SparkArea() {
   const points = Array.from({ length: 20 }, (_, i) => {
     const x = (i / 19) * 215
     const y = 10 + Math.sin(i * 0.5) * 12 + Math.random() * 8
@@ -47,13 +49,13 @@ function SparkArea({ color }: { color: string }) {
   return (
     <svg viewBox="0 0 215 48" className="w-full h-12">
       <defs>
-        <linearGradient id={`spark-${color.replace('#', '')}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity={0.35} />
-          <stop offset="100%" stopColor={color} stopOpacity={0.02} />
+        <linearGradient id="spark-compare" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={PLOT_COLOR} stopOpacity={0.35} />
+          <stop offset="100%" stopColor={PLOT_COLOR} stopOpacity={0.02} />
         </linearGradient>
       </defs>
-      <polygon points={areaPoints} fill={`url(#spark-${color.replace('#', '')})`} />
-      <polyline points={points} fill="none" stroke={color} strokeWidth="2" />
+      <polygon points={areaPoints} fill="url(#spark-compare)" />
+      <polyline points={points} fill="none" stroke={PLOT_COLOR} strokeWidth="2" />
     </svg>
   )
 }
@@ -109,14 +111,14 @@ export default function CompareView({ compareType, items, onBack, onAddMore, onR
             <div className="flex-1 overflow-x-auto">
               <div className="flex">
                 {visible.map((name) => {
-                  const d = mockData[name] ?? { level: compareType, incidents: 0, atRisk: 0, availability: 0, totalAssets: 0, offline: 0, critical: 0, warning: 0, healthy: 0, color: '#7C3AED' }
+                  const d = mockData[name] ?? { level: compareType, incidents: 0, atRisk: 0, availability: 0, totalAssets: 0, offline: 0, critical: 0, warning: 0, healthy: 0, color: '#0968db' }
                   return (
                     <div key={name} className="w-[240px] shrink-0 flex flex-col border-r border-gray-200">
                       <div className="h-[136px] px-3 pt-2 pb-3 border-b border-gray-200 relative">
                         <button onClick={() => setRemoved((r) => [...r, name])} title={`Remove ${name}`} className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-md text-gray-300 hover:text-red-600 hover:bg-red-50 transition-all cursor-pointer">
                           <X className="w-3 h-3" />
                         </button>
-                        <SparkArea color={d.color} />
+                        <SparkArea />
                         <div className="flex items-center gap-1.5 mt-1 min-w-0">
                           <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
                           <h3 className="text-xs font-bold text-gray-900 truncate flex-1">{name}</h3>

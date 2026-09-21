@@ -12,8 +12,8 @@ type Card = {
   legends2?: Legend[]
 }
 
-export default function SummaryCards({ active }: { active: string }) {
-  const s = getCustomerSummary(active)
+export default function SummaryCards({ active, variant = '' }: { active: string; variant?: string }) {
+  const s = getCustomerSummary(active, variant)
   const pct = (part: number, total: number) => (total > 0 ? (part / total) * 100 : 0)
   const isAll = active === 'all'
 

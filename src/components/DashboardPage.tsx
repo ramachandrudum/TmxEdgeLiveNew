@@ -30,6 +30,7 @@ import AssetOverview from './AssetOverview'
 type Props = {
   siteName: string
   selectedUnitPath?: string[]
+  onSelectSite?: (siteName: string) => void
 }
 
 const TABS = ['Overview', 'Process Flow', 'Attachments', 'Tags', 'Asset Timeline', 'Dashboard']

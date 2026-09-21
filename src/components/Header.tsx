@@ -15,6 +15,8 @@ type Props = {
   onSwitchCustomer?: (id: string) => void
   onSelectPersona?: (type: PersonaType, view: PersonaView) => void
   onCompare?: (type: string, items: string[]) => void
+  buIconVisible?: boolean
+  onToggleBu?: () => void
 }
 
 const compareTypes = [
@@ -51,7 +53,7 @@ const assetGroups: { name: string; children: { name: string; children: { name: s
   ]},
 ]
 
-export default function Header({ customer, customers, dark, isDashboard, persona, onToggleDark, onOpenAICopilot, onSwitchCustomer, onSelectPersona, onCompare }: Props) {
+export default function Header({ customer, customers, dark, isDashboard, persona, onToggleDark, onOpenAICopilot, onSwitchCustomer, onSelectPersona, onCompare, buIconVisible, onToggleBu }: Props) {
   const [profileOpen, setProfileOpen] = useState(false)
   const [customerOpen, setCustomerOpen] = useState(false)
   const [customerQuery, setCustomerQuery] = useState('')
@@ -86,6 +88,18 @@ export default function Header({ customer, customers, dark, isDashboard, persona
     <header className="h-[50px] border-b border-gray-200 bg-[#ecf2fa] flex items-center justify-between px-4 shrink-0 z-50 shadow-sm">
       <div className="flex items-center gap-6 flex-1 min-w-0">
         <div className="flex items-center gap-4 min-w-0">
+          {buIconVisible && (
+            <button
+              onClick={onToggleBu}
+              title="Show BU bar"
+              className="relative w-8 h-8 flex items-center justify-center rounded-[5px] border border-gray-200 bg-white text-gray-600 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer shrink-0 group"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                <path d="M6,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM6,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM6,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM16,6c0,1.1 0.9,2 2,2s2,-0.9 2,-2 -0.9,-2 -2,-2 -2,0.9 -2,2zM12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM18,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM18,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2z"></path>
+              </svg>
+              <span className="absolute top-full mt-2 px-2.5 py-1 rounded-md bg-black text-white text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">BU Bar</span>
+            </button>
+          )}
           <img alt="TMX EdgeLive" className="h-[30px] w-auto object-contain shrink-0" src="/Thermax-EDGE-Live-Logo-V1.png" />
           {customer && persona?.type === 'external' && (
             <>

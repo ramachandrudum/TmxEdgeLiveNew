@@ -369,10 +369,10 @@ export default function AssetOverview({ rpCollapsed, onToggleRp }: { rpCollapsed
               title="Superheat vs Subcooling"
               badge="Optimal"
               stat1Label="Superheat"
-              stat1Color="#1565C0"
+              stat1Color="#0968db"
               stat1Value="-4.98 °C"
               stat2Label="Subcooling"
-              stat2Color="#B23A5A"
+              stat2Color="#0968db"
               stat2Value="4.36 °C"
               line1Points={superheatSubcooling1}
               line2Points={superheatSubcooling2}
@@ -382,10 +382,10 @@ export default function AssetOverview({ rpCollapsed, onToggleRp }: { rpCollapsed
               title="Specific Power vs Condenser Approach"
               badge="Optimal"
               stat1Label="Specific Power"
-              stat1Color="#1565C0"
+              stat1Color="#0968db"
               stat1Value="2.78 kW/TR"
               stat2Label="Condenser Approach"
-              stat2Color="#B23A5A"
+              stat2Color="#0968db"
               stat2Value="7.66 °C"
               line1Points={specPowerCond1}
               line2Points={specPowerCond2}

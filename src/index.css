@@ -1,13 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap');
 @import "tailwindcss";
 
 :root {
+  --font-lato: 'Lato', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
   --rm: #dc3545;
   --gm: #006D4E;
   --aym: #FFB900;
   --am: #fd7e14;
   --tt: #6B7280;
   --accent: #2563EB;
-  --bl: #3B4CCB;
+  --bl: #0968db;
   --r: #dc3545;
   --g: #1C9A5B;
   --bd: #e5e7eb;
@@ -137,7 +139,7 @@ html, body, #root {
   padding: 0;
   height: 100vh;
   overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-lato);
 }
 
 * {

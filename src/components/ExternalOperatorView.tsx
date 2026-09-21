@@ -5,21 +5,22 @@ import {
   ChevronDown,
   ChevronRight,
   ClipboardList,
-  ExternalLink,
   Info,
   Wrench,
   CheckCircle2,
   Zap,
   Clock,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { generateSites, type Customer, type UnitStat } from '../data/dashboard'
 import SummaryCards from './SummaryCards'
+import { hashSeed, seededRandom } from '../lib/vary'
 
 type Props = {
   customer: Customer
   onOpenDashboard: (siteName: string) => void
   hideMetrics?: boolean
+  variant?: string
 }
 
 const STATUS_COLOR: Record<UnitStat['status'], string> = {
@@ -51,11 +52,11 @@ const quickLinks = [
   { id: 'ql5', title: 'Service History', desc: 'View past maintenance visits and completed work orders across all sites' },
 ]
 
-const metrics = [
-  { num: '46%', label: 'Avg Risk Score', caption: 'Across all assets, fleet-wide', icon: Zap, bg: '#FFF3E0', color: '#E65100' },
-  { num: '16%', label: 'Critical Asset Ratio', caption: 'Share of assets in critical state', icon: AlertTriangle, bg: '#FFEBEE', color: '#dc3545' },
-  { num: '33%', label: 'Task Completion Rate', caption: 'Of all tasks raised, fleet-wide', icon: CheckCircle, bg: '#E8F5E9', color: '#2E7D32' },
-  { num: '50%', label: 'On-Time Task Rate', caption: 'Not overdue, fleet-wide', icon: Clock, bg: '#E3F2FD', color: '#1565C0' },
+const baseMetrics = [
+  { num: 46, label: 'Avg Risk Score', caption: 'Across all assets, fleet-wide', icon: Zap, bg: '#FFF3E0', color: '#E65100' },
+  { num: 16, label: 'Critical Asset Ratio', caption: 'Share of assets in critical state', icon: AlertTriangle, bg: '#FFEBEE', color: '#dc3545' },
+  { num: 33, label: 'Task Completion Rate', caption: 'Of all tasks raised, fleet-wide', icon: CheckCircle, bg: '#E8F5E9', color: '#2E7D32' },
+  { num: 50, label: 'On-Time Task Rate', caption: 'Not overdue, fleet-wide', icon: Clock, bg: '#E3F2FD', color: '#1565C0' },
 ]
 
 const siteColumns = 'grid-cols-[24px_minmax(220px,2fr)_1fr_1fr_1.2fr_1fr_1.4fr]'
@@ -158,10 +159,19 @@ function UnitTable({ units }: { units: UnitStat[] }) {
   )
 }
 
-export default function ExternalOperatorView({ customer, onOpenDashboard, hideMetrics }: Props) {
-  const sites = generateSites(customer.id)
+export default function ExternalOperatorView({ customer, onOpenDashboard, hideMetrics, variant = '' }: Props) {
+  const sites = generateSites(customer.id, variant)
   const [activeSite, setActiveSite] = useState<string>('all')
   const [openSites, setOpenSites] = useState<Set<string>>(new Set())
+
+  const metrics = useMemo(() => {
+    const rnd = seededRandom(hashSeed(`ext-${customer.id}-${variant}`))
+    return baseMetrics.map((m) => ({
+      ...m,
+      num: `${Math.max(3, Math.round(m.num * (0.75 + rnd() * 0.5)))}%`,
+    }))
+  }, [customer.id, variant])
+
   const visibleSites = activeSite === 'all' ? sites : sites.filter((s) => s.name === activeSite)
 
   const toggleSite = (siteId: string) => {
@@ -189,7 +199,7 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
           </div>
         </div>
         <button onClick={() => onOpenDashboard(sites[0]?.name ?? '')} className="btn btn-md text-[#005EDB] border border-[#005EDB]/25 hover:bg-[#005EDB] hover:text-white hover:shadow-md">
-          Go to Dashboard <ExternalLink className="w-4 h-4" />
+          <ChevronRight className="w-4 h-4" />
         </button>
       </div>
 
@@ -200,7 +210,7 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
         ))}
       </div>
 
-      <SummaryCards active={customer.id} />
+      <SummaryCards active={customer.id} variant={variant} />
 
       {hideMetrics && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
@@ -317,7 +327,7 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
                   <div className="text-sm text-gray-700">{totals.tasks} tasks</div>
                   <div className="flex justify-end">
                     <button onClick={(e) => { e.stopPropagation(); onOpenDashboard(site.name) }} className="text-[#005EDB] text-sm font-semibold inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-[#005EDB] hover:bg-[#005EDB] hover:text-white hover:shadow-md transition-all group-hover/site:bg-[#005EDB] group-hover/site:text-white group-hover/site:shadow-md">
-                      Go to Dashboard <ExternalLink className="w-4 h-4" />
+                      <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
                 </div>

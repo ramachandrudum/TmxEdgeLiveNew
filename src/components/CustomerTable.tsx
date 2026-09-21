@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, ExternalLink } from 'lucide-react'
+import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import CustomerLogo from './Logos'
 import {
@@ -302,7 +302,7 @@ function SiteRow({ site, onOpenDashboard, onSelectUnit }: { site: SiteStat; onOp
             }}
             className="text-[#005EDB] text-sm font-semibold inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-[#005EDB] hover:bg-[#005EDB] hover:text-white hover:shadow-md transition-all group-hover/site:bg-[#005EDB] group-hover/site:text-white group-hover/site:shadow-md"
           >
-            Go to Dashboard <ExternalLink className="w-4 h-4" />
+            <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -320,16 +320,18 @@ export default function CustomerTable({
   active,
   onOpenDashboard,
   onSelectUnit,
+  variant = '',
 }: {
   active: string
   onOpenDashboard: (siteName: string) => void
   onSelectUnit: (siteName: string, unitName: string) => void
+  variant?: string
 }) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
 
   if (active !== 'all') {
     const customer = customers.find((c) => c.id === active)
-    const sites = customer ? generateSites(customer.id) : []
+    const sites = customer ? generateSites(customer.id, variant) : []
 
     return (
       <div className="sites-table-wrap bg-white border border-gray-200 rounded-md overflow-hidden">
@@ -364,7 +366,7 @@ export default function CustomerTable({
 
       {customers.map((c) => {
         const isOpen = !!expanded[c.id]
-        const sites = generateSites(c.id)
+        const sites = generateSites(c.id, variant)
         return (
           <div key={c.id} className="border-b border-gray-100 last:border-b-0">
             <div
@@ -404,7 +406,7 @@ export default function CustomerTable({
                   }}
                   className="text-[#005EDB] text-sm font-semibold inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-[#005EDB] hover:bg-[#005EDB] hover:text-white hover:shadow-md transition-all group-hover/site:bg-[#005EDB] group-hover/site:text-white group-hover/site:shadow-md"
                 >
-                  Go to Dashboard <ExternalLink className="w-4 h-4" />
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             </div>

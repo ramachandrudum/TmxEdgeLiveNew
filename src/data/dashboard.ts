@@ -201,11 +201,32 @@ function distribute(total: number, weights: number[]): number[] {
   return parts
 }
 
-export function getCustomerSummary(customerId: string): DashboardSummary {
+export function getCustomerSummary(customerId: string, variant = ''): DashboardSummary {
   const customer =
     customerId === 'all' ? undefined : customers.find((c) => c.id === customerId)
 
   if (!customer) {
+    const rnd = seededRandom(hashSeed(`summary-all-${variant}`))
+    const jitter = (base: number) => Math.max(1, Math.round(base * (0.7 + rnd() * 0.6)))
+    const [unitsOffline, unitsOnline] = distribute(totalSummary.units, [
+      jitter(totalSummary.unitsOffline),
+      jitter(totalSummary.unitsOnline),
+    ])
+    const [aCrit, aRisk, aHealthy] = distribute(totalSummary.assets, [
+      jitter(totalSummary.assetHealth.critical),
+      jitter(totalSummary.assetHealth.atRisk),
+      jitter(totalSummary.assetHealth.healthy),
+    ])
+    const [iCrit, iWarn, iDev] = distribute(totalSummary.incidents, [
+      jitter(totalSummary.incidentsBreakdown.critical),
+      jitter(totalSummary.incidentsBreakdown.warning),
+      jitter(totalSummary.incidentsBreakdown.deviation),
+    ])
+    const [tOverdue, tNotStarted, tCompleted] = distribute(totalSummary.tasks, [
+      jitter(totalSummary.tasksBreakdown.overdue),
+      jitter(totalSummary.tasksBreakdown.notStarted),
+      jitter(totalSummary.tasksBreakdown.completed),
+    ])
     return {
       customers: customers.length,
       sites: totalSummary.sites,
@@ -213,30 +234,34 @@ export function getCustomerSummary(customerId: string): DashboardSummary {
       assets: totalSummary.assets,
       incidents: totalSummary.incidents,
       tasks: totalSummary.tasks,
-      unitsOnline: totalSummary.unitsOnline,
-      unitsOffline: totalSummary.unitsOffline,
-      assetHealth: totalSummary.assetHealth,
-      incidentsBreakdown: totalSummary.incidentsBreakdown,
-      tasksBreakdown: totalSummary.tasksBreakdown,
+      unitsOnline,
+      unitsOffline,
+      assetHealth: { critical: aCrit, atRisk: aRisk, healthy: aHealthy },
+      incidentsBreakdown: { critical: iCrit, warning: iWarn, deviation: iDev },
+      tasksBreakdown: { overdue: tOverdue, ongoing: 0, notStarted: tNotStarted, completed: tCompleted },
     }
   }
 
-  const rnd = seededRandom(hashSeed(`summary-${customerId}`))
+  const rnd = seededRandom(hashSeed(`summary-${customerId}-${variant}`))
   const jitter = (base: number) => base * (0.7 + rnd() * 0.6)
 
-  const [aCrit, aRisk, aHealthy] = distribute(customer.assets, [
+  const assetCount = Math.max(1, Math.round(customer.assets * (0.7 + rnd() * 0.6)))
+  const incidentCount = Math.max(1, Math.round(customer.incidents * (0.7 + rnd() * 0.6)))
+  const taskCount = Math.max(1, Math.round(customer.tasks * (0.7 + rnd() * 0.6)))
+
+  const [aCrit, aRisk, aHealthy] = distribute(assetCount, [
     jitter(totalSummary.assetHealth.critical),
     jitter(totalSummary.assetHealth.atRisk),
     jitter(totalSummary.assetHealth.healthy),
   ])
 
-  const [iCrit, iWarn, iDev] = distribute(customer.incidents, [
+  const [iCrit, iWarn, iDev] = distribute(incidentCount, [
     jitter(totalSummary.incidentsBreakdown.critical),
     jitter(totalSummary.incidentsBreakdown.warning),
     jitter(totalSummary.incidentsBreakdown.deviation),
   ])
 
-  const [tOverdue, tNotStarted, tCompleted] = distribute(customer.tasks, [
+  const [tOverdue, tNotStarted, tCompleted] = distribute(taskCount, [
     jitter(totalSummary.tasksBreakdown.overdue),
     jitter(totalSummary.tasksBreakdown.notStarted),
     jitter(totalSummary.tasksBreakdown.completed),
@@ -251,9 +276,9 @@ export function getCustomerSummary(customerId: string): DashboardSummary {
     customers: 1,
     sites: customer.sites,
     units: customer.units,
-    assets: customer.assets,
-    incidents: customer.incidents,
-    tasks: customer.tasks,
+    assets: assetCount,
+    incidents: incidentCount,
+    tasks: taskCount,
     unitsOnline,
     unitsOffline,
     assetHealth: { critical: aCrit, atRisk: aRisk, healthy: aHealthy },
@@ -269,7 +294,7 @@ export function getCustomerSummary(customerId: string): DashboardSummary {
 
 export const budgetUnits = [
   { id: 'ums', name: 'UMS', icon: 'plug', active: true },
-  { id: 'keepcooling', name: 'Keep Cooling', icon: 'cpu' },
+  { id: 'keepcooling', name: 'Just Cooling', icon: 'cpu' },
   { id: 'wws', name: 'WWS', icon: 'droplets' },
   { id: 'power', name: 'Power', icon: 'zap' },
   { id: 'heating', name: 'Heating', icon: 'flame' },
@@ -399,8 +424,8 @@ const unitNames = [
   'Generators',
 ]
 
-function generateUnits(seedKey: string, count: number): UnitStat[] {
-  const rnd = seededRandom(hashSeed(`${seedKey}-units`))
+function generateUnits(seedKey: string, count: number, variant = ''): UnitStat[] {
+  const rnd = seededRandom(hashSeed(`${seedKey}-units-${variant}`))
   const ago = () => `${1 + Math.floor(rnd() * 12)}m ago`
 
   return Array.from({ length: count }, (_, u) => {
@@ -447,8 +472,8 @@ function generateUnits(seedKey: string, count: number): UnitStat[] {
   })
 }
 
-export function generateSites(customerId: string): SiteStat[] {
-  const rnd = seededRandom(hashSeed(customerId))
+export function generateSites(customerId: string, variant = ''): SiteStat[] {
+  const rnd = seededRandom(hashSeed(`${customerId}-${variant}`))
   const corp = corpNames[customerId] ?? 'Corp'
   const count = 2 + Math.floor(rnd() * 3)
 
@@ -478,9 +503,9 @@ export function generateSites(customerId: string): SiteStat[] {
     return {
       id: siteId,
       name,
-      updated: `${1 + (hashSeed(siteId) % 12)}m ago`,
+      updated: `${1 + (hashSeed(`${siteId}-${variant}`) % 12)}m ago`,
       units,
-      unitList: generateUnits(siteId, units),
+      unitList: generateUnits(siteId, units, variant),
       assets: {
         value: assetsTotal,
         legends: [
