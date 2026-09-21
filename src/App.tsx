@@ -27,7 +27,7 @@ export default function App() {
   const [persona, setPersona] = useState<Persona>({ type: 'internal', view: 'management' })
   const [activeCustomer, setActiveCustomer] = useState('all')
   const [dark, setDark] = useState(false)
-  const [page, setPage] = useState<'customers' | 'dashboard'>('customers')
+  const [page, setPage] = useState<'customers' | 'dashboard' | 'incidents' | 'tasks' | 'report'>('customers')
   const [dashboardSite, setDashboardSite] = useState('')
   const [selectedUnitPath, setSelectedUnitPath] = useState<string[]>([])
   const [showAICopilot, setShowAICopilot] = useState(false)
@@ -58,6 +58,12 @@ export default function App() {
     setIconNav(id)
     if (id === 'dashboard') {
       openDashboard(dashboardSite || generateSites(customers[0].id)[0]?.name || '')
+    } else if (id === 'incidents') {
+      setPage('incidents')
+    } else if (id === 'tasks') {
+      setPage('tasks')
+    } else if (id === 'report') {
+      setPage('report')
     } else {
       setPage('customers')
     }
@@ -127,7 +133,7 @@ export default function App() {
         {/* Right side */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* BU bar below header */}
-          {!showCustomGrid && page !== 'dashboard' && (
+          {!showCustomGrid && page !== 'dashboard' && page !== 'incidents' && page !== 'tasks' && page !== 'report' && persona.type !== 'external' && (
             <BUBar
               items={budgetUnits as BUItem[]}
               active={activeBU}
@@ -144,6 +150,20 @@ export default function App() {
               onAddMore={handleCompareAddMore}
               onReset={handleCompareReset}
             />
+          ) : page === 'incidents' || page === 'tasks' || page === 'report' ? (
+            <div className="flex-1 flex items-center justify-center bg-white min-h-0">
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 16v-4" />
+                    <path d="M12 8h.01" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">{page === 'incidents' ? 'Incidents' : page === 'tasks' ? 'Tasks' : 'Reports'}</h3>
+                <p className="text-sm text-gray-500">No data available yet</p>
+              </div>
+            </div>
           ) : showExternalOperatorView ? (
             <main className="flex-1 px-4 lg:px-8 pt-[15px] pb-0 overflow-y-auto min-h-0 flex flex-col bg-white">
               <div className="max-w-[1050px] mx-auto space-y-6 w-full pb-8 shrink-0 min-[1920px]:w-[1500px] min-[1920px]:max-w-[1500px]">
