@@ -2,6 +2,7 @@ import { Building2, Plus } from 'lucide-react'
 import { useState } from 'react'
 import AICopilot from './components/AICopilot'
 import BUBar, { type BUItem } from './components/BUBar'
+import CompareView from './components/CompareView'
 import CustomerSidebar from './components/CustomerSidebar'
 import Header from './components/Header'
 import IconSidebar from './components/IconSidebar'
@@ -13,6 +14,13 @@ import ExternalOperatorView from './components/ExternalOperatorView'
 import { budgetUnits, customers, generateSites } from './data/dashboard'
 import { personaKey, personaNav, type Persona, type PersonaType, type PersonaView } from './data/personas'
 
+const compareItems: Record<string, string[]> = {
+  site: ['Nestle UAE', 'Cairo Plant', 'Lagos Plant', 'Riyadh Plant'],
+  unit: ['HVAC', 'Compressors'],
+  system: ['Primary Cooling Water System', 'Secondary Cooling Water System', 'Cooling Water Condensor', 'Compressor System 1', 'Compressor System 2'],
+  asset: ['Chiller 10', 'Chiller 20', 'Chiller 30', 'Cooling Tower A', 'Cooling Tower B', 'Primary Pump 1', 'Pump 3', 'Compressor 1', 'Compressor 2', 'Compressor 3'],
+}
+
 export default function App() {
   const [iconNav, setIconNav] = useState('home')
   const [activeBU, setActiveBU] = useState('ums')
@@ -23,6 +31,7 @@ export default function App() {
   const [dashboardSite, setDashboardSite] = useState('')
   const [selectedUnitPath, setSelectedUnitPath] = useState<string[]>([])
   const [showAICopilot, setShowAICopilot] = useState(false)
+  const [compareView, setCompareView] = useState<'select-type' | { type: string; items: string[] } | null>(null)
 
   const currentCustomer = customers.find((c) => c.id === activeCustomer)
   const currentLabel = currentCustomer?.name ?? 'Polar Thermal Systems'
@@ -77,6 +86,24 @@ export default function App() {
     }
   }
 
+  const handleOpenCompare = (type: string, items: string[]) => {
+    setCompareView({ type, items })
+  }
+
+  const handleCompareBack = () => {
+    setCompareView(null)
+  }
+
+  const handleCompareAddMore = () => {
+    setCompareView(null)
+  }
+
+  const handleCompareReset = () => {
+    if (compareView && typeof compareView === 'object') {
+      setCompareView({ type: compareView.type, items: compareItems[compareView.type] ?? [] })
+    }
+  }
+
   return (
     <div className={`flex flex-col h-screen bg-[var(--bg-main)] overflow-hidden ${dark ? 'dark' : ''}`}>
       {/* Full-width Header top bar */}
@@ -90,6 +117,7 @@ export default function App() {
         onOpenAICopilot={() => setShowAICopilot(true)}
         onSwitchCustomer={handleSwitchCustomer}
         onSelectPersona={handleSelectPersona}
+        onCompare={handleOpenCompare}
       />
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
@@ -108,7 +136,15 @@ export default function App() {
           )}
 
           {/* Content area */}
-          {showExternalOperatorView ? (
+          {compareView && typeof compareView === 'object' ? (
+            <CompareView
+              compareType={compareView.type}
+              items={compareView.items}
+              onBack={handleCompareBack}
+              onAddMore={handleCompareAddMore}
+              onReset={handleCompareReset}
+            />
+          ) : showExternalOperatorView ? (
             <main className="flex-1 px-4 lg:px-8 pt-[15px] pb-0 overflow-y-auto min-h-0 flex flex-col bg-white">
               <div className="max-w-[1050px] mx-auto space-y-6 w-full pb-8 shrink-0 min-[1920px]:w-[1500px] min-[1920px]:max-w-[1500px]">
                 <ExternalOperatorView
