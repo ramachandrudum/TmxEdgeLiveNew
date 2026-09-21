@@ -76,7 +76,7 @@ function TreeBranch({
         onClick={() => onSelect(currentPath)}
         className={`group flex items-center gap-2 py-1.5 pr-2 rounded-md text-[13px] cursor-pointer ${
           isActive
-            ? 'text-blue-700 font-semibold'
+            ? 'text-blue-700 font-semibold bg-blue-50'
             : 'text-gray-700 hover:bg-gray-100'
         }`}
         style={{ paddingLeft: pad }}
@@ -234,7 +234,14 @@ function HierarchyPanel({ siteName, onSelect, selectedUnitPath, selectedPath, co
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto px-2 pb-3">
-        <div className="flex items-center gap-2 py-1.5 px-2 rounded-md text-[13px] font-semibold text-blue-700 bg-blue-50">
+        <div
+          onClick={() => onSelect([hierarchy.name])}
+          className={`flex items-center gap-2 py-1.5 px-2 rounded-md text-[13px] cursor-pointer ${
+            selectedPath.length === 1
+              ? 'font-semibold text-blue-700 bg-blue-50'
+              : 'font-semibold text-gray-700 hover:bg-gray-50'
+          }`}
+        >
           <MapPin className="w-3.5 h-3.5 shrink-0" />
           <span className="flex-1 truncate">{hierarchy.name}</span>
         </div>
@@ -952,6 +959,28 @@ export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
 
   const isAssetSelected = selectedPath.length >= 4
 
+  const findNodeByPath = (nodes: TreeNode[], path: string[], depth: number): TreeNode | null => {
+    for (const node of nodes) {
+      if (node.name === path[depth]) {
+        if (depth < path.length - 1 && node.children) {
+          return findNodeByPath(node.children, path, depth + 1)
+        }
+        return node
+      }
+    }
+    return null
+  }
+
+  const filteredBreadcrumb = selectedPath.filter((_name, i) => {
+    if (i === 0 || i === selectedPath.length - 1) return true
+    const node = findNodeByPath(hierarchy.children || [], selectedPath.slice(1, i + 1), 0)
+    return node && node.kind !== 'system'
+  })
+
+  const handleBreadcrumbClick = (index: number) => {
+    setSelectedPath(selectedPath.slice(0, index + 1))
+  }
+
   return (
     <div className="flex flex-1 min-h-0 overflow-hidden bg-[#F8FAFC]">
       <HierarchyPanel siteName={siteName} onSelect={setSelectedPath} selectedUnitPath={selectedUnitPath} selectedPath={selectedPath} collapsed={ahCollapsed} setCollapsed={setAhCollapsed} />
@@ -978,10 +1007,13 @@ export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
                 </span>
               </button>
             )}
-            {selectedPath.map((item, i) => (
+            {filteredBreadcrumb.map((item, i) => (
               <span key={i} className="flex items-center gap-1.5">
                 {i > 0 && <span className="text-gray-300">/</span>}
-                <span className={i === selectedPath.length - 1 ? 'font-semibold text-gray-800' : ''}>
+                <span
+                  onClick={() => handleBreadcrumbClick(i)}
+                  className={`cursor-pointer hover:text-blue-600 transition-colors ${i === filteredBreadcrumb.length - 1 ? 'font-semibold text-gray-800' : ''}`}
+                >
                   {item}
                 </span>
               </span>

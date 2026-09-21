@@ -78,7 +78,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-[var(--bg-main)] overflow-hidden">
+    <div className={`flex flex-col h-screen bg-[var(--bg-main)] overflow-hidden ${dark ? 'dark' : ''}`}>
       {/* Full-width Header top bar */}
       <Header
         customer={currentCustomer ?? (persona.type === 'external' ? customers[0] : null)}
