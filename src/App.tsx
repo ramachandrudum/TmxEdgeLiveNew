@@ -9,7 +9,6 @@ import SummaryCards from './components/SummaryCards'
 import PerformanceMetrics from './components/PerformanceMetrics'
 import CustomerTable from './components/CustomerTable'
 import DashboardPage from './components/DashboardPage'
-import OperatorView from './components/OperatorView'
 import ExternalOperatorView from './components/ExternalOperatorView'
 import { budgetUnits, customers, generateSites } from './data/dashboard'
 import { personaKey, personaNav, type Persona, type PersonaType, type PersonaView } from './data/personas'
@@ -30,7 +29,7 @@ export default function App() {
   const showOperatorView = persona.view === 'operator' && page === 'customers' && iconNav === 'home'
   const showExternalOperatorView = persona.type === 'external' && showOperatorView
   const showExternalManagementView = persona.type === 'external' && persona.view === 'management' && page === 'customers' && iconNav === 'home'
-  const showCustomGrid = showExternalOperatorView || showExternalManagementView || (showOperatorView && !showExternalOperatorView)
+  const showCustomGrid = showExternalOperatorView || showExternalManagementView || (showOperatorView && !showExternalOperatorView) || persona.view === 'buhead'
 
   const openDashboard = (siteName: string) => {
     setDashboardSite(siteName)
@@ -115,17 +114,16 @@ export default function App() {
                 <ExternalOperatorView
                   customer={currentCustomer ?? customers[0]}
                   onOpenDashboard={openDashboard}
-                  onSelectUnit={handleSelectUnit}
+                  hideMetrics
                 />
               </div>
             </main>
           ) : showExternalManagementView ? (
             <main className="flex-1 px-4 lg:px-8 pt-[15px] pb-0 overflow-y-auto min-h-0 flex flex-col bg-white">
               <div className="max-w-[1050px] mx-auto space-y-6 w-full pb-8 shrink-0 min-[1920px]:w-[1500px] min-[1920px]:max-w-[1500px]">
-                <OperatorView
+                <ExternalOperatorView
                   customer={currentCustomer ?? customers[0]}
                   onOpenDashboard={openDashboard}
-                  hideHeaderBorder
                 />
               </div>
             </main>
