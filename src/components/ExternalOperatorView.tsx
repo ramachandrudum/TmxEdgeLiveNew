@@ -316,7 +316,7 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
                   <div className="text-sm text-gray-700">{totals.incidents} incidents</div>
                   <div className="text-sm text-gray-700">{totals.tasks} tasks</div>
                   <div className="flex justify-end">
-                    <button onClick={(e) => { e.stopPropagation(); onOpenDashboard(site.name) }} className="text-[#005EDB] text-sm font-semibold inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-[#005EDB] hover:bg-[#005EDB] hover:text-white hover:shadow-md transition-all">
+                    <button onClick={(e) => { e.stopPropagation(); onOpenDashboard(site.name) }} className="text-[#005EDB] text-sm font-semibold inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-[#005EDB] hover:bg-[#005EDB] hover:text-white hover:shadow-md transition-all group-hover/site:bg-[#005EDB] group-hover/site:text-white group-hover/site:shadow-md">
                       Go to Dashboard <ExternalLink className="w-4 h-4" />
                     </button>
                   </div>

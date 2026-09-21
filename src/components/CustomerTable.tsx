@@ -300,7 +300,7 @@ function SiteRow({ site, onOpenDashboard, onSelectUnit }: { site: SiteStat; onOp
               e.stopPropagation()
               onOpenDashboard(site.name)
             }}
-            className="text-[#005EDB] text-sm font-semibold inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-[#005EDB] hover:bg-[#005EDB] hover:text-white hover:shadow-md transition-all"
+            className="text-[#005EDB] text-sm font-semibold inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-[#005EDB] hover:bg-[#005EDB] hover:text-white hover:shadow-md transition-all group-hover/site:bg-[#005EDB] group-hover/site:text-white group-hover/site:shadow-md"
           >
             Go to Dashboard <ExternalLink className="w-4 h-4" />
           </button>
@@ -369,7 +369,7 @@ export default function CustomerTable({
           <div key={c.id} className="border-b border-gray-100 last:border-b-0">
             <div
               onClick={() => toggle(c.id)}
-              className={`grid ${columns} gap-2 items-center px-4 py-3 transition-colors hover:bg-gray-50 cursor-pointer`}
+              className={`grid ${columns} gap-2 items-center px-4 py-3 transition-colors hover:bg-gray-50 cursor-pointer group/site`}
             >
               <div className="flex items-center gap-3 min-w-0">
                 <button
@@ -402,7 +402,7 @@ export default function CustomerTable({
                     e.stopPropagation()
                     onOpenDashboard(sites[0]?.name ?? c.name)
                   }}
-                  className="text-[#005EDB] text-sm font-semibold inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-[#005EDB] hover:bg-[#005EDB] hover:text-white hover:shadow-md transition-all"
+                  className="text-[#005EDB] text-sm font-semibold inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-[#005EDB] hover:bg-[#005EDB] hover:text-white hover:shadow-md transition-all group-hover/site:bg-[#005EDB] group-hover/site:text-white group-hover/site:shadow-md"
                 >
                   Go to Dashboard <ExternalLink className="w-4 h-4" />
                 </button>

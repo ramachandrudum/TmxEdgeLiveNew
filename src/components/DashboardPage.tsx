@@ -1,18 +1,13 @@
 import {
-  Activity,
-  BookOpen,
+  CheckCircle2,
+  ChevronLeft,
   ChevronRight,
   ChevronsUpDown,
-  Clock,
-  FileBarChart,
-  LineChart,
+  Info,
   MapPin,
-  MonitorPlay,
   Plus,
-  Rocket,
   Search,
-  Tag,
-  Workflow,
+  X,
 } from 'lucide-react'
 import { useState } from 'react'
 import {
@@ -329,7 +324,296 @@ function KpiStrip() {
   )
 }
 
-function KpiStatusCard() {
+type IncidentItem = {
+  id: string
+  time: string
+  title: string
+  source: string
+  kpiLabel: string
+  kpiValue: string
+  kpiDelta: string
+  status: 'cr' | 'wr' | 'dv'
+  cause?: string
+  severity: 'Critical' | 'Warning'
+  openStatus: 'Open' | 'Acknowledged' | 'Resolved'
+  startDate: string
+  unitName: string
+  equipment: string
+  kpiName: string
+  dataTag: string
+  value: string
+  unit: string
+  timestamp: string
+  badges: { label: string; color: string }[]
+}
+
+type IncidentPopupData = {
+  title: string
+  incidents: IncidentItem[]
+}
+
+const incidentPopupData: Record<string, IncidentPopupData> = {
+  'Condenser Approach High': {
+    title: 'Condenser Approach High',
+    incidents: [
+      {
+        id: 'inc1', time: '15/06, 2PM', title: 'Condenser Approach High', source: 'Chiller 10 (HVAC)',
+        kpiLabel: 'Compressor Load', kpiValue: '104 TPH', kpiDelta: '↓10%', status: 'cr',
+        cause: 'Fouled condenser tubes or reduced condenser water flow. Clean condenser tubes and verify cooling water flow rate.',
+        severity: 'Critical', openStatus: 'Open', startDate: '21 Sep, 08:04 AM',
+        unitName: 'MSB', equipment: 'COMPRESSOR 19-KA-RP-101B',
+        kpiName: 'NHT_RGC_B_Rod_Drop_CYL_2', dataTag: 'BPBR1_19ZI4906.PV',
+        value: '0.166', unit: 'mm', timestamp: '21/Sep 10:30 am',
+        badges: [
+          { label: 'B', color: 'bg-green-100 text-green-700' },
+          { label: 'E', color: 'bg-green-100 text-green-700' },
+          { label: 'V', color: 'bg-green-100 text-green-700' },
+          { label: 'H', color: 'bg-yellow-100 text-yellow-700' },
+        ],
+      },
+      {
+        id: 'inc2', time: '15/06, 1PM', title: 'Specific Power High', source: 'Chiller 10 (HVAC)',
+        kpiLabel: 'Energy Cost', kpiValue: '+12%', kpiDelta: '↑12%', status: 'cr',
+        cause: 'Reduced compressor efficiency or refrigerant undercharge. Check refrigerant charge and inspect compressor valves.',
+        severity: 'Critical', openStatus: 'Open', startDate: '21 Sep, 09:15 AM',
+        unitName: 'LSB', equipment: 'COMPRESSOR 19-KA-RP-101A',
+        kpiName: 'NHT_RGC_A_Rod_Drop_CYL_1', dataTag: 'BPBR1_19ZI4901.PV',
+        value: '0.142', unit: 'mm', timestamp: '21/Sep 10:45 am',
+        badges: [
+          { label: 'B', color: 'bg-green-100 text-green-700' },
+          { label: 'E', color: 'bg-green-100 text-green-700' },
+          { label: 'V', color: 'bg-green-100 text-green-700' },
+          { label: 'H', color: 'bg-yellow-100 text-yellow-700' },
+        ],
+      },
+      {
+        id: 'inc3', time: '09/06, 5AM', title: 'Evaporator ΔT Deviation', source: 'Chiller 10 (HVAC)',
+        kpiLabel: 'Evaporator ΔT', kpiValue: '3.2 °C', kpiDelta: '↓12%', status: 'dv',
+        severity: 'Warning', openStatus: 'Acknowledged', startDate: '09 Sep, 05:00 AM',
+        unitName: 'MSB', equipment: 'CHILLER 19-KA-CH-101',
+        kpiName: 'Evap_Delta_T', dataTag: 'EDT_CH101_PV',
+        value: '3.2', unit: '°C', timestamp: '09/Sep 05:30 am',
+        badges: [
+          { label: 'B', color: 'bg-green-100 text-green-700' },
+          { label: 'E', color: 'bg-green-100 text-green-700' },
+          { label: 'V', color: 'bg-green-100 text-green-700' },
+          { label: 'H', color: 'bg-yellow-100 text-yellow-700' },
+        ],
+      },
+    ],
+  },
+  'Specific Power High': {
+    title: 'Specific Power High',
+    incidents: [
+      {
+        id: 'inc4', time: '15/06, 2PM', title: 'Condenser Approach High', source: 'Chiller 10 (HVAC)',
+        kpiLabel: 'Compressor Load', kpiValue: '104 TPH', kpiDelta: '↓10%', status: 'cr',
+        cause: 'Fouled condenser tubes or reduced condenser water flow. Clean condenser tubes and verify cooling water flow rate.',
+        severity: 'Critical', openStatus: 'Open', startDate: '21 Sep, 08:04 AM',
+        unitName: 'MSB', equipment: 'COMPRESSOR 19-KA-RP-101B',
+        kpiName: 'NHT_RGC_B_Rod_Drop_CYL_2', dataTag: 'BPBR1_19ZI4906.PV',
+        value: '0.166', unit: 'mm', timestamp: '21/Sep 10:30 am',
+        badges: [
+          { label: 'B', color: 'bg-green-100 text-green-700' },
+          { label: 'E', color: 'bg-green-100 text-green-700' },
+          { label: 'V', color: 'bg-green-100 text-green-700' },
+          { label: 'H', color: 'bg-yellow-100 text-yellow-700' },
+        ],
+      },
+      {
+        id: 'inc5', time: '15/06, 1PM', title: 'Specific Power High', source: 'Chiller 10 (HVAC)',
+        kpiLabel: 'Energy Cost', kpiValue: '+12%', kpiDelta: '↑12%', status: 'cr',
+        cause: 'Reduced compressor efficiency or refrigerant undercharge. Check refrigerant charge and inspect compressor valves.',
+        severity: 'Critical', openStatus: 'Open', startDate: '21 Sep, 07:30 AM',
+        unitName: 'MSB', equipment: 'CHILLER 19-KA-CH-101',
+        kpiName: 'Specific_Power_Chiller_101', dataTag: 'SP_CH101_PV',
+        value: '0.892', unit: 'kW/TR', timestamp: '21/Sep 10:15 am',
+        badges: [
+          { label: 'B', color: 'bg-green-100 text-green-700' },
+          { label: 'E', color: 'bg-green-100 text-green-700' },
+          { label: 'V', color: 'bg-green-100 text-green-700' },
+          { label: 'H', color: 'bg-yellow-100 text-yellow-700' },
+        ],
+      },
+    ],
+  },
+}
+
+const STATUS_DOT: Record<string, string> = { cr: 'bg-red-500', wr: 'bg-amber-500', dv: 'bg-yellow-400' }
+
+function KpiIncidentsList({ kpiName, onSelectIncident, onClose }: { kpiName: string; onSelectIncident: (item: IncidentItem) => void; onClose: () => void }) {
+  const data = incidentPopupData[kpiName]
+  if (!data) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div className="bg-white rounded-lg shadow-2xl w-[700px] max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+          <h3 className="text-[15px] font-bold text-gray-900">{data.title}</h3>
+          <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 rounded transition-colors cursor-pointer">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          {data.incidents.map((item) => (
+            <div
+              key={item.id}
+              onClick={() => onSelectIncident(item)}
+              className="flex items-center gap-3 px-5 py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 cursor-pointer group"
+            >
+              <div className="flex-1 min-w-0">
+                <div className="text-[11px] text-gray-400 mb-1">{item.time}</div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${STATUS_DOT[item.status]}`} />
+                  <span className="text-[13px] font-semibold text-gray-900">{item.title}</span>
+                  <span className="text-gray-300">|</span>
+                  <span className="text-[12px] text-gray-500">{item.source}</span>
+                </div>
+                <div className="text-[12px] text-gray-600 mt-1">
+                  {item.kpiLabel} : <b className="text-gray-900">{item.kpiValue}</b>{' '}
+                  <span className="text-red-500">{item.kpiDelta}</span>
+                </div>
+                {item.cause && (
+                  <div className="mt-2 text-[11px] text-gray-500">
+                    <div className="font-semibold text-gray-600 mb-0.5">Root Causes and Recommended Actions</div>
+                    <div>{item.cause}</div>
+                  </div>
+                )}
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-blue-500 transition-colors shrink-0" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function IncidentPopup({ incident, onBack, onClose }: { incident: IncidentItem; onBack: () => void; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div className="bg-white rounded-lg shadow-2xl w-[800px] max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="px-5 pt-4 pb-3 border-b border-gray-200">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <button onClick={onBack} className="p-1 text-gray-400 hover:text-gray-600 rounded transition-colors cursor-pointer shrink-0" title="Back to incidents">
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <span className="text-[15px] font-bold text-gray-900 truncate">{incident.unitName} - {incident.title}</span>
+            </div>
+            <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 rounded transition-colors cursor-pointer">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="flex items-center justify-between gap-3 mt-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="py-0.5 px-2 rounded text-[11px] font-semibold bg-red-100 text-red-700">{incident.severity}</span>
+              <span className="py-0.5 px-2 rounded text-[11px] font-semibold bg-blue-100 text-blue-700">{incident.openStatus}</span>
+              <span className="text-[12px] text-gray-400">Start Date: <span className="font-semibold text-gray-700">{incident.startDate}</span></span>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-gray-200 text-[11px] text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6 9 17l-5-5" /></svg>
+                Approve
+              </button>
+              <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-gray-200 text-[11px] text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 17v5" /><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" /></svg>
+                Pin
+              </button>
+              <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-gray-200 text-[11px] text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><line x1="4" x2="4" y1="22" y2="15" /></svg>
+                Flag Noise
+              </button>
+              <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-gray-200 text-[11px] text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="19" x2="19" y1="8" y2="14" /><line x1="22" x2="16" y1="11" y2="11" /></svg>
+                Assign
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="px-5 py-4 overflow-y-auto flex-1 min-h-0 space-y-4">
+          <div className="border border-gray-200 rounded-lg overflow-hidden text-[13px]">
+            <table className="w-full border-collapse">
+              <tbody>
+                <tr className="border-b border-gray-200">
+                  <td className="px-3 py-2 font-bold bg-[#E7EDF6] w-[130px] text-gray-700">Unit Name</td>
+                  <td className="px-3 py-2 bg-[#E7EDF6] text-gray-900">{incident.unitName}</td>
+                  <td className="px-3 py-2 font-bold bg-[#E7EDF6] w-[180px] text-gray-700">Equipment</td>
+                  <td className="px-3 py-2 bg-[#E7EDF6] text-gray-900">{incident.equipment}</td>
+                </tr>
+                <tr>
+                  <td className="px-3 py-2 font-bold text-gray-700">KPI</td>
+                  <td colSpan={3} className="px-3 py-2">
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0">
+                        <div className="text-[13px] font-semibold text-gray-900 truncate">{incident.kpiName}</div>
+                        <div className="text-[12px] text-gray-500 truncate">{incident.dataTag}</div>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <div className="text-right">
+                          <div className="text-[13px] font-bold text-gray-900">{incident.value} <span className="text-[11px] font-normal text-gray-400">{incident.unit}</span></div>
+                          <div className="text-[11px] text-gray-400">{incident.timestamp}</div>
+                        </div>
+                        <div className="flex gap-0.5">
+                          {incident.badges.map((b, i) => (
+                            <span key={i} className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold ${b.color}`}>{b.label}</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200">
+              <span className="text-[13px] font-bold text-gray-800">Deviations</span>
+            </div>
+            <div className="p-3">
+              <div className="h-[200px] bg-white rounded border border-gray-100 overflow-hidden">
+                <svg viewBox="0 0 600 200" preserveAspectRatio="none" className="w-full h-full block">
+                  <line x1="0" y1="40" x2="600" y2="40" stroke="#dc3545" strokeWidth="1" strokeDasharray="4,4" opacity="0.5" />
+                  <line x1="0" y1="100" x2="600" y2="100" stroke="#e5e7eb" strokeWidth="1" />
+                  <line x1="0" y1="160" x2="600" y2="160" stroke="#e5e7eb" strokeWidth="1" />
+                  <polyline
+                    fill="none"
+                    stroke="#BD4F5B"
+                    strokeWidth="2"
+                    points="0,150 30,145 60,148 90,140 120,142 150,130 180,135 210,120 240,125 270,110 300,115 330,105 360,108 390,95 420,100 450,90 480,85 510,80 540,75 570,70 600,65"
+                  />
+                  <polyline
+                    fill="none"
+                    stroke="#000"
+                    strokeWidth="1"
+                    strokeDasharray="3,3"
+                    points="0,120 30,118 60,122 90,115 120,118 150,110 180,112 210,105 240,108 270,100 300,102 330,95 360,98 390,90 420,92 450,85 480,82 510,78 540,75 570,70 600,68"
+                    opacity="0.6"
+                  />
+                  <rect x="0" y="130" width="600" height="30" fill="rgb(251,177,74)" fillOpacity="0.3" />
+                  <text x="5" y="15" fontSize="10" fill="#6b7280">mm</text>
+                  <text x="570" y="15" fontSize="10" fill="#6b7280">Kg/cm²</text>
+                  <text x="100" y="195" fontSize="9" fill="#9ca3af">08:30</text>
+                  <text x="250" y="195" fontSize="9" fill="#9ca3af">09:30</text>
+                  <text x="400" y="195" fontSize="9" fill="#9ca3af">10:00</text>
+                  <text x="530" y="195" fontSize="9" fill="#9ca3af">10:30</text>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="px-5 py-3 border-t border-gray-200 flex justify-end">
+          <button className="flex items-center gap-2 px-4 py-2 rounded-md border border-blue-600 text-blue-600 text-[13px] font-semibold hover:bg-blue-50 transition-colors cursor-pointer">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>
+            More Details
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function KpiStatusCard({ onKpiClick }: { onKpiClick: (name: string) => void }) {
   return (
     <div className="bg-white border border-gray-200 rounded-md p-4 flex flex-col h-[240px] min-h-0">
       <div className="text-[13px] font-bold text-gray-800">KPI Status ({kpiStatus.total})</div>
@@ -345,7 +629,8 @@ function KpiStatusCard() {
         {kpiStatus.items.map((item, i) => (
           <div
             key={i}
-            className="flex items-center gap-2 py-1.5 px-1 rounded-md hover:bg-gray-50 cursor-pointer"
+            onClick={() => item.bad && onKpiClick(item.name)}
+            className={`flex items-center gap-2 py-1.5 px-1 rounded-md hover:bg-gray-50 ${item.bad ? 'cursor-pointer' : ''}`}
           >
             <span
               className="w-2.5 h-2.5 rounded-[2px] shrink-0"
@@ -404,128 +689,34 @@ function IncidentsTrendCard() {
   )
 }
 
-type PaletteItem = {
-  icon: React.ReactNode
-  label: string
-  meta?: string
-  action?: string
-  trailing?: React.ReactNode
-}
+function CommandPalette() {
+  const recentActivity = [
+    { id: 'ra1', kind: 'warn' as const, title: '10 new incidents in HVAC', sub: 'Vibration levels are beyond the acceptable threshold', path: ['Nestle UAE', 'HVAC'] },
+    { id: 'ra2', kind: 'ok' as const, title: 'Chiller 10 preventive maintenance completed', sub: 'All tasks for August 2026 are completed', path: ['Nestle UAE', 'HVAC', 'Chiller 10'] },
+    { id: 'ra3', kind: 'ok' as const, title: 'Chiller 10 preventive maintenance completed', sub: 'All tasks for August 2026 are completed', path: ['Nestle UAE', 'HVAC', 'Chiller 10'] },
+    { id: 'ra4', kind: 'warn' as const, title: '10 new incidents in Compressor', sub: 'Vibration levels are beyond the acceptable threshold', path: ['Nestle UAE', 'Compressors'] },
+    { id: 'ra5', kind: 'warn' as const, title: '10 new incidents in Compressor', sub: 'Vibration levels are beyond the acceptable threshold', path: ['Nestle UAE', 'Compressors'] },
+  ]
 
-function PaletteSection({
-  icon,
-  title,
-  items,
-}: {
-  icon?: React.ReactNode
-  title?: string
-  items: PaletteItem[]
-}) {
   return (
-    <div className="border-b border-gray-100 last:border-b-0">
-      {title && (
-        <div className="flex items-center gap-1.5 px-3 pt-2.5 pb-1.5">
-          <span className="text-gray-400">{icon}</span>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
-            {title}
-          </span>
-        </div>
-      )}
-      <div className={title ? 'pb-1.5' : 'py-1.5'}>
-        {items.map((it) => (
-          <div
-            key={it.label}
-            className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 cursor-pointer"
-          >
-            <span className="text-gray-400 shrink-0">{it.icon}</span>
-            <span className="flex-1 min-w-0 text-[12px] text-gray-700 truncate">{it.label}</span>
-            {it.meta && (
-              <span className="text-[10px] text-gray-400 whitespace-nowrap shrink-0">
-                {it.meta}
+    <div className="bg-white border border-gray-200 rounded-md overflow-hidden h-[240px] flex flex-col">
+      <div className="px-4 py-3 border-b border-gray-100 text-sm font-bold text-gray-800">Recent Activity</div>
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        {recentActivity.map((item) => (
+          <div key={item.id} className="px-4 py-3 border-b border-gray-100 last:border-b-0">
+            <div className="flex items-center gap-2.5 cursor-pointer group">
+              <span className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${item.kind === 'warn' ? 'bg-[#FFF3E0] text-[#E65100]' : 'bg-[#E8F5E9] text-[#2E7D32]'}`}>
+                {item.kind === 'warn' ? <Info className="w-3.5 h-3.5" strokeWidth={1.8} /> : <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={1.8} />}
               </span>
-            )}
-            {it.action && (
-              <button className="text-[10px] font-semibold text-blue-600 border border-blue-200 rounded px-1.5 py-0.5 hover:bg-blue-50 shrink-0 cursor-pointer">
-                {it.action}
-              </button>
-            )}
-            {it.trailing && <span className="text-gray-300 shrink-0">{it.trailing}</span>}
+              <div className="flex-1 min-w-0">
+                <div className="text-[12px] font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">{item.title}</div>
+                <div className="text-[11px] text-gray-500 truncate">{item.sub}</div>
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-blue-500 transition-colors shrink-0" />
+            </div>
+            <div className="mt-2"><div className="text-[11px] text-gray-500 truncate">{item.path.map((p, i) => <span key={i}>{i > 0 && <span className="text-gray-400 mx-0.5">&gt;</span>}{p}</span>)}</div></div>
           </div>
         ))}
-      </div>
-    </div>
-  )
-}
-
-function CommandPalette() {
-  return (
-    <div className="relative bg-white border border-gray-200 rounded-md flex flex-col min-h-0 h-[240px]">
-      <div className="flex items-center px-3 h-9 shrink-0">
-        <span className="text-[13px] font-bold text-gray-800">Recent Activity</span>
-      </div>
-
-      <div className="flex-1 min-h-0 overflow-y-auto">
-        <PaletteSection
-          items={[
-            {
-              icon: <Activity className="w-3.5 h-3.5" />,
-              label: 'Asset Monitor > Turbine Block A',
-              meta: '2 mins ago',
-            },
-            {
-              icon: <Tag className="w-3.5 h-3.5" />,
-              label: 'Tag Mapper > Unit 3 Steam Pipeline',
-              meta: '8 mins ago',
-            },
-          ]}
-        />
-        <PaletteSection
-          icon={<Clock className="w-3.5 h-3.5" />}
-          title="Recent Items & Records"
-          items={[
-            {
-              icon: <BookOpen className="w-3.5 h-3.5" />,
-              label: 'Digital Logbook: Shift Handover - Night Shift',
-              meta: '5 mins ago',
-            },
-            {
-              icon: <LineChart className="w-3.5 h-3.5" />,
-              label: 'Incidents Timeline: Valve Pressure Spike #4021',
-              meta: '12 mins ago',
-            },
-            {
-              icon: <FileBarChart className="w-3.5 h-3.5" />,
-              label: 'Reports Builder: Weekly OEE Performance',
-              meta: '1 hour ago',
-            },
-          ]}
-        />
-        <PaletteSection
-          icon={<Rocket className="w-3.5 h-3.5" />}
-          title="Recent Tools & Modules"
-          items={[
-            {
-              icon: <MonitorPlay className="w-3.5 h-3.5" />,
-              label: 'DCS Graphics - v2',
-              trailing: (
-                <span className="flex items-center gap-2">
-                  <span className="text-[10px] font-semibold text-[#006D4E]">Active</span>
-                  <span className="text-[10px] text-gray-400">2 hours ago</span>
-                </span>
-              ),
-            },
-            {
-              icon: <Workflow className="w-3.5 h-3.5" />,
-              label: 'Rule Engine',
-              trailing: (
-                <span className="flex items-center gap-2">
-                  <span className="text-[10px] font-semibold text-[#006D4E]">Active</span>
-                  <span className="text-[10px] text-gray-400">1 day ago</span>
-                </span>
-              ),
-            },
-          ]}
-        />
       </div>
     </div>
   )
@@ -598,10 +789,27 @@ function ColumnShell({
 }
 
 function OverviewTab() {
+  const [popupKpi, setPopupKpi] = useState<string | null>(null)
+  const [selectedIncident, setSelectedIncident] = useState<IncidentItem | null>(null)
+
   return (
     <>
+      {popupKpi && !selectedIncident && (
+        <KpiIncidentsList
+          kpiName={popupKpi}
+          onSelectIncident={setSelectedIncident}
+          onClose={() => setPopupKpi(null)}
+        />
+      )}
+      {selectedIncident && (
+        <IncidentPopup
+          incident={selectedIncident}
+          onBack={() => setSelectedIncident(null)}
+          onClose={() => { setSelectedIncident(null); setPopupKpi(null) }}
+        />
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 shrink-0">
-        <KpiStatusCard />
+        <KpiStatusCard onKpiClick={(name) => { setPopupKpi(name); setSelectedIncident(null) }} />
         <IncidentsTrendCard />
         <CommandPalette />
       </div>
