@@ -142,27 +142,31 @@ export default function Header({ customer, customers, dark, isDashboard, persona
         <button
           onClick={() => { setCompareOpen(true); setCompareStep(1); setCompareType(''); setCompareSelected([]) }}
           title="Compare"
-          className="w-8 h-8 flex items-center justify-center rounded-[5px] border border-gray-200 bg-white text-gray-600 shadow-sm hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer shrink-0"
+          className="relative w-8 h-8 flex items-center justify-center rounded-[5px] border border-gray-200 bg-white text-gray-600 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer shrink-0 group"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3 4 7l4 4" /><path d="M4 7h16" /><path d="m16 21 4-4-4-4" /><path d="M20 17H4" /></svg>
+          <span className="absolute top-full mt-2 px-2.5 py-1 rounded-md bg-black text-white text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">Compare</span>
         </button>
         <button
           onClick={onToggleDark}
           title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-          className="w-8 h-8 flex items-center justify-center rounded-[5px] border border-gray-200 bg-white text-gray-600 shadow-sm hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer shrink-0"
+          className="relative w-8 h-8 flex items-center justify-center rounded-[5px] border border-gray-200 bg-white text-gray-600 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer shrink-0 group"
         >
           {dark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+          <span className="absolute top-full mt-2 px-2.5 py-1 rounded-md bg-black text-white text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">{dark ? 'Light Mode' : 'Dark Mode'}</span>
         </button>
         <button
           onClick={onOpenAICopilot}
           title="AI Copilot"
-          className="w-8 h-8 flex items-center justify-center rounded-[5px] border border-gray-200 bg-white text-gray-600 shadow-sm hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer shrink-0"
+          className="relative w-8 h-8 flex items-center justify-center rounded-[5px] border border-gray-200 bg-white text-gray-600 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer shrink-0 group"
         >
           <Sparkles className="w-3.5 h-3.5" />
+          <span className="absolute top-full mt-2 px-2.5 py-1 rounded-md bg-black text-white text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">AI Copilot</span>
         </button>
-        <button className="relative w-8 h-8 flex items-center justify-center rounded-[5px] border border-gray-200 bg-white text-gray-600 shadow-sm hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer shrink-0">
+        <button className="relative w-8 h-8 flex items-center justify-center rounded-[5px] border border-gray-200 bg-white text-gray-600 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer shrink-0 group">
           <Bell className="w-3.5 h-3.5" />
           <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#C00000]" />
+          <span className="absolute top-full mt-2 px-2.5 py-1 rounded-md bg-black text-white text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">Notifications</span>
         </button>
         <div className="relative ml-1">
           <button
