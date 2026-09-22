@@ -287,6 +287,7 @@ function HierarchyPanel({ siteName, onSelect, selectedUnitPath, selectedPath, co
 function Sparkline({ color, path }: { color: string; path: string }) {
   return (
     <svg viewBox="0 0 220 26" preserveAspectRatio="none" className="w-full h-[26px] block">
+      <path d={`${path} L220,26 L0,26 Z`} fill={color} opacity="0.15" />
       <path
         d={path}
         fill="none"
