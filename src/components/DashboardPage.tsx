@@ -9,7 +9,7 @@ import {
   Search,
   X,
 } from 'lucide-react'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import {
   DOT_COLOR,
   TREND_PATH,
@@ -1008,24 +1008,74 @@ export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
         <div className={`flex-1 min-h-0 ${isAssetSelected ? '' : 'overflow-y-auto'} px-4 lg:px-6 py-4 flex flex-col gap-4`}>
           {isSiteSelected && (
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 shrink-0">
-              {kpis.map((k) => (
-                <div key={k.label} className="bg-white border border-gray-200 rounded-md pt-3 px-4 overflow-hidden flex flex-col">
-                  <div className="text-[11px] font-semibold text-gray-500">{k.label}</div>
-                  <div className="flex items-baseline justify-between mt-1">
-                    <span className="text-2xl font-bold text-gray-900">
-                      {k.value}
-                      <span className="text-[11px] font-medium text-gray-400 ml-0.5">{k.unit}</span>
-                    </span>
-                    <span className="text-[11px] font-bold" style={{ color: k.deltaColor }}>{k.delta}</span>
+              {kpis.map((k) => {
+                const iconMap: Record<string, { icon: React.ReactNode; bg: string }> = {
+                  'Power Consumption': {
+                    bg: 'bg-amber-50',
+                    icon: (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-600">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                      </svg>
+                    ),
+                  },
+                  'Thermal Consumption': {
+                    bg: 'bg-orange-50',
+                    icon: (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-600">
+                        <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z" />
+                      </svg>
+                    ),
+                  },
+                  'Water Consumption': {
+                    bg: 'bg-blue-50',
+                    icon: (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
+                        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+                      </svg>
+                    ),
+                  },
+                  'GHG Emissions': {
+                    bg: 'bg-gray-100',
+                    icon: (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600">
+                        <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z" />
+                      </svg>
+                    ),
+                  },
+                  'Savings': {
+                    bg: 'bg-green-50',
+                    icon: (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
+                        <line x1="12" y1="1" x2="12" y2="23" />
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                      </svg>
+                    ),
+                  },
+                }
+                return (
+                  <div key={k.label} className="bg-white border border-gray-200 rounded-md pt-3 px-4 overflow-hidden flex flex-col">
+                    <div className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-500">
+                      <span className={`inline-flex items-center justify-center w-[22px] h-[22px] rounded ${iconMap[k.label].bg}`}>
+                        {iconMap[k.label].icon}
+                      </span>
+                      {k.label}
+                    </div>
+                    <div className="flex items-baseline justify-between mt-1">
+                      <span className="text-2xl font-bold text-gray-900">
+                        {k.value}
+                        <span className="text-[11px] font-medium text-gray-400 ml-0.5">{k.unit}</span>
+                      </span>
+                      <span className="text-[11px] font-bold" style={{ color: k.deltaColor }}>{k.delta}</span>
+                    </div>
+                    <div className="mt-2 -mx-4">
+                      <svg viewBox="0 0 220 26" preserveAspectRatio="none" className="w-full h-[26px] block">
+                        <path d={`${k.path} L220,26 L0,26 Z`} fill={k.color} opacity="0.15" />
+                        <path d={k.path} fill="none" stroke={k.color} strokeWidth="1.5" strokeLinejoin="miter" />
+                      </svg>
+                    </div>
                   </div>
-                  <div className="mt-2 -mx-4">
-                    <svg viewBox="0 0 220 26" preserveAspectRatio="none" className="w-full h-[26px] block">
-                      <path d={`${k.path} L220,26 L0,26 Z`} fill={k.color} opacity="0.15" />
-                      <path d={k.path} fill="none" stroke={k.color} strokeWidth="1.5" strokeLinejoin="miter" />
-                    </svg>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
           {isAssetSelected ? (

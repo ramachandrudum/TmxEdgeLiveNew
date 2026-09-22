@@ -35,7 +35,7 @@ const alerts: Alert[] = [
 
 export default function RightSidebar({ onClose }: { onClose: () => void }) {
   return (
-    <div className="w-[340px] shrink-0 border-l border-gray-200 bg-white flex flex-col min-h-0">
+    <div className="w-[300px] shrink-0 border-l border-gray-200 bg-white flex flex-col min-h-0">
       <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 shrink-0">
         <div className="flex flex-col">
           <span className="text-[13px] font-bold text-gray-900">Priority Actions</span>

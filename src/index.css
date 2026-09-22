@@ -38,7 +38,7 @@
 .av-section-count { font-weight: 400; color: #9ca3af; }
 
 .gauge-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-.gauge-card { background: #fff; border: 1px solid var(--bd); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; }
+.gauge-card { background: #fff; border: 1px solid var(--bd); border-radius: 5px; padding: 14px; display: flex; flex-direction: column; }
 .gauge-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .gauge-title { font-size: 12px; font-weight: 700; color: #374151; }
 .gauge-range { font-size: 10px; color: #9ca3af; cursor: pointer; }
@@ -51,7 +51,7 @@
 .gf-v { font-size: 11px; font-weight: 700; color: #374151; margin-top: 1px; }
 
 .apc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.apc-card { background: #fff; border: 1px solid var(--bd); border-radius: 12px; padding: 14px; }
+.apc-card { background: #fff; border: 1px solid var(--bd); border-radius: 5px; padding: 14px; }
 .apc-hdr { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
 .apc-hdr-title { font-size: 12px; font-weight: 700; color: #374151; }
 .apc-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: rgba(0,109,78,0.08); color: var(--gm); }

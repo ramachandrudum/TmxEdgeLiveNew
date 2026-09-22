@@ -66,7 +66,7 @@ function GaugeCard({
         <span className="gauge-range">Last 7 Days ⌄</span>
       </div>
       <div className="gauge-body">
-        <svg viewBox="0 0 240 140" width="220" height="130" style={{ overflow: 'visible' }}>
+        <svg viewBox="0 0 240 140" width="100%" style={{ overflow: 'visible', display: 'block', maxHeight: 130 }}>
           <g>
             <path d={arcD(svgR, 0, 180)} fill="none" stroke="#e5e7eb" strokeWidth={sw} strokeLinecap="round" />
             {segments.map((seg, i) => (
@@ -112,59 +112,22 @@ function GaugeCard({
 }
 
 function TrendChart({
-  title,
-  badge,
-  stat1Label,
-  stat1Color,
-  stat1Value,
-  stat2Label,
-  stat2Color,
-  stat2Value,
   line1Points,
   line2Points,
   days,
 }: {
-  title: string
-  badge: string
-  stat1Label: string
-  stat1Color: string
-  stat1Value: string
-  stat2Label: string
-  stat2Color: string
-  stat2Value: string
   line1Points: string
   line2Points: string
   days: string[]
 }) {
   return (
     <div className="apc-card">
-      <div className="apc-hdr">
-        <span className="apc-hdr-title">{title} ⌄</span>
-        <span className="apc-badge">{badge}</span>
-        <span className="apc-period" style={{ marginLeft: 8 }}>Last 7 Days ⌄</span>
-      </div>
-      <div className="apc-stats">
-        <div>
-          <div className="apc-stat-lbl">
-            <span className="dot" style={{ background: stat1Color, width: 8, height: 8 }} />
-            {stat1Label}
-          </div>
-          <div className="apc-stat-val">{stat1Value}</div>
-        </div>
-        <div>
-          <div className="apc-stat-lbl">
-            <span className="dot" style={{ background: stat2Color, width: 8, height: 8 }} />
-            {stat2Label}
-          </div>
-          <div className="apc-stat-val">{stat2Value}</div>
-        </div>
-      </div>
-      <svg viewBox="0 0 560 170" width="100%" height="170" preserveAspectRatio="none">
+      <svg viewBox="0 0 560 170" width="100%" height="100%" preserveAspectRatio="none" style={{ display: 'block', minHeight: 120 }}>
         {[0, 42.5, 85, 127.5, 170].map((y) => (
           <line key={y} x1="0" y1={y} x2="560" y2={y} stroke="var(--s4)" strokeWidth="1" />
         ))}
-        <polyline points={line1Points} fill="none" stroke={stat1Color} strokeWidth="2" />
-        <polyline points={line2Points} fill="none" stroke={stat2Color} strokeWidth="2" strokeDasharray="4 3" />
+        <polyline points={line1Points} fill="none" stroke="#0968db" strokeWidth="2" />
+        <polyline points={line2Points} fill="none" stroke="#0968db" strokeWidth="2" strokeDasharray="4 3" />
       </svg>
       <div className="apc-days">
         {days.map((d) => (
@@ -317,32 +280,16 @@ export default function AssetOverview() {
           </div>
 
           {/* Performance Trends */}
-          <div className="av-section-hdr" style={{ marginTop: 20 }}>
+          <div className="av-section-hdr" style={{ marginTop: 15 }}>
             Performance Trends
           </div>
           <div className="apc-row">
             <TrendChart
-              title="Superheat vs Subcooling"
-              badge="Optimal"
-              stat1Label="Superheat"
-              stat1Color="#0968db"
-              stat1Value="-4.98 °C"
-              stat2Label="Subcooling"
-              stat2Color="#0968db"
-              stat2Value="4.36 °C"
               line1Points={superheatSubcooling1}
               line2Points={superheatSubcooling2}
               days={days}
             />
             <TrendChart
-              title="Specific Power vs Condenser Approach"
-              badge="Optimal"
-              stat1Label="Specific Power"
-              stat1Color="#0968db"
-              stat1Value="2.78 kW/TR"
-              stat2Label="Condenser Approach"
-              stat2Color="#0968db"
-              stat2Value="7.66 °C"
               line1Points={specPowerCond1}
               line2Points={specPowerCond2}
               days={days}

@@ -7,6 +7,8 @@ type Card = {
   label: string
   caption?: string
   legends: Legend[]
+  icon: React.ReactNode
+  iconBg: string
 }
 
 function Donut({ legends, size = 65, stroke = 10 }: { legends: Legend[]; size?: number; stroke?: number }) {
@@ -67,23 +69,35 @@ function Pie({ legends, size = 65 }: { legends: Legend[]; size?: number }) {
   )
 }
 
-function Bars({ legends, width = 130 }: { legends: Legend[]; width?: number }) {
+function Bars({ legends }: { legends: Legend[] }) {
   const max = Math.max(...legends.map((l) => l.value), 1)
+  const barW = 22
+  const gap = 10
+  const chartH = 50
+  const totalW = legends.length * (barW + gap) - gap
+
   return (
-    <svg width={width} height={65} viewBox={`0 0 ${width} 65`} className="shrink-0">
-      {legends.map((l, i) => {
-        const barH = 14
-        const gap = 6
-        const y = i * (barH + gap) + 2
-        const w = Math.max((l.value / max) * (width - 30), 4)
-        return (
-          <g key={l.label}>
-            <rect x={0} y={y} width={w} height={barH} rx={2} fill={l.color} />
-            <text x={w + 5} y={y + barH - 2} className="fill-gray-500" fontSize={9}>{l.value}</text>
-          </g>
-        )
-      })}
-    </svg>
+    <div className="shrink-0 flex flex-col items-center">
+      <svg width={totalW} height={chartH} viewBox={`0 0 ${totalW} ${chartH}`}>
+        {legends.map((l, i) => {
+          const x = i * (barW + gap)
+          const h = Math.max((l.value / max) * (chartH - 4), 4)
+          const y = chartH - h
+          return (
+            <g key={l.label}>
+              <rect x={x} y={y} width={barW} height={h} rx={2} fill={l.color} />
+            </g>
+          )
+        })}
+      </svg>
+      <div className="flex" style={{ gap }}>
+        {legends.map((l) => (
+          <div key={l.label} className="flex flex-col items-center" style={{ width: barW }}>
+            <span className="text-[9px] font-bold text-gray-900">{l.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -101,6 +115,13 @@ export default function SummaryCards({ active, variant = '' }: { active: string;
         { label: 'Offline', value: s.unitsOffline, color: '#dc3545' },
         { label: 'Online', value: s.unitsOnline, color: '#28a745' },
       ],
+      iconBg: 'bg-blue-50',
+      icon: (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
+          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+          <circle cx="12" cy="10" r="3" />
+        </svg>
+      ),
     },
     {
       key: 'assets',
@@ -111,6 +132,15 @@ export default function SummaryCards({ active, variant = '' }: { active: string;
         { label: 'At Risk', value: s.assetHealth.atRisk, color: '#ffc107', hideValue: true },
         { label: 'Healthy', value: s.assetHealth.healthy, color: '#28a745', hideValue: true },
       ],
+      iconBg: 'bg-purple-50',
+      icon: (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-600">
+          <rect x="2" y="6" width="20" height="12" rx="2" />
+          <path d="M12 12h.01" />
+          <path d="M17 12h.01" />
+          <path d="M7 12h.01" />
+        </svg>
+      ),
     },
     {
       key: 'incidents',
@@ -121,6 +151,14 @@ export default function SummaryCards({ active, variant = '' }: { active: string;
         { label: 'Warning', value: s.incidentsBreakdown.warning, color: '#fd7e14' },
         { label: 'Deviation', value: s.incidentsBreakdown.deviation, color: '#ffc107' },
       ],
+      iconBg: 'bg-red-50',
+      icon: (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600">
+          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+      ),
     },
     {
       key: 'tasks',
@@ -132,6 +170,13 @@ export default function SummaryCards({ active, variant = '' }: { active: string;
         { label: 'Not Started', value: s.tasksBreakdown.notStarted, color: '#6c757d' },
         { label: 'Completed', value: s.tasksBreakdown.completed, color: '#28a745' },
       ],
+      iconBg: 'bg-amber-50',
+      icon: (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-600">
+          <path d="M9 11l3 3L22 4" />
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+        </svg>
+      ),
     },
   ]
 
@@ -141,24 +186,39 @@ export default function SummaryCards({ active, variant = '' }: { active: string;
         <div key={card.key} className="bg-white border border-gray-200 rounded-md p-4">
           <div className="flex items-start gap-3">
             <div className="flex-1 min-w-0">
-              <div className="flex items-baseline gap-1.5">
+              <div className="flex items-center gap-1.5">
+                <span className={`inline-flex items-center justify-center w-[22px] h-[22px] rounded shrink-0 ${card.iconBg}`}>
+                  {card.icon}
+                </span>
                 <span className="text-2xl font-bold text-gray-900">{card.num}</span>
                 <span className="text-xs text-gray-600 font-semibold">{card.label}</span>
               </div>
               {card.caption && (
                 <span className="text-[10px] text-gray-500 block mb-1">{card.caption}</span>
               )}
-              <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
-                {card.legends.map((l) => (
-                  <div key={l.label} className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: l.color }} />
-                    <span className="text-[11px] text-gray-600 truncate">{l.label}</span>
-                    {!l.hideValue && (
+              {card.key === 'tasks' ? (
+                <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1">
+                  {card.legends.map((l) => (
+                    <div key={l.label} className="flex items-center gap-1">
+                      <span className="w-[5px] h-[5px] rounded-full shrink-0" style={{ background: l.color }} />
+                      <span className="text-[11px] text-gray-600 truncate">{l.label}</span>
                       <span className="text-[11px] font-semibold text-gray-900">{l.value}</span>
-                    )}
-                  </div>
-                ))}
-              </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
+                  {card.legends.map((l) => (
+                    <div key={l.label} className="flex items-center gap-1">
+                      <span className="w-[5px] h-[5px] rounded-full shrink-0" style={{ background: l.color }} />
+                      <span className="text-[11px] text-gray-600 truncate">{l.label}</span>
+                      {!l.hideValue && (
+                        <span className="text-[11px] font-semibold text-gray-900">{l.value}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="shrink-0 pt-1">
               {card.key === 'sites' && <Donut legends={card.legends} />}
