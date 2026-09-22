@@ -26,6 +26,7 @@ import {
   type TreeNode,
 } from '../data/dashboardPage'
 import AssetOverview from './AssetOverview'
+import RightSidebar from './RightSidebar'
 
 type Props = {
   siteName: string
@@ -518,9 +519,9 @@ function IncidentPopup({ incident, onBack, onClose }: { incident: IncidentItem; 
                           {incident.badges.map((b, i) => (
                             <span key={i} className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold ${b.color}`}>{b.label}</span>
                           ))}
-                        </div>
-                      </div>
-                    </div>
+        </div>
+      </div>
+    </div>
                   </td>
                 </tr>
               </tbody>
@@ -905,6 +906,7 @@ export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
   const [tab, setTab] = useState('Overview')
   const [selectedPath, setSelectedPath] = useState<string[]>(selectedUnitPath?.length ? selectedUnitPath : [siteName])
   const [ahCollapsed, setAhCollapsed] = useState(false)
+  const [rightSidebarOpen, setRightSidebarOpen] = useState(true)
 
   const isAssetSelected = selectedPath.length >= 4
   const isSiteSelected = selectedPath.length >= 1
@@ -968,7 +970,18 @@ export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
                 </span>
               </span>
             ))}
+            <button
+              onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
+              className="ml-auto p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+              title={rightSidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
+            >
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6">
+                <rect x="3" y="3" width="14" height="14" rx="2" />
+                <line x1="13" y1="3" x2="13" y2="17" />
+              </svg>
+            </button>
           </div>
+          <div className="border-b border-gray-200 mt-2" />
         </div>
 
         <div className="px-4 lg:px-6 pt-3 shrink-0 flex items-stretch gap-1.5 flex-wrap border-b border-gray-200 font-semibold">
@@ -1024,6 +1037,8 @@ export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
           )}
         </div>
       </div>
+
+      {rightSidebarOpen && <RightSidebar onClose={() => setRightSidebarOpen(false)} />}
     </div>
   )
 }
