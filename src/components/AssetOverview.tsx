@@ -1,14 +1,3 @@
-import { kpis } from '../data/dashboardPage'
-
-function Sparkline({ color, path }: { color: string; path: string }) {
-  return (
-    <svg viewBox="0 0 220 26" preserveAspectRatio="none" className="w-full h-[26px] block">
-      <path d={`${path} L220,26 L0,26 Z`} fill={color} opacity="0.15" />
-      <path d={path} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="miter" />
-    </svg>
-  )
-}
-
 function GaugeCard({
   title,
   value,
@@ -28,26 +17,46 @@ function GaugeCard({
   pillColor: string
   pillBg: string
 }) {
-  const svgR = 105
-  const innerR = 78
+  const svgR = 95
   const cx = 120
-  const cy = 115
+  const cy = 118
+  const sw = 18
+  const toRad = (d: number) => (Math.PI / 180) * d
+  const toScreen = (deg: number) => 180 - deg
 
-  const donutPath = (rO: number, rI: number, startDeg: number, endDeg: number) => {
-    const sO = (Math.PI / 180) * startDeg
-    const eO = (Math.PI / 180) * endDeg
-    const sI = (Math.PI / 180) * startDeg
-    const eI = (Math.PI / 180) * endDeg
-    const ox1 = cx + rO * Math.cos(sO)
-    const oy1 = cy - rO * Math.sin(sO)
-    const ox2 = cx + rO * Math.cos(eO)
-    const oy2 = cy - rO * Math.sin(eO)
-    const ix1 = cx + rI * Math.cos(eI)
-    const iy1 = cy - rI * Math.sin(eI)
-    const ix2 = cx + rI * Math.cos(sI)
-    const iy2 = cy - rI * Math.sin(sI)
+  const arcD = (r: number, startDeg: number, endDeg: number) => {
+    const s = toScreen(startDeg)
+    const e = toScreen(endDeg)
+    const x1 = cx + r * Math.cos(toRad(s))
+    const y1 = cy - r * Math.sin(toRad(s))
+    const x2 = cx + r * Math.cos(toRad(e))
+    const y2 = cy - r * Math.sin(toRad(e))
     const large = endDeg - startDeg > 180 ? 1 : 0
-    return `M${ox1},${oy1} A${rO},${rO} 0 ${large},1 ${ox2},${oy2} L${ix1},${iy1} A${rI},${rI} 0 ${large},0 ${ix2},${iy2} Z`
+    return `M${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2}`
+  }
+
+  const tickPos = (deg: number) => {
+    const s = toScreen(deg)
+    return {
+      x: cx + (svgR + sw / 2 + 3) * Math.cos(toRad(s)),
+      y: cy - (svgR + sw / 2 + 3) * Math.sin(toRad(s)),
+    }
+  }
+
+  const tickEnd = (deg: number) => {
+    const s = toScreen(deg)
+    return {
+      x: cx + (svgR + sw / 2 + 10) * Math.cos(toRad(s)),
+      y: cy - (svgR + sw / 2 + 10) * Math.sin(toRad(s)),
+    }
+  }
+
+  const labelPos = (deg: number) => {
+    const s = toScreen(deg)
+    return {
+      x: cx + (svgR + sw / 2 + 16) * Math.cos(toRad(s)),
+      y: cy - (svgR + sw / 2 + 16) * Math.sin(toRad(s)),
+    }
   }
 
   return (
@@ -59,41 +68,33 @@ function GaugeCard({
       <div className="gauge-body">
         <svg viewBox="0 0 240 140" width="220" height="130" style={{ overflow: 'visible' }}>
           <g>
+            <path d={arcD(svgR, 0, 180)} fill="none" stroke="#e5e7eb" strokeWidth={sw} strokeLinecap="round" />
             {segments.map((seg, i) => (
-              <path key={i} d={donutPath(svgR, innerR, seg.from, seg.to)} fill={seg.color} />
-            ))}
-            <path d={`M${cx - svgR},${cy} A${svgR},${svgR} 0 0,1 ${cx + svgR},${cy}`} fill="none" stroke="lightgray" strokeWidth="0" />
-            <path d={`M${cx - svgR},${cy} A${svgR},${svgR} 0 0,1 ${cx + svgR},${cy} L${cx + innerR},${cy} A${innerR},${innerR} 0 0,0 ${cx - innerR},${cy} Z`} fill="lightgray" />
-            {segments.map((seg, i) => (
-              <path key={`inner-${i}`} d={donutPath(svgR, innerR, seg.from, seg.to)} fill={seg.color} />
+              <path key={i} d={arcD(svgR, seg.from, seg.to)} fill="none" stroke={seg.color} strokeWidth={sw} strokeLinecap="butt" />
             ))}
             {thresholds.map((t, i) => {
-              const rad = (Math.PI / 180) * t.angle
-              const tx1 = cx + (svgR + 2) * Math.cos(rad)
-              const ty1 = cy - (svgR + 2) * Math.sin(rad)
-              const tx2 = cx + (svgR + 10) * Math.cos(rad)
-              const ty2 = cy - (svgR + 10) * Math.sin(rad)
-              const lx = cx + (svgR + 16) * Math.cos(rad)
-              const ly = cy - (svgR + 16) * Math.sin(rad)
+              const p = tickPos(t.angle)
+              const e = tickEnd(t.angle)
+              const l = labelPos(t.angle)
               const rot = t.angle > 90 && t.angle < 270 ? t.angle - 180 : t.angle
               return (
                 <g key={i}>
-                  <line x1={tx1} y1={ty1} x2={tx2} y2={ty2} stroke="#333" strokeWidth="1" />
+                  <line x1={p.x} y1={p.y} x2={e.x} y2={e.y} stroke="#333" strokeWidth="1" />
                   <text
-                    x={lx}
-                    y={ly}
+                    x={l.x}
+                    y={l.y}
                     textAnchor={t.angle === 0 ? 'start' : t.angle === 180 ? 'end' : 'middle'}
                     dominantBaseline="middle"
                     fontSize="10"
                     fill="#333"
-                    transform={t.angle !== 0 && t.angle !== 180 ? `rotate(${rot}, ${lx}, ${ly})` : undefined}
+                    transform={t.angle !== 0 && t.angle !== 180 ? `rotate(${rot}, ${l.x}, ${l.y})` : undefined}
                   >
                     {t.label}
                   </text>
                 </g>
               )
             })}
-            <text x={cx} y={cy - 2} textAnchor="middle" fontSize="22" fontWeight="900" fill="#111827" style={{ stroke: 'none' }}>
+            <text x={cx} y={cy - 4} textAnchor="middle" fontSize="22" fontWeight="900" fill="#111827" style={{ stroke: 'none' }}>
               {value}
             </text>
             <text x={cx} y={cy + 14} textAnchor="middle" fontSize="11" fontWeight="500" fill={pillColor}>
@@ -230,25 +231,6 @@ export default function AssetOverview() {
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Consumption KPIs */}
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 mb-5 shrink-0">
-            {kpis.map((k) => (
-              <div key={k.label} className="bg-white border border-gray-200 rounded-md pt-3 px-4 overflow-hidden flex flex-col">
-                <div className="text-[11px] font-semibold text-gray-500">{k.label}</div>
-                <div className="flex items-baseline justify-between mt-1">
-                  <span className="text-2xl font-bold text-gray-900">
-                    {k.value}
-                    <span className="text-[11px] font-medium text-gray-400 ml-0.5">{k.unit}</span>
-                  </span>
-                  <span className="text-[11px] font-bold" style={{ color: k.deltaColor }}>{k.delta}</span>
-                </div>
-                <div className="mt-2 -mx-4">
-                  <Sparkline color={k.color} path={k.path} />
-                </div>
-              </div>
-            ))}
           </div>
 
           {/* KPI Section */}
