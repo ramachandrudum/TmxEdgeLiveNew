@@ -284,48 +284,6 @@ function HierarchyPanel({ siteName, onSelect, selectedUnitPath, selectedPath, co
   )
 }
 
-function Sparkline({ color, path }: { color: string; path: string }) {
-  return (
-    <svg viewBox="0 0 220 26" preserveAspectRatio="none" className="w-full h-[26px] block">
-      <path d={`${path} L220,26 L0,26 Z`} fill={color} opacity="0.15" />
-      <path
-        d={path}
-        fill="none"
-        stroke={color}
-        strokeWidth="1.5"
-        strokeLinejoin="miter"
-      />
-    </svg>
-  )
-}
-
-function KpiStrip() {
-  return (
-    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 shrink-0">
-      {kpis.map((k) => (
-        <div
-          key={k.label}
-          className="bg-white border border-gray-200 rounded-md pt-3 px-4 overflow-hidden flex flex-col"
-        >
-          <div className="text-[11px] font-semibold text-gray-500">{k.label}</div>
-          <div className="flex items-baseline justify-between mt-1">
-            <span className="text-2xl font-bold text-gray-900">
-              {k.value}
-              <span className="text-[11px] font-medium text-gray-400 ml-0.5">{k.unit}</span>
-            </span>
-            <span className="text-[11px] font-bold" style={{ color: k.deltaColor }}>
-              {k.delta}
-            </span>
-          </div>
-          <div className="mt-2 -mx-4">
-            <Sparkline color={k.color} path={k.path} />
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
 type IncidentItem = {
   id: string
   time: string
@@ -839,7 +797,6 @@ function OverviewTab() {
                   Risk Score : <b className="text-gray-900">{a.risk}%</b>{' '}
                   <span style={{ color: 'var(--r)' }}>{a.delta}</span>
                 </span>
-                <ChevronRight className="w-3.5 h-3.5 text-gray-300 shrink-0" />
               </div>
               <div className="mt-2">
                 <SegBar segs={a.segs} />
@@ -897,7 +854,6 @@ function OverviewTab() {
                     </div>
                   )}
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 text-gray-300 shrink-0 mt-1" />
               </div>
               <Trail path={inc.path} />
             </div>
@@ -927,7 +883,6 @@ function OverviewTab() {
                 <span className="w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-[9px] font-bold flex items-center justify-center shrink-0">
                   {t.avatar}
                 </span>
-                <ChevronRight className="w-3.5 h-3.5 text-gray-300 shrink-0" />
               </div>
               <Trail path={t.path} />
             </div>
@@ -949,10 +904,10 @@ function Placeholder({ name }: { name: string }) {
 export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
   const [tab, setTab] = useState('Overview')
   const [selectedPath, setSelectedPath] = useState<string[]>(selectedUnitPath?.length ? selectedUnitPath : [siteName])
-  const [rpCollapsed, setRpCollapsed] = useState(false)
   const [ahCollapsed, setAhCollapsed] = useState(false)
 
   const isAssetSelected = selectedPath.length >= 4
+  const isSiteSelected = selectedPath.length >= 1
 
   const findNodeByPath = (nodes: TreeNode[], path: string[], depth: number): TreeNode | null => {
     for (const node of nodes) {
@@ -1016,10 +971,6 @@ export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
           </div>
         </div>
 
-        <div className="px-4 lg:px-6 pt-4 shrink-0">
-          <KpiStrip />
-        </div>
-
         <div className="px-4 lg:px-6 pt-3 shrink-0 flex items-stretch gap-1.5 flex-wrap border-b border-gray-200 font-semibold">
           {TABS.map((t, i) => (
             <span key={t} className="flex items-stretch gap-1.5">
@@ -1039,24 +990,33 @@ export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
           <button className="w-7 h-7 rounded-full bg-white text-gray-500 hover:bg-gray-50 flex items-center justify-center">
             <Plus className="w-3.5 h-3.5" />
           </button>
-          {isAssetSelected && rpCollapsed && (
-            <button
-              onClick={() => setRpCollapsed(false)}
-              className="w-7 h-7 rounded-full border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 flex items-center justify-center ml-auto"
-              title="Show Incidents and Tasks"
-            >
-              <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6">
-                <rect x="3" y="3.5" width="14" height="13" rx="2" />
-                <line x1="7.5" y1="3.5" x2="7.5" y2="16.5" />
-                <path d="M9 7.5l2.5 2.5-2.5 2.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-          )}
         </div>
 
         <div className={`flex-1 min-h-0 ${isAssetSelected ? '' : 'overflow-y-auto'} px-4 lg:px-6 py-4 flex flex-col gap-4`}>
+          {isSiteSelected && (
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 shrink-0">
+              {kpis.map((k) => (
+                <div key={k.label} className="bg-white border border-gray-200 rounded-md pt-3 px-4 overflow-hidden flex flex-col">
+                  <div className="text-[11px] font-semibold text-gray-500">{k.label}</div>
+                  <div className="flex items-baseline justify-between mt-1">
+                    <span className="text-2xl font-bold text-gray-900">
+                      {k.value}
+                      <span className="text-[11px] font-medium text-gray-400 ml-0.5">{k.unit}</span>
+                    </span>
+                    <span className="text-[11px] font-bold" style={{ color: k.deltaColor }}>{k.delta}</span>
+                  </div>
+                  <div className="mt-2 -mx-4">
+                    <svg viewBox="0 0 220 26" preserveAspectRatio="none" className="w-full h-[26px] block">
+                      <path d={`${k.path} L220,26 L0,26 Z`} fill={k.color} opacity="0.15" />
+                      <path d={k.path} fill="none" stroke={k.color} strokeWidth="1.5" strokeLinejoin="miter" />
+                    </svg>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           {isAssetSelected ? (
-            <AssetOverview rpCollapsed={rpCollapsed} onToggleRp={() => setRpCollapsed(!rpCollapsed)} />
+            <AssetOverview />
           ) : tab === 'Overview' ? (
             <OverviewTab />
           ) : (

@@ -46,6 +46,7 @@
 .gauge-val { font-size: 20px; font-weight: 800; color: #111827; margin-top: -4px; }
 .gauge-pill { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 99px; margin-top: 4px; }
 .gauge-foot { display: flex; justify-content: space-between; margin-top: 10px; padding-top: 8px; border-top: 1px solid #f3f4f6; }
+.gauge-title-bottom { text-align: center; font-size: 14px; font-weight: 700; color: #374151; padding-top: 8px; border-top: 1px solid #f3f4f6; }
 .gf-l { font-size: 9px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.04em; }
 .gf-v { font-size: 11px; font-weight: 700; color: #374151; margin-top: 1px; }
 
