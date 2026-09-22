@@ -78,15 +78,15 @@ function TreeBranch({
         className={`group flex items-center gap-2 py-1.5 pr-2 rounded-md text-[13px] cursor-pointer ${
           isActive
             ? 'text-blue-700 font-semibold bg-blue-50'
-            : 'text-gray-700 hover:bg-gray-100'
+            : 'hover:bg-gray-100'
         }`}
-        style={{ paddingLeft: pad }}
+        style={{ paddingLeft: pad, color: isActive ? undefined : '#364153' }}
         onMouseEnter={(e) => onShowTooltip(node.name, e.currentTarget)}
         onMouseLeave={onHideTooltip}
       >
         <Dot status={node.status ?? 'off'} />
         <span className="relative flex-1 min-w-0">
-          <span className="block truncate uppercase">{node.name}</span>
+          <span className="block truncate">{node.name}</span>
         </span>
         <span className="opacity-0 group-hover:opacity-100 text-gray-400 text-lg leading-none">⋮</span>
       </div>
@@ -99,9 +99,9 @@ function TreeBranch({
         className={`group flex items-center gap-2 py-1.5 pr-2 rounded-md text-[13px] ${
           isActive
             ? 'text-blue-700 font-semibold'
-            : 'text-gray-700 hover:bg-gray-50'
+            : 'hover:bg-gray-50'
         }`}
-        style={{ paddingLeft: node.kind === 'system' ? 35 : pad }}
+        style={{ paddingLeft: node.kind === 'system' ? 35 : pad, color: isActive ? undefined : '#364153' }}
         onMouseEnter={(e) => onShowTooltip(node.name, e.currentTarget)}
         onMouseLeave={onHideTooltip}
       >
@@ -119,9 +119,10 @@ function TreeBranch({
         ) : null}
         <span
           onClick={() => onSelect(currentPath)}
-          className={`flex-1 min-w-0 cursor-pointer ${node.kind === 'system' ? 'font-semibold text-gray-400' : ''}`}
+          className={`flex-1 min-w-0 cursor-pointer ${node.kind === 'system' ? 'font-semibold' : ''}`}
+          style={node.kind === 'system' ? { color: '#364153', fontSize: 10 } : undefined}
         >
-          <span className="block truncate uppercase">{node.name}</span>
+          <span className={`block truncate ${node.kind === 'system' ? 'uppercase' : ''}`}>{node.name}</span>
         </span>
         <span className="opacity-0 group-hover:opacity-100 text-gray-400 text-lg leading-none">⋮</span>
       </div>
@@ -283,23 +284,15 @@ function HierarchyPanel({ siteName, onSelect, selectedUnitPath, selectedPath, co
   )
 }
 
-function Sparkline({ id, color, path }: { id: string; color: string; path: string }) {
+function Sparkline({ color, path }: { color: string; path: string }) {
   return (
     <svg viewBox="0 0 220 26" preserveAspectRatio="none" className="w-full h-[26px] block">
-      <defs>
-        <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.55" />
-          <stop offset="100%" stopColor={color} stopOpacity="0.02" />
-        </linearGradient>
-      </defs>
-      <path d={`${path} L220,26 L0,26 Z`} fill={`url(#${id})`} stroke="none" />
       <path
         d={path}
         fill="none"
         stroke={color}
         strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        strokeLinejoin="miter"
       />
     </svg>
   )
@@ -308,7 +301,7 @@ function Sparkline({ id, color, path }: { id: string; color: string; path: strin
 function KpiStrip() {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 shrink-0">
-      {kpis.map((k, i) => (
+      {kpis.map((k) => (
         <div
           key={k.label}
           className="bg-white border border-gray-200 rounded-md pt-3 px-4 overflow-hidden flex flex-col"
@@ -324,7 +317,7 @@ function KpiStrip() {
             </span>
           </div>
           <div className="mt-2 -mx-4">
-            <Sparkline id={`dashGrad${i}`} color={k.color} path={k.path} />
+            <Sparkline color={k.color} path={k.path} />
           </div>
         </div>
       ))}

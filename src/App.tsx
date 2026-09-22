@@ -1,4 +1,4 @@
-import { Building2, Plus } from 'lucide-react'
+import { ArrowRight, Building2, Plus } from 'lucide-react'
 import { useState } from 'react'
 import AICopilot from './components/AICopilot'
 import BUBar, { type BUItem } from './components/BUBar'
@@ -32,6 +32,7 @@ export default function App() {
   const [selectedUnitPath, setSelectedUnitPath] = useState<string[]>([])
   const [showAICopilot, setShowAICopilot] = useState(false)
   const [compareView, setCompareView] = useState<'select-type' | { type: string; items: string[] } | null>(null)
+  const [buGradient, setBuGradient] = useState(false)
 
   const currentCustomer = customers.find((c) => c.id === activeCustomer)
   const currentLabel = currentCustomer?.name ?? 'Polar Thermal Systems'
@@ -124,11 +125,13 @@ export default function App() {
         onSwitchCustomer={handleSwitchCustomer}
         onSelectPersona={handleSelectPersona}
         onCompare={handleOpenCompare}
+        buGradient={buGradient}
+        onToggleBuGradient={() => setBuGradient((g) => !g)}
       />
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Left icon rail */}
-        <IconSidebar active={iconNav} onSelect={handleIconNav} navIds={personaNav[personaKey(persona)]} />
+        <IconSidebar active={iconNav} onSelect={handleIconNav} navIds={personaNav[personaKey(persona)]} buGradient={buGradient} />
 
         {/* Right side */}
         <div className="flex-1 flex flex-col min-w-0">
@@ -138,6 +141,7 @@ export default function App() {
               items={budgetUnits as BUItem[]}
               active={activeBU}
               onSelect={setActiveBU}
+              gradient={buGradient}
             />
           )}
 
@@ -165,8 +169,8 @@ export default function App() {
               </div>
             </div>
           ) : showExternalOperatorView ? (
-            <main className="flex-1 px-4 lg:px-8 pt-[15px] pb-0 overflow-y-auto min-h-0 flex flex-col bg-white">
-              <div className="max-w-[1050px] mx-auto space-y-6 w-full pb-8 shrink-0 min-[1920px]:w-[1500px] min-[1920px]:max-w-[1500px]">
+            <main className="flex-1 px-3 sm:px-4 md:px-6 lg:px-8 pt-[15px] pb-0 overflow-y-auto min-h-0 flex flex-col bg-white">
+              <div className="max-w-full sm:max-w-[700px] md:max-w-[900px] lg:max-w-[1050px] xl:max-w-[1200px] min-[1920px]:max-w-[1500px] mx-auto space-y-6 w-full pb-8 shrink-0">
                 <ExternalOperatorView
                   customer={currentCustomer ?? customers[0]}
                   onOpenDashboard={openDashboard}
@@ -175,8 +179,8 @@ export default function App() {
               </div>
             </main>
           ) : showExternalManagementView ? (
-            <main className="flex-1 px-4 lg:px-8 pt-[15px] pb-0 overflow-y-auto min-h-0 flex flex-col bg-white">
-              <div className="max-w-[1050px] mx-auto space-y-6 w-full pb-8 shrink-0 min-[1920px]:w-[1500px] min-[1920px]:max-w-[1500px]">
+            <main className="flex-1 px-3 sm:px-4 md:px-6 lg:px-8 pt-[15px] pb-0 overflow-y-auto min-h-0 flex flex-col bg-white">
+              <div className="max-w-full sm:max-w-[700px] md:max-w-[900px] lg:max-w-[1050px] xl:max-w-[1200px] min-[1920px]:max-w-[1500px] mx-auto space-y-6 w-full pb-8 shrink-0">
                 <ExternalOperatorView
                   customer={currentCustomer ?? customers[0]}
                   onOpenDashboard={openDashboard}
@@ -189,8 +193,8 @@ export default function App() {
                 active={activeCustomer}
                 onSelect={setActiveCustomer}
               />
-              <main className="flex-1 px-4 lg:px-8 pt-[15px] pb-0 overflow-y-auto min-h-0 flex flex-col bg-white">
-                <div className="max-w-[1050px] mx-auto space-y-6 w-full pb-8 shrink-0 min-[1920px]:w-[1500px] min-[1920px]:max-w-[1500px]">
+              <main className="flex-1 px-3 sm:px-4 md:px-6 lg:px-8 pt-[15px] pb-0 overflow-y-auto min-h-0 flex flex-col bg-white">
+                <div className="max-w-full sm:max-w-[700px] md:max-w-[900px] lg:max-w-[1050px] xl:max-w-[1200px] min-[1920px]:max-w-[1500px] mx-auto space-y-6 w-full pb-8 shrink-0">
                   {activeCustomer === 'all' ? (
                     <>
                       <div className="section-head flex items-center justify-between flex-wrap gap-3" style={{ marginBottom: 14 }}>
@@ -211,7 +215,76 @@ export default function App() {
                         </div>
                       </div>
                       <SummaryCards active={activeCustomer} />
-                      <CustomerTable active={activeCustomer} onOpenDashboard={openDashboard} onSelectUnit={handleSelectUnit} />
+                      <div className="bg-white border border-gray-200 rounded-md overflow-hidden">
+                        <div className="overflow-x-auto">
+                          <table className="w-full border-collapse">
+                            <thead>
+                              <tr className="bg-[#ECF2FA]">
+                                <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2.5 px-3 border-b border-gray-100">Site</th>
+                                <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2.5 px-3 border-b border-gray-100">Assets</th>
+                                <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2.5 px-3 border-b border-gray-100">Incidents</th>
+                                <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2.5 px-3 border-b border-gray-100">Tasks</th>
+                                <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2.5 px-3 border-b border-gray-100">Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody className="bg-white">
+                              {customers.flatMap((c) => generateSites(c.id).map((site) => {
+                                const assetCritical = site.assets.legends.find((l) => l.label === 'Critical' && l.value > 0)
+                                const assetAtRisk = site.assets.legends.find((l) => l.label === 'At Risk' && l.value > 0)
+                                const incidentCritical = site.incidents.legends.find((l) => l.label === 'Critical' && l.value > 0)
+                                const incidentWarning = site.incidents.legends.find((l) => l.label === 'Warning' && l.value > 0)
+                                const taskOverdue = site.tasks.legends.find((l) => l.label === 'Overdue' && l.value > 0)
+                                const taskNotStarted = site.tasks.legends.find((l) => l.label === 'Not Started' && l.value > 0)
+                                return (
+                                <tr key={site.id} className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 transition-colors cursor-pointer" onClick={() => openDashboard(site.name)}>
+                                  <td className="py-3 px-3 text-left">
+                                    <div className="flex items-center gap-2">
+                                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: assetCritical ? '#dc3545' : assetAtRisk ? '#ffc107' : '#28a745' }} />
+                                      <div>
+                                        <div className="text-sm font-semibold text-gray-900">{site.name}</div>
+                                        <div className="text-[11px] text-gray-500">{c.name} · {site.units} {site.units === 1 ? 'unit' : 'units'}</div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="py-3 px-3 text-left">
+                                    <span className="text-sm font-bold text-gray-900">{site.assets.value}</span>
+                                    {assetCritical ? (
+                                      <span className="text-[10px] text-[#dc3545] ml-1.5 font-medium">{assetCritical.value} critical</span>
+                                    ) : assetAtRisk ? (
+                                      <span className="text-[10px] text-[#dc3545] ml-1.5 font-medium">{assetAtRisk.value} at risk</span>
+                                    ) : (
+                                      <span className="text-[10px] text-gray-400 ml-1.5">-</span>
+                                    )}
+                                  </td>
+                                  <td className="py-3 px-3 text-left">
+                                    <span className="text-sm font-bold text-gray-900">{site.incidents.value}</span>
+                                    {incidentCritical ? (
+                                      <span className="text-[10px] text-[#dc3545] ml-1.5 font-medium">{incidentCritical.value} critical</span>
+                                    ) : incidentWarning ? (
+                                      <span className="text-[10px] text-[#dc3545] ml-1.5 font-medium">{incidentWarning.value} warning</span>
+                                    ) : (
+                                      <span className="text-[10px] text-gray-400 ml-1.5">-</span>
+                                    )}
+                                  </td>
+                                  <td className="py-3 px-3 text-left">
+                                    <span className="text-sm font-bold text-gray-900">{site.tasks.value}</span>
+                                    {taskOverdue ? (
+                                      <span className="text-[10px] text-[#dc3545] ml-1.5 font-medium">{taskOverdue.value} overdue</span>
+                                    ) : taskNotStarted ? (
+                                      <span className="text-[10px] text-[#dc3545] ml-1.5 font-medium">{taskNotStarted.value} not started</span>
+                                    ) : (
+                                      <span className="text-[10px] text-gray-400 ml-1.5">-</span>
+                                    )}
+                                  </td>
+                                  <td className="py-3 px-3 text-left">
+                                    <ArrowRight className="w-4 h-4 text-gray-400" />
+                                  </td>
+                                </tr>
+                              )}))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
                     </>
                   ) : (
                     <ExternalOperatorView
@@ -239,8 +312,8 @@ export default function App() {
             )}
 
             {/* Main content */}
-            <main className="flex-1 px-4 lg:px-8 pt-[15px] pb-0 overflow-y-auto min-h-0 flex flex-col bg-white">
-              <div className="max-w-[1050px] mx-auto space-y-6 w-full pb-8 shrink-0 min-[1920px]:w-[1500px] min-[1920px]:max-w-[1500px]">
+            <main className="flex-1 px-3 sm:px-4 md:px-6 lg:px-8 pt-[15px] pb-0 overflow-y-auto min-h-0 flex flex-col bg-white">
+              <div className="max-w-full sm:max-w-[700px] md:max-w-[900px] lg:max-w-[1050px] xl:max-w-[1200px] min-[1920px]:max-w-[1500px] mx-auto space-y-6 w-full pb-8 shrink-0">
                 {/* Section header */}
                 {activeCustomer === 'all' ? (
                   <div className="section-head flex items-center justify-between flex-wrap gap-3" style={{ marginBottom: 14 }}>

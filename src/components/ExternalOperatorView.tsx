@@ -1,5 +1,6 @@
 import {
   AlertTriangle,
+  ArrowRight,
   Building2,
   CheckCircle,
   ChevronDown,
@@ -12,8 +13,9 @@ import {
   Clock,
 } from 'lucide-react'
 import { useState, useMemo } from 'react'
-import { generateSites, type Customer, type UnitStat } from '../data/dashboard'
+import { generateSites, type Customer, type SiteStat, type UnitStat } from '../data/dashboard'
 import SummaryCards from './SummaryCards'
+import SiteSummaryRow from './SiteSummaryRow'
 import { hashSeed, seededRandom } from '../lib/vary'
 
 type Props = {
@@ -74,7 +76,7 @@ function AvailabilityGauge({ percent, color }: { percent: number; color: string 
   )
 }
 
-function UnitTable({ units }: { units: UnitStat[] }) {
+function UnitTable({ units, summary }: { units: UnitStat[]; summary?: SiteStat }) {
   return (
     <div className="bg-white border border-gray-200 overflow-x-auto [&_th]:border-r [&_th]:border-gray-200 [&_td]:border-r [&_td]:border-gray-200 [&_th:last-child]:border-r-0 [&_td:last-child]:border-r-0">
       <table className="w-full border-collapse">
@@ -92,6 +94,7 @@ function UnitTable({ units }: { units: UnitStat[] }) {
           </tr>
         </thead>
         <tbody className="bg-white">
+          {summary && <SiteSummaryRow site={summary} />}
           {units.map((unit) => {
             const color = STATUS_COLOR[unit.status]
             const isOffline = unit.status === 'offline'
@@ -308,6 +311,18 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
           {visibleSites.map((site) => {
             const isOpen = openSites.has(site.id)
             const totals = site.unitList.reduce((acc, unit) => ({ assets: acc.assets + unit.assets.total, incidents: acc.incidents + unit.incidents.total, tasks: acc.tasks + unit.tasks.total }), { assets: 0, incidents: 0, tasks: 0 })
+            const seed = hashSeed(site.id)
+            const showUnitsAlert = seed % 3 !== 0
+            const showAssetsAlert = (seed >> 2) % 3 !== 0
+            const showIncidentsAlert = (seed >> 4) % 3 !== 0
+            const showTasksAlert = (seed >> 6) % 3 !== 0
+            const offlineUnits = site.unitList.filter((u) => u.status === 'offline').length
+            const assetCritical = site.assets.legends.find((l) => l.label === 'Critical')?.value ?? 0
+            const assetAtRisk = site.assets.legends.find((l) => l.label === 'At Risk')?.value ?? 0
+            const incidentCritical = site.incidents.legends.find((l) => l.label === 'Critical')?.value ?? 0
+            const incidentWarning = site.incidents.legends.find((l) => l.label === 'Warning')?.value ?? 0
+            const taskOverdue = site.tasks.legends.find((l) => l.label === 'Overdue')?.value ?? 0
+            const taskNotStarted = site.tasks.legends.find((l) => l.label === 'Not Started')?.value ?? 0
             return (
               <div key={site.id} className="border-b border-gray-100 last:border-b-0">
                 <div
@@ -321,19 +336,48 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
                     <div className="text-sm font-semibold text-gray-900 truncate">{site.name}</div>
                     <div className="text-xs text-gray-500">Last updated {site.updated}</div>
                   </div>
-                  <div className="text-sm text-gray-700">{site.units} units</div>
-                  <div className="text-sm text-gray-700">{totals.assets} assets</div>
-                  <div className="text-sm text-gray-700">{totals.incidents} incidents</div>
-                  <div className="text-sm text-gray-700">{totals.tasks} tasks</div>
+                  <div>
+                    <span className="text-sm font-bold text-gray-900">{site.units}</span>
+                    {showUnitsAlert && offlineUnits > 0 && (
+                      <span className="block text-[10px] text-[#dc3545] font-medium">{offlineUnits} offline</span>
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-sm font-bold text-gray-900">{totals.assets}</span>
+                    {showAssetsAlert && assetCritical > 0 && (
+                      <span className="block text-[10px] text-[#dc3545] font-medium">{assetCritical} critical</span>
+                    )}
+                    {showAssetsAlert && assetCritical === 0 && assetAtRisk > 0 && (
+                      <span className="block text-[10px] text-[#dc3545] font-medium">{assetAtRisk} at risk</span>
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-sm font-bold text-gray-900">{totals.incidents}</span>
+                    {showIncidentsAlert && incidentCritical > 0 && (
+                      <span className="block text-[10px] text-[#dc3545] font-medium">{incidentCritical} critical</span>
+                    )}
+                    {showIncidentsAlert && incidentCritical === 0 && incidentWarning > 0 && (
+                      <span className="block text-[10px] text-[#dc3545] font-medium">{incidentWarning} warning</span>
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-sm font-bold text-gray-900">{totals.tasks}</span>
+                    {showTasksAlert && taskOverdue > 0 && (
+                      <span className="block text-[10px] text-[#dc3545] font-medium">{taskOverdue} overdue</span>
+                    )}
+                    {showTasksAlert && taskOverdue === 0 && taskNotStarted > 0 && (
+                      <span className="block text-[10px] text-[#dc3545] font-medium">{taskNotStarted} not started</span>
+                    )}
+                  </div>
                   <div className="flex justify-end">
                     <button onClick={(e) => { e.stopPropagation(); onOpenDashboard(site.name) }} className="text-[#005EDB] text-sm font-semibold inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-[#005EDB] hover:bg-[#005EDB] hover:text-white hover:shadow-md transition-all group-hover/site:bg-[#005EDB] group-hover/site:text-white group-hover/site:shadow-md">
-                      <ChevronRight className="w-4 h-4" />
+                      <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
                 {isOpen && (
-                  <div className="border-t border-gray-100 bg-[#F8FAFC]">
-                    <UnitTable units={site.unitList} />
+                  <div className="border-t border-gray-100 bg-white p-2.5">
+                    <UnitTable units={site.unitList} summary={site} />
                   </div>
                 )}
               </div>

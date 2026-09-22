@@ -42,13 +42,14 @@ type Props = {
   active: string
   onSelect: (id: string) => void
   onCollapse?: () => void
+  gradient?: boolean
 }
 
-export default function BUBar({ items, active, onSelect, onCollapse }: Props) {
+export default function BUBar({ items, active, onSelect, onCollapse, gradient = true }: Props) {
   return (
     <div
       className="flex-shrink-0 h-[45px] border-b border-gray-200 flex items-stretch"
-      style={{ background: 'radial-gradient(circle at 50% 0%, #1e3a8a 0%, #0b2c6e 55%, #000000 100%)' }}
+      style={gradient ? { background: 'radial-gradient(circle at 50% 0%, #1e3a8a 0%, #0b2c6e 55%, #000000 100%)' } : { background: '#F9FAFC' }}
     >
       {onCollapse && (
         <button
@@ -70,14 +71,20 @@ export default function BUBar({ items, active, onSelect, onCollapse }: Props) {
               <button
                 key={item.id}
                 onClick={() => onSelect(item.id)}
-                className={`relative flex flex-col items-center justify-center px-5 h-full whitespace-nowrap transition-all min-w-[85px] cursor-pointer pt-[5px] pb-[5px] gap-[3px] ${
+                className={`relative flex items-center justify-center px-5 h-full whitespace-nowrap transition-all min-w-[85px] cursor-pointer ${
+                  gradient ? 'pt-[5px] pb-[5px] gap-[3px] flex-col' : ''
+                } ${
                   isActive
-                    ? 'bg-[#ECF2FA] text-blue-600 border-transparent'
-                    : 'text-gray-400 border-transparent hover:text-gray-600 hover:bg-gray-50'
+                    ? gradient
+                      ? 'bg-[#ECF2FA] text-blue-600 border-transparent'
+                      : 'text-blue-600 border-b-2 border-blue-600'
+                    : gradient
+                      ? 'text-gray-400 border-transparent hover:text-gray-600 hover:bg-gray-50'
+                      : 'text-gray-600 border-transparent hover:text-blue-600 hover:bg-gray-50'
                 }`}
               >
-                <Icon className="w-4 h-4 shrink-0" />
-                <span className={`text-xs leading-none tracking-wide ${isActive ? 'font-bold' : 'font-normal'}`}>
+                {gradient && <Icon className="w-4 h-4 shrink-0" />}
+                <span className={`${gradient ? 'text-xs leading-none tracking-wide' : 'text-[13px] font-medium'} ${isActive ? 'font-bold' : ''}`}>
                   {item.name}
                 </span>
               </button>

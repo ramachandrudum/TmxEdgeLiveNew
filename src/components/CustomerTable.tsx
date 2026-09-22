@@ -1,10 +1,10 @@
-import { ChevronDown, ChevronRight } from 'lucide-react'
+import { ArrowRight, ChevronDown, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import CustomerLogo from './Logos'
+import { hashSeed } from '../lib/vary'
 import {
   customers,
   generateSites,
-  type SiteLegend,
   type SiteStat,
   type UnitStat,
 } from '../data/dashboard'
@@ -16,55 +16,6 @@ const STATUS_COLOR: Record<UnitStat['status'], string> = {
   healthy: '#0A6347',
   critical: '#C1292E',
   offline: '#C1292E',
-}
-
-function SiteStatBlock({
-  label,
-  heading,
-}: {
-  label: string
-  heading: { value: number; legends: SiteLegend[] }
-}) {
-  return (
-    <div className="pr-4">
-      <div className="flex items-baseline gap-1.5">
-        <span className="text-base font-bold text-gray-900">{heading.value}</span>
-        <span className="text-[10px] text-gray-500">{label}</span>
-      </div>
-      <div className="mt-1.5 flex items-center gap-3 whitespace-nowrap">
-        {heading.legends.map((l) => (
-          <div key={l.label} className="flex items-center gap-1 text-[10px] text-gray-500">
-            <span className="w-2 h-2 rounded-full shrink-0" style={{ background: l.color }} />
-            {l.label}
-            <b className="text-gray-900 ml-0.5">{l.value}</b>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function SiteCard({ site, onOpenDashboard }: { site: SiteStat; onOpenDashboard: (siteName: string) => void }) {
-  return (
-    <div
-      onClick={() => onOpenDashboard(site.name)}
-      className={`grid ${columns} gap-2 items-center bg-white border border-gray-200 rounded-md px-4 py-3 ml-[30px] hover:border-blue-200 transition-all cursor-pointer group/site`}
-    >
-      <div className="min-w-0 max-w-[180px]">
-        <div className="text-sm font-semibold text-gray-900 truncate">{site.name}</div>
-        <div className="text-xs text-gray-500">{site.units} units</div>
-      </div>
-      <div />
-
-      <SiteStatBlock label="Assets" heading={site.assets} />
-      <SiteStatBlock label="Incidents" heading={site.incidents} />
-      <SiteStatBlock label="Tasks" heading={site.tasks} />
-
-      <div className="flex justify-end">
-        <ChevronRight className="w-4 h-4 text-gray-300 group-hover/site:text-blue-500 transition-colors" />
-      </div>
-    </div>
-  )
 }
 
 const TH =
@@ -123,7 +74,7 @@ function UnitTable({ units, onSelectUnit }: { units: UnitStat[]; onSelectUnit: (
       <table className="w-full border-collapse">
         <thead>
           <tr className="bg-[#ECF2FA]">
-            <th className={TH} style={{ paddingLeft: 50 }}>Units</th>
+            <th className={TH} style={{ paddingLeft: 15 }}>Units</th>
             <th className={TH}>Availability</th>
             <th className={TH}>Assets</th>
             <th className={TH}>Incidents</th>
@@ -143,7 +94,7 @@ function UnitTable({ units, onSelectUnit }: { units: UnitStat[]; onSelectUnit: (
                 onClick={() => onSelectUnit(unit.name)}
                 className="border-b border-gray-100 hover:bg-blue-50/50 transition-colors last:border-b-0 cursor-pointer group/unit"
               >
-                <td className="py-3 px-3 align-middle" style={{ paddingLeft: 50 }}>
+                <td className="py-3 px-3 align-middle" style={{ paddingLeft: 15 }}>
                   <div className="flex items-center gap-2">
                     <span className="relative flex w-2.5 h-2.5 shrink-0">
                       {unit.status === 'healthy' && (
@@ -176,8 +127,15 @@ function UnitTable({ units, onSelectUnit }: { units: UnitStat[]; onSelectUnit: (
                     <RingPlot value={unit.health} color={color} />
                   </div>
                 </td>
-                <td className="py-3 px-3 text-gray-900 text-base align-top text-center">
-                  {unit.assets.total}
+                <td className="py-3 px-3 text-center align-top">
+                  <div className="flex flex-col items-center">
+                    <span className="text-gray-900 text-base">{unit.assets.total}</span>
+                    <div className="flex items-center gap-2 whitespace-nowrap mt-1.5">
+                      <LegendSquare color="var(--gm)" label="Healthy" value={unit.assets.healthy} />
+                      <LegendSquare color="var(--rm)" label="Critical" value={unit.assets.critical} />
+                      <LegendSquare color="#6b7280" label="Offline" value={unit.assets.offline} />
+                    </div>
+                  </div>
                 </td>
                 <td className="py-3 px-3 align-top">
                   <div className="flex flex-col gap-0.5 items-center">
@@ -272,6 +230,20 @@ function SiteRow({ site, onOpenDashboard, onSelectUnit }: { site: SiteStat; onOp
     { assets: 0, incidents: 0, tasks: 0 },
   )
 
+  const seed = hashSeed(site.id)
+  const showUnitsAlert = seed % 3 !== 0
+  const showAssetsAlert = (seed >> 2) % 3 !== 0
+  const showIncidentsAlert = (seed >> 4) % 3 !== 0
+  const showTasksAlert = (seed >> 6) % 3 !== 0
+
+  const offlineUnits = site.unitList.filter((u) => u.status === 'offline').length
+  const assetCritical = site.assets.legends.find((l) => l.label === 'Critical')?.value ?? 0
+  const assetAtRisk = site.assets.legends.find((l) => l.label === 'At Risk')?.value ?? 0
+  const incidentCritical = site.incidents.legends.find((l) => l.label === 'Critical')?.value ?? 0
+  const incidentWarning = site.incidents.legends.find((l) => l.label === 'Warning')?.value ?? 0
+  const taskOverdue = site.tasks.legends.find((l) => l.label === 'Overdue')?.value ?? 0
+  const taskNotStarted = site.tasks.legends.find((l) => l.label === 'Not Started')?.value ?? 0
+
   return (
     <div className="border-b border-gray-100 last:border-b-0">
       <div
@@ -289,10 +261,39 @@ function SiteRow({ site, onOpenDashboard, onSelectUnit }: { site: SiteStat; onOp
           <div className="text-sm font-semibold text-gray-900 truncate">{site.name}</div>
           <div className="text-xs text-gray-500">Last updated {site.updated}</div>
         </div>
-        <div className="text-sm text-gray-700">{site.units} units</div>
-        <div className="text-sm text-gray-700">{totals.assets} assets</div>
-        <div className="text-sm text-gray-700">{totals.incidents} incidents</div>
-        <div className="text-sm text-gray-700">{totals.tasks} tasks</div>
+        <div>
+          <span className="text-sm font-bold text-gray-900">{site.units}</span>
+          {showUnitsAlert && offlineUnits > 0 && (
+            <span className="block text-[10px] text-[#dc3545] font-medium">{offlineUnits} offline</span>
+          )}
+        </div>
+        <div>
+          <span className="text-sm font-bold text-gray-900">{totals.assets}</span>
+          {showAssetsAlert && assetCritical > 0 && (
+            <span className="block text-[10px] text-[#dc3545] font-medium">{assetCritical} critical</span>
+          )}
+          {showAssetsAlert && assetCritical === 0 && assetAtRisk > 0 && (
+            <span className="block text-[10px] text-[#dc3545] font-medium">{assetAtRisk} at risk</span>
+          )}
+        </div>
+        <div>
+          <span className="text-sm font-bold text-gray-900">{totals.incidents}</span>
+          {showIncidentsAlert && incidentCritical > 0 && (
+            <span className="block text-[10px] text-[#dc3545] font-medium">{incidentCritical} critical</span>
+          )}
+          {showIncidentsAlert && incidentCritical === 0 && incidentWarning > 0 && (
+            <span className="block text-[10px] text-[#dc3545] font-medium">{incidentWarning} warning</span>
+          )}
+        </div>
+        <div>
+          <span className="text-sm font-bold text-gray-900">{totals.tasks}</span>
+          {showTasksAlert && taskOverdue > 0 && (
+            <span className="block text-[10px] text-[#dc3545] font-medium">{taskOverdue} overdue</span>
+          )}
+          {showTasksAlert && taskOverdue === 0 && taskNotStarted > 0 && (
+            <span className="block text-[10px] text-[#dc3545] font-medium">{taskNotStarted} not started</span>
+          )}
+        </div>
 
         <div className="flex justify-end">
           <button
@@ -302,13 +303,13 @@ function SiteRow({ site, onOpenDashboard, onSelectUnit }: { site: SiteStat; onOp
             }}
             className="text-[#005EDB] text-sm font-semibold inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-[#005EDB] hover:bg-[#005EDB] hover:text-white hover:shadow-md transition-all group-hover/site:bg-[#005EDB] group-hover/site:text-white group-hover/site:shadow-md"
           >
-            <ChevronRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </div>
 
       {open && (
-        <div className="border-t border-gray-100 bg-[#F8FAFC]">
+        <div className="border-t border-gray-100 bg-white p-2.5">
           <UnitTable units={site.unitList} onSelectUnit={(unitName) => onSelectUnit(site.name, unitName)} />
         </div>
       )}
@@ -367,6 +368,33 @@ export default function CustomerTable({
       {customers.map((c) => {
         const isOpen = !!expanded[c.id]
         const sites = generateSites(c.id, variant)
+        const siteTotals = sites.reduce(
+          (acc, site) => {
+            const unitList = site.unitList ?? []
+            const offlineUnits = unitList.filter((u) => u.status === 'offline').length
+            const assetCritical = site.assets.legends.find((l) => l.label === 'Critical')?.value ?? 0
+            const assetAtRisk = site.assets.legends.find((l) => l.label === 'At Risk')?.value ?? 0
+            const incidentCritical = site.incidents.legends.find((l) => l.label === 'Critical')?.value ?? 0
+            const incidentWarning = site.incidents.legends.find((l) => l.label === 'Warning')?.value ?? 0
+            const taskOverdue = site.tasks.legends.find((l) => l.label === 'Overdue')?.value ?? 0
+            const taskNotStarted = site.tasks.legends.find((l) => l.label === 'Not Started')?.value ?? 0
+            return {
+              offlineUnits: acc.offlineUnits + offlineUnits,
+              assetCritical: acc.assetCritical + assetCritical,
+              assetAtRisk: acc.assetAtRisk + assetAtRisk,
+              incidentCritical: acc.incidentCritical + incidentCritical,
+              incidentWarning: acc.incidentWarning + incidentWarning,
+              taskOverdue: acc.taskOverdue + taskOverdue,
+              taskNotStarted: acc.taskNotStarted + taskNotStarted,
+            }
+          },
+          { offlineUnits: 0, assetCritical: 0, assetAtRisk: 0, incidentCritical: 0, incidentWarning: 0, taskOverdue: 0, taskNotStarted: 0 },
+        )
+        const seed = hashSeed(c.id)
+        const showUnitsAlert = seed % 3 !== 0
+        const showAssetsAlert = (seed >> 2) % 3 !== 0
+        const showIncidentsAlert = (seed >> 4) % 3 !== 0
+        const showTasksAlert = (seed >> 6) % 3 !== 0
         return (
           <div key={c.id} className="border-b border-gray-100 last:border-b-0">
             <div
@@ -393,10 +421,39 @@ export default function CustomerTable({
                 </div>
               </div>
 
-              <div className="text-sm text-gray-700">{c.units} units</div>
-              <div className="text-sm text-gray-700">{c.assets} assets</div>
-              <div className="text-sm text-gray-700">{c.incidents} incidents</div>
-              <div className="text-sm text-gray-700">{c.tasks} tasks</div>
+              <div>
+                <span className="text-sm font-bold text-gray-900">{c.units}</span>
+                {showUnitsAlert && siteTotals.offlineUnits > 0 && (
+                  <span className="block text-[10px] text-[#dc3545] font-medium">{siteTotals.offlineUnits} offline</span>
+                )}
+              </div>
+              <div>
+                <span className="text-sm font-bold text-gray-900">{c.assets}</span>
+                {showAssetsAlert && siteTotals.assetCritical > 0 && (
+                  <span className="block text-[10px] text-[#dc3545] font-medium">{siteTotals.assetCritical} critical</span>
+                )}
+                {showAssetsAlert && siteTotals.assetCritical === 0 && siteTotals.assetAtRisk > 0 && (
+                  <span className="block text-[10px] text-[#dc3545] font-medium">{siteTotals.assetAtRisk} at risk</span>
+                )}
+              </div>
+              <div>
+                <span className="text-sm font-bold text-gray-900">{c.incidents}</span>
+                {showIncidentsAlert && siteTotals.incidentCritical > 0 && (
+                  <span className="block text-[10px] text-[#dc3545] font-medium">{siteTotals.incidentCritical} critical</span>
+                )}
+                {showIncidentsAlert && siteTotals.incidentCritical === 0 && siteTotals.incidentWarning > 0 && (
+                  <span className="block text-[10px] text-[#dc3545] font-medium">{siteTotals.incidentWarning} warning</span>
+                )}
+              </div>
+              <div>
+                <span className="text-sm font-bold text-gray-900">{c.tasks}</span>
+                {showTasksAlert && siteTotals.taskOverdue > 0 && (
+                  <span className="block text-[10px] text-[#dc3545] font-medium">{siteTotals.taskOverdue} overdue</span>
+                )}
+                {showTasksAlert && siteTotals.taskOverdue === 0 && siteTotals.taskNotStarted > 0 && (
+                  <span className="block text-[10px] text-[#dc3545] font-medium">{siteTotals.taskNotStarted} not started</span>
+                )}
+              </div>
 
               <div className="flex justify-end">
                 <button
@@ -406,18 +463,67 @@ export default function CustomerTable({
                   }}
                   className="text-[#005EDB] text-sm font-semibold inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-[#005EDB] hover:bg-[#005EDB] hover:text-white hover:shadow-md transition-all group-hover/site:bg-[#005EDB] group-hover/site:text-white group-hover/site:shadow-md"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
             {isOpen && (
-              <div className="border-t border-gray-100 bg-[#F8FAFC] p-4">
-                <div className="space-y-3">
-                  {sites.map((site) => (
-                    <SiteCard key={site.id} site={site} onOpenDashboard={onOpenDashboard} />
-                  ))}
-                </div>
+              <div className="border-t border-gray-100 bg-white p-2.5">
+                <table className="w-full border-collapse border border-gray-200">
+                  <thead>
+                    <tr className="bg-[#ECF2FA]">
+                      <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100">Site Name</th>
+                      <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100">Assets</th>
+                      <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100">Incidents</th>
+                      <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100">Tasks</th>
+                      <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white">
+                    {sites.map((site) => (
+                      <tr key={site.id} className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 transition-colors cursor-pointer group/site" onClick={() => onOpenDashboard(site.name)}>
+                        <td className="py-3 px-3 text-left">
+                          <div className="text-sm font-semibold text-gray-900">{site.name}</div>
+                          <div className="text-xs text-gray-500">{site.units} units</div>
+                        </td>
+                        <td className="py-3 px-3 text-left">
+                          <span className="text-sm font-bold text-gray-900">{site.assets.value}</span>
+                          {site.assets.legends.find((l) => l.label === 'Critical' && l.value > 0) ? (
+                            <span className="block text-[10px] text-[#dc3545] font-medium">{site.assets.legends.find((l) => l.label === 'Critical')!.value} critical</span>
+                          ) : site.assets.legends.find((l) => l.label === 'At Risk' && l.value > 0) ? (
+                            <span className="block text-[10px] text-[#dc3545] font-medium">{site.assets.legends.find((l) => l.label === 'At Risk')!.value} at risk</span>
+                          ) : (
+                            <span className="block text-[10px] text-gray-400">-</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-3 text-left">
+                          <span className="text-sm font-bold text-gray-900">{site.incidents.value}</span>
+                          {site.incidents.legends.find((l) => l.label === 'Critical' && l.value > 0) ? (
+                            <span className="block text-[10px] text-[#dc3545] font-medium">{site.incidents.legends.find((l) => l.label === 'Critical')!.value} critical</span>
+                          ) : site.incidents.legends.find((l) => l.label === 'Warning' && l.value > 0) ? (
+                            <span className="block text-[10px] text-[#dc3545] font-medium">{site.incidents.legends.find((l) => l.label === 'Warning')!.value} warning</span>
+                          ) : (
+                            <span className="block text-[10px] text-gray-400">-</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-3 text-left">
+                          <span className="text-sm font-bold text-gray-900">{site.tasks.value}</span>
+                          {site.tasks.legends.find((l) => l.label === 'Overdue' && l.value > 0) ? (
+                            <span className="block text-[10px] text-[#dc3545] font-medium">{site.tasks.legends.find((l) => l.label === 'Overdue')!.value} overdue</span>
+                          ) : site.tasks.legends.find((l) => l.label === 'Not Started' && l.value > 0) ? (
+                            <span className="block text-[10px] text-[#dc3545] font-medium">{site.tasks.legends.find((l) => l.label === 'Not Started')!.value} not started</span>
+                          ) : (
+                            <span className="block text-[10px] text-gray-400">-</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-3 text-left">
+                          <ArrowRight className="w-4 h-4 text-gray-400 group-hover/site:text-blue-500 transition-colors" />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>

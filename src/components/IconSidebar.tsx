@@ -36,16 +36,20 @@ type Props = {
   active: string
   onSelect: (id: string) => void
   navIds?: string[]
+  buGradient?: boolean
 }
 
-function RailButton({ item, active, onClick }: { item: RailItem; active: boolean; onClick: () => void }) {
+function RailButton({ item, active, onClick, buGradient }: { item: RailItem; active: boolean; onClick: () => void; buGradient?: boolean }) {
+  const showBlueBg = active && !buGradient
   return (
     <button
       onClick={onClick}
       className={`group relative rail-item w-full flex flex-col items-center justify-center gap-[3px] transition-all cursor-pointer mb-[15px] overflow-visible pt-[10px] pb-[10px] ${
-        active
-          ? 'bg-[#005EDB] text-white rounded-[10px]'
-          : 'text-white/70 hover:text-white hover:bg-white/10'
+        showBlueBg
+          ? 'rounded-[10px] bg-[#005EDB]'
+          : active
+            ? 'rounded-[10px]'
+            : 'text-white/70 hover:text-white hover:bg-white/10'
       }`}
     >
       <img
@@ -54,9 +58,18 @@ function RailButton({ item, active, onClick }: { item: RailItem; active: boolean
           className={`w-4 h-4 object-contain transition-all ${
             active ? 'opacity-100' : 'opacity-70 group-hover:opacity-100'
           }`}
+          style={active
+            ? showBlueBg
+              ? { filter: 'brightness(0) invert(1)' }
+              : { filter: 'brightness(0) saturate(100%) invert(33%) sepia(99%) saturate(7500%) hue-rotate(198deg) brightness(97%) contrast(97%)' }
+            : undefined}
         />
       <span className={`text-[8px] font-medium leading-none truncate w-full px-0.5 text-center uppercase tracking-wide pt-[5px] ${
-        active ? 'text-white' : 'text-white/70'
+        showBlueBg
+          ? 'text-white'
+          : active
+            ? 'text-[#005EDB]'
+            : 'text-white/70'
       }`}>
         {item.title}
       </span>
@@ -70,7 +83,7 @@ function RailButton({ item, active, onClick }: { item: RailItem; active: boolean
   )
 }
 
-export default function IconSidebar({ active, onSelect, navIds }: Props) {
+export default function IconSidebar({ active, onSelect, navIds, buGradient }: Props) {
   const items = navIds ? railNav.filter((item) => navIds.includes(item.id)) : railNav
   return (
     <aside className="bg-[#121212] flex flex-col z-[110] border-r border-white/5 shrink-0 overflow-hidden w-[76px]">
@@ -83,6 +96,7 @@ export default function IconSidebar({ active, onSelect, navIds }: Props) {
               item={item}
               active={active === item.id}
               onClick={() => onSelect(item.id)}
+              buGradient={buGradient}
             />
           ))}
         </div>

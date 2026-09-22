@@ -1,20 +1,94 @@
 import { getCustomerSummary } from '../data/dashboard'
 
-type Legend = { label: string; value: string; color: string }
-
+type Legend = { label: string; value: number; color: string; hideValue?: boolean }
 type Card = {
   key: string
   num: string
   label: string
   caption?: string
-  bars: { width: number; color: string }[]
   legends: Legend[]
-  legends2?: Legend[]
+}
+
+function Donut({ legends, size = 65, stroke = 10 }: { legends: Legend[]; size?: number; stroke?: number }) {
+  const total = legends.reduce((a, l) => a + l.value, 0)
+  const r = (size - stroke) / 2
+  const circ = 2 * Math.PI * r
+  let offset = 0
+
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0 -rotate-90">
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#f1f5f9" strokeWidth={stroke} />
+      {total > 0 && legends.map((l) => {
+        const pct = l.value / total
+        const dash = pct * circ
+        const o = offset
+        offset += dash
+        return (
+          <circle
+            key={l.label}
+            cx={size / 2}
+            cy={size / 2}
+            r={r}
+            fill="none"
+            stroke={l.color}
+            strokeWidth={stroke}
+            strokeDasharray={`${dash} ${circ - dash}`}
+            strokeDashoffset={-o}
+          />
+        )
+      })}
+    </svg>
+  )
+}
+
+function Pie({ legends, size = 65 }: { legends: Legend[]; size?: number }) {
+  const total = legends.reduce((a, l) => a + l.value, 0)
+  const cx = size / 2, cy = size / 2, r = size / 2
+  let cum = 0
+
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0">
+      {total > 0 && legends.map((l) => {
+        const start = (cum / total) * 2 * Math.PI - Math.PI / 2
+        cum += l.value
+        const end = (cum / total) * 2 * Math.PI - Math.PI / 2
+        const large = l.value / total > 0.5 ? 1 : 0
+        const x1 = cx + r * Math.cos(start), y1 = cy + r * Math.sin(start)
+        const x2 = cx + r * Math.cos(end), y2 = cy + r * Math.sin(end)
+        return (
+          <path
+            key={l.label}
+            d={`M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2} Z`}
+            fill={l.color}
+          />
+        )
+      })}
+    </svg>
+  )
+}
+
+function Bars({ legends, width = 130 }: { legends: Legend[]; width?: number }) {
+  const max = Math.max(...legends.map((l) => l.value), 1)
+  return (
+    <svg width={width} height={65} viewBox={`0 0 ${width} 65`} className="shrink-0">
+      {legends.map((l, i) => {
+        const barH = 14
+        const gap = 6
+        const y = i * (barH + gap) + 2
+        const w = Math.max((l.value / max) * (width - 30), 4)
+        return (
+          <g key={l.label}>
+            <rect x={0} y={y} width={w} height={barH} rx={2} fill={l.color} />
+            <text x={w + 5} y={y + barH - 2} className="fill-gray-500" fontSize={9}>{l.value}</text>
+          </g>
+        )
+      })}
+    </svg>
+  )
 }
 
 export default function SummaryCards({ active, variant = '' }: { active: string; variant?: string }) {
   const s = getCustomerSummary(active, variant)
-  const pct = (part: number, total: number) => (total > 0 ? (part / total) * 100 : 0)
   const isAll = active === 'all'
 
   const cards: Card[] = [
@@ -23,114 +97,75 @@ export default function SummaryCards({ active, variant = '' }: { active: string;
       num: String(isAll ? s.customers : s.sites),
       label: isAll ? 'Customers' : 'Sites',
       caption: `${s.sites} sites · ${s.units} units`,
-      bars: [
-        { width: pct(s.unitsOffline, s.units), color: 'var(--rm)' },
-        { width: pct(s.unitsOnline, s.units), color: 'var(--gm)' },
+      legends: [
+        { label: 'Offline', value: s.unitsOffline, color: '#dc3545' },
+        { label: 'Online', value: s.unitsOnline, color: '#28a745' },
       ],
-      legends: [{ label: 'Offline', value: String(s.unitsOffline), color: 'var(--rm)' }],
-      legends2: [{ label: 'Online', value: String(s.unitsOnline), color: 'var(--gm)' }],
     },
     {
       key: 'assets',
       num: String(s.assets),
       label: 'Assets',
-      bars: [
-        { width: pct(s.assetHealth.critical, s.assets), color: 'var(--rm)' },
-        { width: pct(s.assetHealth.atRisk, s.assets), color: 'var(--aym)' },
-        { width: pct(s.assetHealth.healthy, s.assets), color: 'var(--gm)' },
-      ],
       legends: [
-        { label: 'Critical', value: String(s.assetHealth.critical), color: 'var(--rm)' },
-        { label: 'At Risk', value: String(s.assetHealth.atRisk), color: 'var(--aym)' },
+        { label: 'Critical', value: s.assetHealth.critical, color: '#dc3545', hideValue: true },
+        { label: 'At Risk', value: s.assetHealth.atRisk, color: '#ffc107', hideValue: true },
+        { label: 'Healthy', value: s.assetHealth.healthy, color: '#28a745', hideValue: true },
       ],
-      legends2: [{ label: 'Healthy', value: String(s.assetHealth.healthy), color: 'var(--gm)' }],
     },
     {
       key: 'incidents',
       num: String(s.incidents),
       label: 'Incidents',
-      bars: [
-        { width: pct(s.incidentsBreakdown.critical, s.incidents), color: 'var(--rm)' },
-        { width: pct(s.incidentsBreakdown.warning, s.incidents), color: 'var(--am)' },
-        { width: pct(s.incidentsBreakdown.deviation, s.incidents), color: '#ffc107' },
-      ],
       legends: [
-        { label: 'Critical', value: String(s.incidentsBreakdown.critical), color: 'var(--rm)' },
-        { label: 'Warning', value: String(s.incidentsBreakdown.warning), color: 'var(--am)' },
-      ],
-      legends2: [
-        {
-          label: 'Deviation',
-          value: String(s.incidentsBreakdown.deviation),
-          color: '#ffc107',
-        },
+        { label: 'Critical', value: s.incidentsBreakdown.critical, color: '#dc3545' },
+        { label: 'Warning', value: s.incidentsBreakdown.warning, color: '#fd7e14' },
+        { label: 'Deviation', value: s.incidentsBreakdown.deviation, color: '#ffc107' },
       ],
     },
     {
       key: 'tasks',
       num: String(s.tasks),
       label: 'Tasks',
-      bars: [
-        { width: pct(s.tasksBreakdown.overdue, s.tasks), color: 'var(--rm)' },
-        { width: pct(s.tasksBreakdown.ongoing, s.tasks), color: 'var(--am)' },
-        { width: pct(s.tasksBreakdown.notStarted, s.tasks), color: 'var(--tt)' },
-        { width: pct(s.tasksBreakdown.completed, s.tasks), color: 'var(--gm)' },
-      ],
       legends: [
-        { label: 'Overdue', value: String(s.tasksBreakdown.overdue), color: 'var(--rm)' },
-        { label: 'Ongoing', value: String(s.tasksBreakdown.ongoing), color: 'var(--am)' },
-      ],
-      legends2: [
-        { label: 'Not Started', value: String(s.tasksBreakdown.notStarted), color: 'var(--tt)' },
-        { label: 'Completed', value: String(s.tasksBreakdown.completed), color: 'var(--gm)' },
+        { label: 'Overdue', value: s.tasksBreakdown.overdue, color: '#dc3545' },
+        { label: 'Ongoing', value: s.tasksBreakdown.ongoing, color: '#fd7e14' },
+        { label: 'Not Started', value: s.tasksBreakdown.notStarted, color: '#6c757d' },
+        { label: 'Completed', value: s.tasksBreakdown.completed, color: '#28a745' },
       ],
     },
   ]
 
-  const renderLegend = (items: Legend[]) => (
-    <div className="hs5-legend-col space-y-1">
-      {items.map((l) => (
-        <div key={l.label} className="flex items-center gap-1.5">
-          <span className="sq w-2 h-2 rounded-full" style={{ background: l.color }} />
-          <span className="text-[10px] text-gray-600">
-            {l.label}
-            <b className="text-gray-900 ml-1">{l.value}</b>
-          </span>
-        </div>
-      ))}
-    </div>
-  )
-
   return (
-    <div className="hs5-row grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       {cards.map((card) => (
-        <div key={card.key} className="hs5-card bg-white border border-gray-200 rounded-md p-4">
-          {card.caption ? (
-            <div className="hs5-top hs5-top-spread flex items-start justify-between gap-2">
-              <span className="hs5-numlabel flex items-baseline gap-1.5">
-                <span className="hs5-num text-3xl font-bold text-gray-900">{card.num}</span>
-                <span className="hs5-label text-xs text-gray-600">{card.label}</span>
-              </span>
-              <span className="hs5-siteunit-caption-inline text-right text-[10px] text-gray-500">
-                {card.caption}
-              </span>
+        <div key={card.key} className="bg-white border border-gray-200 rounded-md p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl font-bold text-gray-900">{card.num}</span>
+                <span className="text-xs text-gray-600 font-semibold">{card.label}</span>
+              </div>
+              {card.caption && (
+                <span className="text-[10px] text-gray-500 block mb-1">{card.caption}</span>
+              )}
+              <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
+                {card.legends.map((l) => (
+                  <div key={l.label} className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: l.color }} />
+                    <span className="text-[11px] text-gray-600 truncate">{l.label}</span>
+                    {!l.hideValue && (
+                      <span className="text-[11px] font-semibold text-gray-900">{l.value}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-          ) : (
-            <div className="hs5-top flex items-baseline gap-1.5">
-              <span className="hs5-num text-3xl font-bold text-gray-900">{card.num}</span>
-              <span className="hs5-label text-xs text-gray-600">{card.label}</span>
+            <div className="shrink-0 pt-1">
+              {card.key === 'sites' && <Donut legends={card.legends} />}
+              {card.key === 'assets' && <Bars legends={card.legends} />}
+              {card.key === 'incidents' && <Pie legends={card.legends} />}
+              {card.key === 'tasks' && <Donut legends={card.legends} />}
             </div>
-          )}
-
-          <div className="hs5-bar flex h-2 rounded-full overflow-hidden bg-gray-100 mt-3">
-            {card.bars.map((b, i) => (
-              <span key={i} style={{ width: `${b.width}%`, background: b.color }} />
-            ))}
-          </div>
-
-          <div className="hs5-legend mt-2 flex gap-6">
-            {renderLegend(card.legends)}
-            {card.legends2 && renderLegend(card.legends2)}
           </div>
         </div>
       ))}

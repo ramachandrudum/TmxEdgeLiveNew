@@ -1,4 +1,4 @@
-import { Bell, ChevronDown, Moon, Sun, Sparkles, Search } from 'lucide-react'
+import { Bell, ChevronDown, Moon, Sun, Sparkles, Search, Settings } from 'lucide-react'
 import { useState } from 'react'
 import CustomerLogo from './Logos'
 import type { Customer } from '../data/dashboard'
@@ -17,6 +17,8 @@ type Props = {
   onCompare?: (type: string, items: string[]) => void
   buIconVisible?: boolean
   onToggleBu?: () => void
+  buGradient?: boolean
+  onToggleBuGradient?: () => void
 }
 
 const compareTypes = [
@@ -53,7 +55,7 @@ const assetGroups: { name: string; children: { name: string; children: { name: s
   ]},
 ]
 
-export default function Header({ customer, customers, dark, isDashboard, persona, onToggleDark, onOpenAICopilot, onSwitchCustomer, onSelectPersona, onCompare, buIconVisible, onToggleBu }: Props) {
+export default function Header({ customer, customers, dark, isDashboard, persona, onToggleDark, onOpenAICopilot, onSwitchCustomer, onSelectPersona, onCompare, buIconVisible, onToggleBu, buGradient, onToggleBuGradient }: Props) {
   const [profileOpen, setProfileOpen] = useState(false)
   const [customerOpen, setCustomerOpen] = useState(false)
   const [customerQuery, setCustomerQuery] = useState('')
@@ -62,6 +64,7 @@ export default function Header({ customer, customers, dark, isDashboard, persona
   const [compareType, setCompareType] = useState('')
   const [compareSelected, setCompareSelected] = useState<string[]>([])
   const [compareSearch, setCompareSearch] = useState('')
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   const activeType = persona?.type ?? 'internal'
   const activeView = persona?.view ?? 'management'
@@ -240,6 +243,14 @@ export default function Header({ customer, customers, dark, isDashboard, persona
             </div>
           )}
         </div>
+        <button
+          onClick={() => setSettingsOpen(true)}
+          title="Settings"
+          className="relative w-8 h-8 flex items-center justify-center rounded-[5px] border border-gray-200 bg-white text-gray-600 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer shrink-0 group"
+        >
+          <Settings className="w-3.5 h-3.5" />
+          <span className="absolute top-full mt-2 px-2.5 py-1 rounded-md bg-black text-white text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">Settings</span>
+        </button>
       </div>
 
       {compareOpen && (
@@ -412,6 +423,44 @@ export default function Header({ customer, customers, dark, isDashboard, persona
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {settingsOpen && (
+        <div className="fixed inset-0 z-[100] flex justify-end" onClick={() => setSettingsOpen(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div
+            className="relative w-[340px] bg-white shadow-2xl h-full flex flex-col slide-in-right"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+              <h3 className="text-[15px] font-bold text-gray-900">Settings</h3>
+              <button onClick={() => setSettingsOpen(false)} className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-gray-100 transition-colors cursor-pointer text-gray-500 hover:text-gray-700">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-5">
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-[13px] font-semibold text-gray-900 mb-3">Appearance</h4>
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={buGradient}
+                        onChange={() => onToggleBuGradient?.()}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 transition-colors" />
+                      <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform peer-checked:translate-x-4" />
+                    </div>
+                    <span className="text-[13px] text-gray-700 group-hover:text-gray-900 transition-colors">BU Bar gradient background</span>
+                  </label>
+                  <p className="text-[11px] text-gray-400 mt-1.5 ml-[48px]">Toggle gradient bg for the BU bar. When off, text-only with white background.</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

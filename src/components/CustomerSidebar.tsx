@@ -159,7 +159,7 @@ export default function CustomerSidebar({ active, onSelect }: Props) {
 
         {!collapsed && recentlyAdded.length > 0 && (
           <>
-            {renderSectionTitle('Recently Visited')}
+            {renderSectionTitle('Other')}
             {recentlyAdded.map(renderRow)}
           </>
         )}
