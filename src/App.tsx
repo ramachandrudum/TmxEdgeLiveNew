@@ -224,7 +224,7 @@ export default function App() {
                                 <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2.5 px-3 border-b border-gray-100">Assets</th>
                                 <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2.5 px-3 border-b border-gray-100">Incidents</th>
                                 <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2.5 px-3 border-b border-gray-100">Tasks</th>
-                                <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2.5 px-3 border-b border-gray-100">Actions</th>
+                                <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2.5 px-3 border-b border-gray-100 w-[35px]">Actions</th>
                               </tr>
                             </thead>
                             <tbody className="bg-white">

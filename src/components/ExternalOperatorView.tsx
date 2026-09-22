@@ -90,7 +90,7 @@ function UnitTable({ units, summary }: { units: UnitStat[]; summary?: SiteStat }
             <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100">Trips</th>
             <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100">PM Activity</th>
             <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100">Shutdown</th>
-            <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100"></th>
+            <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100 w-[35px]"></th>
           </tr>
         </thead>
         <tbody className="bg-white">
@@ -369,7 +369,7 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
                       <span className="block text-[10px] text-[#dc3545] font-medium">{taskNotStarted} not started</span>
                     )}
                   </div>
-                  <div className="flex justify-end">
+                  <div className="flex justify-end w-[35px]">
                     <button onClick={(e) => { e.stopPropagation(); onOpenDashboard(site.name) }} className="text-[#005EDB] text-sm font-semibold inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-[#005EDB] hover:bg-[#005EDB] hover:text-white hover:shadow-md transition-all group-hover/site:bg-[#005EDB] group-hover/site:text-white group-hover/site:shadow-md">
                       <ArrowRight className="w-4 h-4" />
                     </button>

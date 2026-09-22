@@ -9,7 +9,7 @@ import {
   type UnitStat,
 } from '../data/dashboard'
 
-const columns = 'grid-cols-[minmax(220px,2fr)_1fr_1fr_1.2fr_1fr_1.4fr]'
+const columns = 'grid-cols-[minmax(220px,2fr)_1fr_1fr_1.2fr_1fr_35px]'
 const siteColumns = 'grid-cols-[24px_minmax(220px,2fr)_1fr_1fr_1.2fr_1fr_1.4fr]'
 
 const STATUS_COLOR: Record<UnitStat['status'], string> = {
@@ -360,9 +360,7 @@ export default function CustomerTable({
           Incidents
         </span>
         <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Tasks</span>
-        <span className="text-right text-[10px] font-bold uppercase tracking-widest text-gray-400">
-          Action
-        </span>
+        <span />
       </div>
 
       {customers.map((c) => {
@@ -477,7 +475,7 @@ export default function CustomerTable({
                       <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100">Assets</th>
                       <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100">Incidents</th>
                       <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100">Tasks</th>
-                      <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100">Actions</th>
+                      <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100 w-[30px]"></th>
                     </tr>
                   </thead>
                   <tbody className="bg-white">
@@ -517,8 +515,8 @@ export default function CustomerTable({
                             <span className="block text-[10px] text-gray-400">-</span>
                           )}
                         </td>
-                        <td className="py-3 px-3 text-left">
-                          <ArrowRight className="w-4 h-4 text-gray-400 group-hover/site:text-blue-500 transition-colors" />
+                        <td className="py-3 px-3 text-left w-[30px]">
+                          <ChevronRight className="w-5 h-5 text-gray-400 group-hover/site:text-blue-500 transition-colors" />
                         </td>
                       </tr>
                     ))}
