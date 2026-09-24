@@ -22,6 +22,7 @@ type Props = {
   customer: Customer
   onOpenDashboard: (siteName: string) => void
   hideMetrics?: boolean
+  hideSiteDetails?: boolean
   variant?: string
 }
 
@@ -162,7 +163,7 @@ function UnitTable({ units, summary }: { units: UnitStat[]; summary?: SiteStat }
   )
 }
 
-export default function ExternalOperatorView({ customer, onOpenDashboard, hideMetrics, variant = '' }: Props) {
+export default function ExternalOperatorView({ customer, onOpenDashboard, hideMetrics, hideSiteDetails, variant = '' }: Props) {
   const sites = generateSites(customer.id, variant)
   const [activeSite, setActiveSite] = useState<string>('all')
   const [openSites, setOpenSites] = useState<Set<string>>(new Set())
@@ -202,6 +203,7 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
           </div>
         </div>
         <button onClick={() => onOpenDashboard(sites[0]?.name ?? '')} className="btn btn-md text-[#005EDB] border border-[#005EDB]/25 hover:bg-[#005EDB] hover:text-white hover:shadow-md">
+          Go to Dashboard
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>
@@ -326,12 +328,14 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
             return (
               <div key={site.id} className="border-b border-gray-100 last:border-b-0">
                 <div
-                  onClick={() => toggleSite(site.id)}
-                  className={`grid ${siteColumns} gap-2 items-center px-4 py-3 transition-colors hover:bg-gray-50 cursor-pointer group/site`}
+                  onClick={hideSiteDetails ? undefined : () => toggleSite(site.id)}
+                  className={`grid ${siteColumns} gap-2 items-center px-4 py-3 transition-colors ${hideSiteDetails ? '' : 'hover:bg-gray-50 cursor-pointer group/site'}`}
                 >
-                  <div className="flex justify-start">
-                    <ChevronDown className={`w-4 h-4 text-gray-300 group-hover/site:text-blue-500 transition-transform ${isOpen ? '' : '-rotate-90'}`} />
-                  </div>
+                  {hideSiteDetails ? <span /> : (
+                    <div className="flex justify-start">
+                      <ChevronDown className={`w-4 h-4 text-gray-300 group-hover/site:text-blue-500 transition-transform ${isOpen ? '' : '-rotate-90'}`} />
+                    </div>
+                  )}
                   <div className="min-w-0 max-w-[180px]">
                     <div className="text-sm font-semibold text-gray-900 truncate">{site.name}</div>
                     <div className="text-xs text-gray-500">Last updated {site.updated}</div>
@@ -369,13 +373,13 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
                       <span className="block text-[10px] text-[#dc3545] font-medium">{taskNotStarted} not started</span>
                     )}
                   </div>
-                  <div className="flex justify-end w-[35px]">
+                  <div className="flex justify-end">
                     <button onClick={(e) => { e.stopPropagation(); onOpenDashboard(site.name) }} className="text-[#005EDB] text-sm font-semibold inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-[#005EDB] hover:bg-[#005EDB] hover:text-white hover:shadow-md transition-all group-hover/site:bg-[#005EDB] group-hover/site:text-white group-hover/site:shadow-md">
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
-                {isOpen && (
+                {!hideSiteDetails && isOpen && (
                   <div className="border-t border-gray-100 bg-white p-2.5">
                     <UnitTable units={site.unitList} summary={site} />
                   </div>

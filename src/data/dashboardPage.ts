@@ -258,20 +258,31 @@ export type AssetCard = {
   delta: string
   segs: { rm: number; aym: number; gm: number }
   path: string[]
+  uptime: string
+  incidents: number
+  recommendations: number
+  tasks: number
+  trend: number[]
 }
 
 export const assetCards: AssetCard[] = [
-  { id: 'ch10', name: 'Chiller 10', status: 'cr', risk: 87, delta: '▲ 9%', segs: { rm: 3, aym: 1, gm: 5 }, path: ['Nestle UAE', 'HVAC', 'Primary Cooling Water System'] },
-  { id: 'c2', name: 'Compressor 2', status: 'cr', risk: 82, delta: '▲ 4%', segs: { rm: 3, aym: 2, gm: 4 }, path: ['Nestle UAE', 'Compressors', 'Compressor System 1'] },
-  { id: 'twa', name: 'Cooling Tower A', status: 'cr', risk: 78, delta: '▲ 10%', segs: { rm: 2, aym: 1, gm: 2 }, path: ['Nestle UAE', 'HVAC', 'Primary Cooling Water System'] },
-  { id: 'ch20', name: 'Chiller 20', status: 'ar', risk: 75, delta: '▲ 7%', segs: { rm: 2, aym: 1, gm: 6 }, path: ['Nestle UAE', 'HVAC', 'Primary Cooling Water System'] },
-  { id: 'p3', name: 'Pump 3', status: 'ar', risk: 45, delta: '▲ 7%', segs: { rm: 0, aym: 1, gm: 8 }, path: ['Nestle UAE', 'HVAC', 'Secondary Cooling Water System'] },
-  { id: 'ch30', name: 'Chiller 30', status: 'ok', risk: 22, delta: '▲ 4%', segs: { rm: 0, aym: 0, gm: 9 }, path: ['Nestle UAE', 'HVAC', 'Primary Cooling Water System'] },
-  { id: 'c1', name: 'Compressor 1', status: 'ok', risk: 14, delta: '▲ 6%', segs: { rm: 0, aym: 0, gm: 6 }, path: ['Nestle UAE', 'Compressors', 'Compressor System 1'] },
-  { id: 'twb', name: 'Cooling Tower B', status: 'ok', risk: 12, delta: '▲ 4%', segs: { rm: 0, aym: 0, gm: 9 }, path: ['Nestle UAE', 'HVAC', 'Primary Cooling Water System'] },
-  { id: 'p1', name: 'Primary Pump 1', status: 'ok', risk: 10, delta: '▲ 2%', segs: { rm: 0, aym: 0, gm: 14 }, path: ['Nestle UAE', 'HVAC', 'Primary Cooling Water System'] },
-  { id: 'c3', name: 'Compressor 3', status: 'ok', risk: 8, delta: '▲ 10%', segs: { rm: 0, aym: 0, gm: 20 }, path: ['Nestle UAE', 'Compressors', 'Compressor System 2'] },
+  { id: 'ch10', name: 'Chiller 10', status: 'cr', risk: 90, delta: '▲ 9%', segs: { rm: 3, aym: 1, gm: 5 }, path: ['Nestle UAE', 'HVAC', 'Primary Cooling Water System'], uptime: 'Up for 3 days, 2 hours', incidents: 8, recommendations: 5, tasks: 12, trend: [80, 78, 82, 76, 74, 70, 66, 62, 60] },
+  { id: 'c2', name: 'Compressor 2', status: 'cr', risk: 85, delta: '▲ 4%', segs: { rm: 3, aym: 2, gm: 4 }, path: ['Nestle UAE', 'Compressors', 'Compressor System 1'], uptime: 'Up for 20 days', incidents: 7, recommendations: 6, tasks: 10, trend: [70, 72, 68, 66, 60, 58, 55, 52, 50] },
+  { id: 'twa', name: 'Cooling Tower A', status: 'cr', risk: 80, delta: '▲ 10%', segs: { rm: 2, aym: 1, gm: 2 }, path: ['Nestle UAE', 'HVAC', 'Primary Cooling Water System'], uptime: 'Up for 10 days', incidents: 6, recommendations: 5, tasks: 11, trend: [72, 70, 74, 70, 66, 62, 58, 56, 55] },
+  { id: 'ch20', name: 'Chiller 20', status: 'ar', risk: 75, delta: '▲ 7%', segs: { rm: 2, aym: 1, gm: 6 }, path: ['Nestle UAE', 'HVAC', 'Primary Cooling Water System'], uptime: 'Up for 5 days, 12 hours', incidents: 6, recommendations: 4, tasks: 9, trend: [65, 63, 66, 62, 58, 56, 53, 51, 50] },
+  { id: 'p3', name: 'Pump 3', status: 'ar', risk: 55, delta: '▲ 7%', segs: { rm: 0, aym: 1, gm: 8 }, path: ['Nestle UAE', 'HVAC', 'Secondary Cooling Water System'], uptime: 'Up for 4 months', incidents: 5, recommendations: 4, tasks: 8, trend: [42, 44, 43, 46, 45, 48, 50, 52, 55] },
+  { id: 'ch30', name: 'Chiller 30', status: 'ok', risk: 40, delta: '▲ 4%', segs: { rm: 0, aym: 0, gm: 9 }, path: ['Nestle UAE', 'HVAC', 'Primary Cooling Water System'], uptime: 'Up for 10 days', incidents: 4, recommendations: 3, tasks: 7, trend: [36, 34, 37, 35, 38, 39, 40, 41, 40] },
+  { id: 'c1', name: 'Compressor 1', status: 'ok', risk: 28, delta: '▲ 6%', segs: { rm: 0, aym: 0, gm: 6 }, path: ['Nestle UAE', 'Compressors', 'Compressor System 1'], uptime: 'Up for 2 months', incidents: 3, recommendations: 2, tasks: 6, trend: [20, 22, 21, 24, 23, 26, 27, 28, 28] },
+  { id: 'twb', name: 'Cooling Tower B', status: 'ok', risk: 18, delta: '▲ 4%', segs: { rm: 0, aym: 0, gm: 9 }, path: ['Nestle UAE', 'HVAC', 'Primary Cooling Water System'], uptime: 'Up for 6 days', incidents: 3, recommendations: 3, tasks: 5, trend: [14, 16, 15, 17, 16, 18, 18, 18, 18] },
+  { id: 'p1', name: 'Primary Pump 1', status: 'ok', risk: 12, delta: '▲ 2%', segs: { rm: 0, aym: 0, gm: 14 }, path: ['Nestle UAE', 'HVAC', 'Primary Cooling Water System'], uptime: 'Up for 90 days', incidents: 2, recommendations: 2, tasks: 4, trend: [10, 11, 10, 12, 11, 12, 12, 12, 12] },
+  { id: 'c3', name: 'Compressor 3', status: 'ok', risk: 8, delta: '▲ 10%', segs: { rm: 0, aym: 0, gm: 20 }, path: ['Nestle UAE', 'Compressors', 'Compressor System 2'], uptime: 'Up for 30 days', incidents: 2, recommendations: 1, tasks: 3, trend: [6, 7, 6, 8, 7, 8, 8, 8, 8] },
 ]
+
+export type IncidentSensor = {
+  label: string
+  value: string
+  delta: string
+}
 
 export type IncidentCard = {
   id: string
@@ -283,6 +294,7 @@ export type IncidentCard = {
   kpiValue: string
   kpiDelta?: string
   sensors?: number
+  sensorList?: IncidentSensor[]
   cause?: string
   path: string[]
 }
@@ -297,6 +309,10 @@ export const incidentCards: IncidentCard[] = [
     kpiLabel: '',
     kpiValue: '',
     sensors: 2,
+    sensorList: [
+      { label: 'Compressor Load', value: '104 TPH', delta: '↓10%' },
+      { label: 'CT Efficiency', value: '71%', delta: '↓9%' },
+    ],
     cause:
       'Fouled condenser tubes or reduced condenser water flow. Clean condenser tubes and verify cooling water flow rate.',
     path: ['Nestle UAE', 'HVAC', 'Chiller 10'],
@@ -306,7 +322,10 @@ export const incidentCards: IncidentCard[] = [
   { id: 'i4', time: '15/06, 8:15AM', status: 'cr', title: 'CT Efficiency Drop', kpiLabel: 'Approach Temp', kpiValue: '5.4 °C', kpiDelta: '↑11%', path: ['Nestle UAE', 'HVAC', 'Cooling Tower A'] },
   { id: 'i5', time: '14/06, 11AM', status: 'dv', title: 'Minor Approach Deviation', kpiLabel: 'Approach Temp', kpiValue: '3.9 °C', kpiDelta: '↑3%', path: ['Nestle UAE', 'HVAC', 'Cooling Tower B'] },
   { id: 'i6', time: '14/06, 7:20AM', status: 'wr', title: 'Low Flow Rate', kpiLabel: 'Flow Rate', kpiValue: '142 m³/h', kpiDelta: '↓14%', path: ['Nestle UAE', 'HVAC', 'Pump 3'] },
-  { id: 'i7', time: '15/06, 8:30AM', status: 'wr', title: 'Risk of Failure', kpiLabel: '', kpiValue: '', sensors: 2, path: ['Nestle UAE', 'Compressors', 'Compressor 2'] },
+  { id: 'i7', time: '15/06, 8:30AM', status: 'wr', title: 'Risk of Failure', kpiLabel: '', kpiValue: '', sensors: 2, sensorList: [
+    { label: 'Vibration', value: '2.3 mm/s', delta: '↑12%' },
+    { label: 'Motor Temp', value: '88 °C', delta: '↑6%' },
+  ], path: ['Nestle UAE', 'Compressors', 'Compressor 2'] },
 ]
 
 export type TaskCard = {

@@ -1,8 +1,25 @@
 import { X } from 'lucide-react'
+import { useState } from 'react'
 
-const priorityData = [
-  { row: 'New', high: 0, medium: 0, low: 0 },
-  { row: 'In Progress', high: 41, medium: 33, low: 16 },
+const priorityRows: Record<string, { row: string; high: number; medium: number; low: number }[]> = {
+  all: [
+    { row: 'New', high: 0, medium: 0, low: 0 },
+    { row: 'In Progress', high: 41, medium: 33, low: 16 },
+  ],
+  incidents: [
+    { row: 'New', high: 0, medium: 0, low: 0 },
+    { row: 'In Progress', high: 9, medium: 6, low: 3 },
+  ],
+  tasks: [
+    { row: 'New', high: 0, medium: 0, low: 0 },
+    { row: 'In Progress', high: 32, medium: 27, low: 13 },
+  ],
+}
+
+const priorityFilters = [
+  { id: 'all', label: 'All', count: 90 },
+  { id: 'incidents', label: 'Incidents', count: 18 },
+  { id: 'tasks', label: 'Tasks', count: 72 },
 ]
 
 const severityColor: Record<string, string> = {
@@ -34,22 +51,31 @@ const alerts: Alert[] = [
 ]
 
 export default function RightSidebar({ onClose }: { onClose: () => void }) {
+  const [filter, setFilter] = useState('all')
+
   return (
     <div className="w-[300px] shrink-0 border-l border-gray-200 bg-white flex flex-col min-h-0">
       <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 shrink-0">
-        <div className="flex flex-col">
-          <span className="text-[13px] font-bold text-gray-900">Priority Actions</span>
-          <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-[10px] text-gray-500 cursor-pointer">Incident: <strong className="text-gray-700">40</strong></span>
-            <span className="text-[10px] text-gray-500 cursor-pointer">Task: <strong className="text-gray-700">3888</strong></span>
-          </div>
-        </div>
+        <span className="text-[13px] font-bold text-gray-900">Priority Actions</span>
         <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
           <X className="w-4 h-4" />
         </button>
       </div>
 
       <div className="px-3 py-2 border-b border-gray-200 shrink-0">
+        <div className="flex items-center gap-1.5 mb-1.5">
+          {priorityFilters.map((f) => (
+            <button
+              key={f.id}
+              onClick={() => setFilter(f.id)}
+              className={`px-2 py-0.5 rounded-full text-[10px] font-semibold transition-colors cursor-pointer ${
+                filter === f.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {f.label} <b className={filter === f.id ? 'text-white' : 'text-gray-900'}>{f.count}</b>
+            </button>
+          ))}
+        </div>
         <table className="w-full text-[11px]" style={{ borderCollapse: 'separate', borderSpacing: 3 }}>
           <thead>
             <tr>
@@ -60,7 +86,7 @@ export default function RightSidebar({ onClose }: { onClose: () => void }) {
             </tr>
           </thead>
           <tbody>
-            {priorityData.map((r) => (
+            {priorityRows[filter].map((r) => (
               <tr key={r.row}>
                 <td className="text-right text-gray-400 text-[10px] py-1 pr-1">{r.row}</td>
                 {(['high', 'medium', 'low'] as const).map((col) => (

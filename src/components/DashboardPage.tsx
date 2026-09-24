@@ -1,15 +1,17 @@
 import {
-  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   ChevronsUpDown,
-  Info,
+  EllipsisVertical,
   MapPin,
+  PenLine,
   Plus,
   Search,
+  TriangleAlert,
   X,
 } from 'lucide-react'
 import React, { useState } from 'react'
+import { Area, AreaChart, ResponsiveContainer } from 'recharts'
 import {
   DOT_COLOR,
   TREND_PATH,
@@ -17,15 +19,14 @@ import {
   TREND_Y,
   assetCards,
   hierarchy,
-  incidentCards,
   kpiStatus,
   kpis,
   otherSites,
-  taskCards,
   type NodeStatus,
   type TreeNode,
 } from '../data/dashboardPage'
 import AssetOverview from './AssetOverview'
+import OverviewMiniStack from './OverviewMiniStack'
 import RightSidebar from './RightSidebar'
 
 type Props = {
@@ -650,42 +651,9 @@ function IncidentsTrendCard() {
   )
 }
 
-function CommandPalette() {
-  const recentActivity = [
-    { id: 'ra1', kind: 'warn' as const, title: '10 new incidents in HVAC', sub: 'Vibration levels are beyond the acceptable threshold', path: ['Nestle UAE', 'HVAC'] },
-    { id: 'ra2', kind: 'ok' as const, title: 'Chiller 10 preventive maintenance completed', sub: 'All tasks for August 2026 are completed', path: ['Nestle UAE', 'HVAC', 'Chiller 10'] },
-    { id: 'ra3', kind: 'ok' as const, title: 'Chiller 10 preventive maintenance completed', sub: 'All tasks for August 2026 are completed', path: ['Nestle UAE', 'HVAC', 'Chiller 10'] },
-    { id: 'ra4', kind: 'warn' as const, title: '10 new incidents in Compressor', sub: 'Vibration levels are beyond the acceptable threshold', path: ['Nestle UAE', 'Compressors'] },
-    { id: 'ra5', kind: 'warn' as const, title: '10 new incidents in Compressor', sub: 'Vibration levels are beyond the acceptable threshold', path: ['Nestle UAE', 'Compressors'] },
-  ]
-
-  return (
-    <div className="bg-white border border-gray-200 rounded-md overflow-hidden h-[240px] flex flex-col">
-      <div className="px-4 py-3 border-b border-gray-100 text-sm font-bold text-gray-800">Recent Activity</div>
-      <div className="flex-1 min-h-0 overflow-y-auto">
-        {recentActivity.map((item) => (
-          <div key={item.id} className="px-4 py-3 border-b border-gray-100 last:border-b-0">
-            <div className="flex items-center gap-2.5 cursor-pointer group">
-              <span className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${item.kind === 'warn' ? 'bg-[#FFF3E0] text-[#E65100]' : 'bg-[#E8F5E9] text-[#2E7D32]'}`}>
-                {item.kind === 'warn' ? <Info className="w-3.5 h-3.5" strokeWidth={1.8} /> : <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={1.8} />}
-              </span>
-              <div className="flex-1 min-w-0">
-                <div className="text-[12px] font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">{item.title}</div>
-                <div className="text-[11px] text-gray-500 truncate">{item.sub}</div>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-blue-500 transition-colors shrink-0" />
-            </div>
-            <div className="mt-2"><div className="text-[11px] text-gray-500 truncate">{item.path.map((p, i) => <span key={i}>{i > 0 && <span className="text-gray-400 mx-0.5">&gt;</span>}{p}</span>)}</div></div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 function Chips({ items }: { items: { status: NodeStatus; label: string; count: number }[] }) {
   return (
-    <div className="flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-thin hover:overflow-x-scroll pb-1">
+    <div className="flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-thin hover:overflow-x-scroll pb-1 min-w-0">
       {items.map((c) => (
         <button
           key={c.label}
@@ -699,52 +667,114 @@ function Chips({ items }: { items: { status: NodeStatus; label: string; count: n
   )
 }
 
-function SegBar({ segs }: { segs: { rm: number; aym: number; gm: number } }) {
-  const squares = [
-    ...Array(segs.rm).fill('var(--rm)'),
-    ...Array(segs.aym).fill('var(--aym)'),
-    ...Array(segs.gm).fill('var(--gm)'),
-  ]
-  const total = squares.length
+function StatusDot() {
   return (
-    <div className="risk-segbar flex flex-wrap gap-[3px]">
-      {squares.map((color, i) => (
-        <span key={i} className="inline-block rounded-[2px]" style={{ width: 10, height: 10, background: color }} />
-      ))}
-      <span className="sr-only">{total}</span>
+    <div className="relative flex items-center justify-center" style={{ width: 20, height: 20 }}>
+      <div className="absolute w-5 h-5 rounded-full opacity-30 animate-ping" style={{ backgroundColor: 'rgb(0,109,91)' }} />
+      <div className="absolute w-3 h-3 rounded-full" style={{ backgroundColor: 'rgb(0,109,91)' }} />
     </div>
   )
 }
 
-function Trail({ path }: { path: string[] }) {
+function RiskGauge({ risk, color = '#ef4444' }: { risk: number; color?: string }) {
+  const r = 14
+  const circ = 2 * Math.PI * r
+  const dash = (risk / 100) * circ
   return (
-    <div className="border-t border-gray-100 mt-2 pt-1.5 text-[10px] text-gray-400 truncate">
-      {path.map((p, i) => (
-        <span key={p}>
-          {i > 0 && <span className="mx-1 text-gray-300">&gt;</span>}
-          {p}
-        </span>
-      ))}
-    </div>
-  )
-}
-
-function ColumnShell({
-  title,
-  chips,
-  children,
-}: {
-  title: string
-  chips: { status: NodeStatus; label: string; count: number }[]
-  children: React.ReactNode
-}) {
-  return (
-    <div className="bg-white border border-gray-200 rounded-md flex flex-col min-h-0">
-      <div className="px-4 pt-3 shrink-0">
-        <div className="text-[13px] font-bold text-gray-800 mb-2">{title}</div>
-        <Chips items={chips} />
+    <div className="flex flex-row items-center justify-center" style={{ width: 60 }}>
+      <svg width="36" height="36" viewBox="0 0 36 36" className="mb-1">
+        <circle cx="18" cy="18" r={r} fill="none" stroke="#e5e7eb" strokeWidth="4" />
+        <circle cx="18" cy="18" r={r} fill="none" stroke={color} strokeWidth="4" strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" transform="rotate(-90 18 18)" />
+      </svg>
+      <div className="ml-1">
+        <div className="text-[16px] font-semibold text-gray-900">{risk}%</div>
+        <div className="text-[9px] text-gray-500">Risk</div>
       </div>
-      <div className="p-3 space-y-2 overflow-y-auto max-h-[460px]">{children}</div>
+    </div>
+  )
+}
+
+function AssetSparkline({ id, trend }: { id: string; trend: number[] }) {
+  const data = trend.map((v, i) => ({ i, v }))
+  return (
+    <div className="w-full h-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 0 }}>
+          <defs>
+            <linearGradient id={`areaGradient-${id}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
+              <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <Area type="monotone" dataKey="v" stroke="#3b82f6" strokeWidth={2} fill={`url(#areaGradient-${id})`} isAnimationActive={false} />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
+function statusSquares(risk: number): string[] {
+  if (risk >= 80) return ['#ef4444', '#ef4444', '#f59e0b', '#22c55e']
+  if (risk >= 50) return ['#ef4444', '#f59e0b', '#22c55e', '#22c55e']
+  if (risk >= 30) return ['#f59e0b', '#f59e0b', '#22c55e', '#22c55e']
+  return ['#22c55e', '#f59e0b', '#22c55e', '#22c55e']
+}
+
+function StatusSquares({ risk }: { risk: number }) {
+  return (
+    <div className="flex space-x-[2px]">
+      {statusSquares(risk).map((c, i) => (
+        <div key={i} className="relative w-[10px] h-[10px] cursor-pointer">
+          <div className="absolute inset-0 animate-pulse" style={{ backgroundColor: 'rgb(0,109,91)', opacity: 0.3, animation: '2s cubic-bezier(0.4, 0, 0.6, 1) 0s infinite normal none running pulse' }} />
+          <div className="absolute inset-0 hover:opacity-80 transition-opacity rounded-sm" style={{ backgroundColor: c }} />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function AssetRow({ a }: { a: (typeof assetCards)[number] }) {
+  return (
+    <div className="bg-white border-b border-gray-100 px-2 py-2 pl-[15px] flex items-center space-x-4 hover:bg-gray-50/50 transition-colors group relative">
+      <div className="flex-shrink-0 mr-1" style={{ width: 25 }}>
+        <StatusDot />
+      </div>
+      <div style={{ width: 130 }} className="flex-shrink-0">
+        <div className="truncate cursor-pointer hover:text-blue-600 transition-colors font-medium mb-0.5">{a.name}</div>
+        <div className="flex items-center">
+          <span className="text-[10px] text-gray-400 tracking-tight whitespace-nowrap cursor-help">{a.uptime}</span>
+        </div>
+      </div>
+      <div className="flex-shrink-0 flex flex-row items-center justify-center" style={{ width: 60 }}>
+        <RiskGauge risk={a.risk} />
+      </div>
+      <div className="flex-shrink-0" style={{ width: 140, height: 40 }}>
+        <AssetSparkline id={a.id} trend={a.trend} />
+      </div>
+      <div className="flex-shrink-0 flex items-left" style={{ minWidth: 100 }}>
+        <StatusSquares risk={a.risk} />
+      </div>
+      <div className="flex-1 flex items-center justify-end" style={{ maxWidth: 160 }}>
+        <div className="flex flex-col items-end leading-tight pl-[15px]">
+          <div className="whitespace-nowrap"><span className="mr-1 text-sm font-bold">{a.incidents}</span><span className="text-xs text-gray-500">Incidents</span></div>
+          <div className="whitespace-nowrap"><span className="mr-1 text-sm font-bold">{a.recommendations}</span><span className="text-xs text-gray-500">Recommendations</span></div>
+          <div className="whitespace-nowrap"><span className="mr-1 text-sm font-bold">{a.tasks}</span><span className="text-xs text-gray-500">Tasks</span></div>
+        </div>
+      </div>
+      <div className="flex-shrink-0 flex items-center border border-gray-300 rounded-md overflow-hidden bg-white shadow-sm">
+        <button className="flex flex-col items-center justify-center px-2 py-1 text-gray-700 hover:bg-blue-50 transition-colors border-r border-gray-300 cursor-pointer min-w-[46px]">
+          <PenLine className="w-3.5 h-3.5" strokeWidth={2} />
+          <span className="text-[10px] mt-1">Task</span>
+        </button>
+        <button className="flex flex-col items-center justify-center px-2 py-1 text-gray-700 hover:bg-blue-50 transition-colors border-r border-gray-300 cursor-pointer min-w-[82px]">
+          <TriangleAlert className="w-3.5 h-3.5" strokeWidth={2} />
+          <span className="text-[10px] mt-1">Report Failure</span>
+        </button>
+        <button className="flex flex-col items-center justify-center px-2 py-1 text-gray-700 hover:bg-blue-50 transition-colors cursor-pointer min-w-[40px]">
+          <EllipsisVertical className="w-3.5 h-3.5" strokeWidth={2} />
+          <span className="text-[10px] mt-1">More</span>
+        </button>
+      </div>
     </div>
   )
 }
@@ -772,123 +802,25 @@ function OverviewTab() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 shrink-0">
         <KpiStatusCard onKpiClick={(name) => { setPopupKpi(name); setSelectedIncident(null) }} />
         <IncidentsTrendCard />
-        <CommandPalette />
+        <OverviewMiniStack />
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-        <ColumnShell
-          title="Assets (10)"
-          chips={[
-            { status: 'cr', label: 'Critical', count: 3 },
-            { status: 'ar', label: 'At Risk', count: 2 },
-            { status: 'ok', label: 'Healthy', count: 5 },
-          ]}
-        >
+      <div className="bg-white border border-gray-200 rounded-md overflow-hidden flex flex-col min-h-0">
+        <div className="px-4 pt-3 shrink-0 flex items-center justify-between gap-3">
+          <div className="text-[13px] font-bold text-gray-800 whitespace-nowrap">Assets (10)</div>
+          <Chips
+            items={[
+              { status: 'cr', label: 'Critical', count: 3 },
+              { status: 'ar', label: 'At Risk', count: 2 },
+              { status: 'ok', label: 'Healthy', count: 5 },
+            ]}
+          />
+        </div>
+        <div className="mt-1 pb-1 overflow-x-auto">
           {assetCards.map((a) => (
-            <div
-              key={a.id}
-              className="border border-gray-200 rounded-lg p-3 hover:border-blue-200 transition cursor-pointer"
-            >
-              <div className="flex items-center gap-2">
-                <Dot status={a.status} />
-                <span className="text-[12px] font-semibold text-gray-900 truncate flex-1">
-                  {a.name}
-                </span>
-                <span className="text-[10px] text-gray-500 whitespace-nowrap">
-                  Risk Score : <b className="text-gray-900">{a.risk}%</b>{' '}
-                  <span style={{ color: 'var(--r)' }}>{a.delta}</span>
-                </span>
-              </div>
-              <div className="mt-2">
-                <SegBar segs={a.segs} />
-              </div>
-              <Trail path={a.path} />
-            </div>
+            <AssetRow key={a.id} a={a} />
           ))}
-        </ColumnShell>
-
-        <ColumnShell
-          title="Incidents (7)"
-          chips={[
-            { status: 'cr', label: 'Critical', count: 3 },
-            { status: 'wr', label: 'Warning', count: 3 },
-            { status: 'dv', label: 'Deviation', count: 1 },
-          ]}
-        >
-          {incidentCards.map((inc) => (
-            <div
-              key={inc.id}
-              className="border border-gray-200 rounded-lg p-3 hover:border-blue-200 transition cursor-pointer"
-            >
-              <div className="flex items-start gap-2">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 text-[10px] text-gray-400">
-                    <span>{inc.time}</span>
-                    {inc.badge && (
-                      <span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 font-semibold">
-                        {inc.badge}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <Dot status={inc.status} />
-                    <span className="text-[12px] font-semibold text-gray-900 truncate">
-                      {inc.title}
-                    </span>
-                  </div>
-                  {inc.sensors ? (
-                    <div className="mt-1 text-[10px] text-gray-500">
-                      {inc.sensors} sensors deviating
-                    </div>
-                  ) : (
-                    <div className="mt-1 text-[10px] text-gray-500">
-                      {inc.kpiLabel} : <b className="text-gray-900">{inc.kpiValue}</b>{' '}
-                      {inc.kpiDelta && <span style={{ color: 'var(--r)' }}>{inc.kpiDelta}</span>}
-                    </div>
-                  )}
-                  {inc.cause && (
-                    <div className="mt-2 rounded-md bg-gray-50 border border-gray-200 p-2">
-                      <div className="text-[10px] font-bold text-gray-600">
-                        Root Causes and Recommended Actions
-                      </div>
-                      <div className="text-[10px] text-gray-500 mt-0.5">{inc.cause}</div>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <Trail path={inc.path} />
-            </div>
-          ))}
-        </ColumnShell>
-
-        <ColumnShell
-          title="Tasks (5)"
-          chips={[
-            { status: 'cr', label: 'Overdue', count: 1 },
-            { status: 'ar', label: 'Ongoing', count: 2 },
-            { status: 'off', label: 'Not Started', count: 1 },
-            { status: 'ok', label: 'Completed', count: 1 },
-          ]}
-        >
-          {taskCards.map((t) => (
-            <div
-              key={t.id}
-              className="border border-gray-200 rounded-lg p-3 hover:border-blue-200 transition cursor-pointer"
-            >
-              <div className="flex items-center gap-2">
-                <Dot status={t.status} />
-                <span className="text-[12px] font-semibold text-gray-900 truncate flex-1">
-                  {t.name}
-                </span>
-                <span className="text-[10px] text-gray-500 whitespace-nowrap">{t.due}</span>
-                <span className="w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-[9px] font-bold flex items-center justify-center shrink-0">
-                  {t.avatar}
-                </span>
-              </div>
-              <Trail path={t.path} />
-            </div>
-          ))}
-        </ColumnShell>
+        </div>
       </div>
     </>
   )

@@ -1,4 +1,4 @@
-import { ArrowRight, Building2, Plus } from 'lucide-react'
+import { Building2, Plus } from 'lucide-react'
 import { useState } from 'react'
 import AICopilot from './components/AICopilot'
 import BUBar, { type BUItem } from './components/BUBar'
@@ -39,7 +39,8 @@ export default function App() {
   const showOperatorView = persona.view === 'operator' && page === 'customers' && iconNav === 'home'
   const showExternalOperatorView = persona.type === 'external' && showOperatorView
   const showExternalManagementView = persona.type === 'external' && persona.view === 'management' && page === 'customers' && iconNav === 'home'
-  const showCustomGrid = showExternalOperatorView || showExternalManagementView || (showOperatorView && !showExternalOperatorView) || persona.view === 'buhead'
+  const showCustomGrid = showExternalOperatorView || showExternalManagementView || persona.view === 'buhead'
+  const hidePerformanceMetrics = persona.type === 'internal' && persona.view === 'operator'
 
   const openDashboard = (siteName: string) => {
     setDashboardSite(siteName)
@@ -184,118 +185,10 @@ export default function App() {
                 <ExternalOperatorView
                   customer={currentCustomer ?? customers[0]}
                   onOpenDashboard={openDashboard}
+                  hideSiteDetails
                 />
               </div>
             </main>
-          ) : showOperatorView ? (
-            <div className="flex flex-1 min-h-0 overflow-hidden">
-              <CustomerSidebar
-                active={activeCustomer}
-                onSelect={setActiveCustomer}
-              />
-              <main className="flex-1 px-3 sm:px-4 md:px-6 lg:px-8 pt-[15px] pb-0 overflow-y-auto min-h-0 flex flex-col bg-white">
-                <div className="max-w-full sm:max-w-[700px] md:max-w-[900px] lg:max-w-[1050px] xl:max-w-[1200px] min-[1920px]:max-w-[1500px] mx-auto space-y-6 w-full pb-8 shrink-0">
-                  {activeCustomer === 'all' ? (
-                    <>
-                      <div className="section-head flex items-center justify-between flex-wrap gap-3" style={{ marginBottom: 14 }}>
-                        <div className="header-title flex items-center gap-2.5">
-                          <div className="header-icon w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                            <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M4 21V7a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v14M12 21v-9a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"></path></svg>
-                          </div>
-                          <div>
-                            <h3 className="text-base font-bold text-gray-900 leading-tight">All Customers</h3>
-                            <div className="header-sub text-xs text-gray-500">{customers.length} customers</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <button className="sidebar-add-btn flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold shadow-sm hover:bg-blue-700 transition-all cursor-pointer">
-                            <Plus className="w-3.5 h-3.5" strokeWidth={2.4} />
-                            Add Customer
-                          </button>
-                        </div>
-                      </div>
-                      <SummaryCards active={activeCustomer} />
-                      <div className="bg-white border border-gray-200 rounded-md overflow-hidden">
-                        <div className="overflow-x-auto">
-                          <table className="w-full border-collapse">
-                            <thead>
-                              <tr className="bg-[#ECF2FA]">
-                                <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2.5 px-3 border-b border-gray-100">Site</th>
-                                <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2.5 px-3 border-b border-gray-100">Assets</th>
-                                <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2.5 px-3 border-b border-gray-100">Incidents</th>
-                                <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2.5 px-3 border-b border-gray-100">Tasks</th>
-                                <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2.5 px-3 border-b border-gray-100 w-[35px]">Actions</th>
-                              </tr>
-                            </thead>
-                            <tbody className="bg-white">
-                              {customers.flatMap((c) => generateSites(c.id).map((site) => {
-                                const assetCritical = site.assets.legends.find((l) => l.label === 'Critical' && l.value > 0)
-                                const assetAtRisk = site.assets.legends.find((l) => l.label === 'At Risk' && l.value > 0)
-                                const incidentCritical = site.incidents.legends.find((l) => l.label === 'Critical' && l.value > 0)
-                                const incidentWarning = site.incidents.legends.find((l) => l.label === 'Warning' && l.value > 0)
-                                const taskOverdue = site.tasks.legends.find((l) => l.label === 'Overdue' && l.value > 0)
-                                const taskNotStarted = site.tasks.legends.find((l) => l.label === 'Not Started' && l.value > 0)
-                                return (
-                                <tr key={site.id} className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 transition-colors cursor-pointer" onClick={() => openDashboard(site.name)}>
-                                  <td className="py-3 px-3 text-left">
-                                    <div className="flex items-center gap-2">
-                                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: assetCritical ? '#dc3545' : assetAtRisk ? '#ffc107' : '#28a745' }} />
-                                      <div>
-                                        <div className="text-sm font-semibold text-gray-900">{site.name}</div>
-                                        <div className="text-[11px] text-gray-500">{c.name} · {site.units} {site.units === 1 ? 'unit' : 'units'}</div>
-                                      </div>
-                                    </div>
-                                  </td>
-                                  <td className="py-3 px-3 text-left">
-                                    <span className="text-sm font-bold text-gray-900">{site.assets.value}</span>
-                                    {assetCritical ? (
-                                      <span className="text-[10px] text-[#dc3545] ml-1.5 font-medium">{assetCritical.value} critical</span>
-                                    ) : assetAtRisk ? (
-                                      <span className="text-[10px] text-[#dc3545] ml-1.5 font-medium">{assetAtRisk.value} at risk</span>
-                                    ) : (
-                                      <span className="text-[10px] text-gray-400 ml-1.5">-</span>
-                                    )}
-                                  </td>
-                                  <td className="py-3 px-3 text-left">
-                                    <span className="text-sm font-bold text-gray-900">{site.incidents.value}</span>
-                                    {incidentCritical ? (
-                                      <span className="text-[10px] text-[#dc3545] ml-1.5 font-medium">{incidentCritical.value} critical</span>
-                                    ) : incidentWarning ? (
-                                      <span className="text-[10px] text-[#dc3545] ml-1.5 font-medium">{incidentWarning.value} warning</span>
-                                    ) : (
-                                      <span className="text-[10px] text-gray-400 ml-1.5">-</span>
-                                    )}
-                                  </td>
-                                  <td className="py-3 px-3 text-left">
-                                    <span className="text-sm font-bold text-gray-900">{site.tasks.value}</span>
-                                    {taskOverdue ? (
-                                      <span className="text-[10px] text-[#dc3545] ml-1.5 font-medium">{taskOverdue.value} overdue</span>
-                                    ) : taskNotStarted ? (
-                                      <span className="text-[10px] text-[#dc3545] ml-1.5 font-medium">{taskNotStarted.value} not started</span>
-                                    ) : (
-                                      <span className="text-[10px] text-gray-400 ml-1.5">-</span>
-                                    )}
-                                  </td>
-                                  <td className="py-3 px-3 text-left">
-                                    <ArrowRight className="w-4 h-4 text-gray-400" />
-                                  </td>
-                                </tr>
-                              )}))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <ExternalOperatorView
-                      customer={currentCustomer!}
-                      onOpenDashboard={openDashboard}
-                      hideMetrics
-                    />
-                  )}
-                </div>
-              </main>
-            </div>
           ) : page === 'dashboard' ? (
             <DashboardPage
               siteName={dashboardSite}
@@ -355,7 +248,7 @@ export default function App() {
                 <SummaryCards active={activeCustomer} />
 
                 {/* Performance metrics */}
-                <PerformanceMetrics />
+                {!hidePerformanceMetrics && <PerformanceMetrics />}
 
                 {/* Customer table */}
                 <CustomerTable active={activeCustomer} onOpenDashboard={openDashboard} onSelectUnit={handleSelectUnit} />
