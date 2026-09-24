@@ -2,22 +2,20 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronsUpDown,
-  EllipsisVertical,
   MapPin,
   PenLine,
   Plus,
   Search,
   TriangleAlert,
+  Wrench,
   X,
 } from 'lucide-react'
 import React, { useState } from 'react'
-import { Area, AreaChart, ResponsiveContainer } from 'recharts'
 import {
   DOT_COLOR,
   TREND_PATH,
   TREND_X,
   TREND_Y,
-  assetCards,
   hierarchy,
   kpiStatus,
   kpis,
@@ -26,7 +24,6 @@ import {
   type TreeNode,
 } from '../data/dashboardPage'
 import AssetOverview from './AssetOverview'
-import OverviewMiniStack from './OverviewMiniStack'
 import RightSidebar from './RightSidebar'
 
 type Props = {
@@ -651,27 +648,17 @@ function IncidentsTrendCard() {
   )
 }
 
-function Chips({ items }: { items: { status: NodeStatus; label: string; count: number }[] }) {
+function KpiSquares({ count }: { count: number }) {
+  const colors = ['#ef4444', '#fb923c', '#facc15', '#22c55e']
   return (
-    <div className="flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-thin hover:overflow-x-scroll pb-1 min-w-0">
-      {items.map((c) => (
-        <button
-          key={c.label}
-          className="flex items-center gap-1 px-2 py-1 rounded-full border border-gray-200 bg-white text-[10px] text-gray-600 hover:bg-gray-50 shrink-0"
-        >
-          <Dot status={c.status} size={7} />
-          {c.label} ({c.count})
-        </button>
-      ))}
-    </div>
-  )
-}
-
-function StatusDot() {
-  return (
-    <div className="relative flex items-center justify-center" style={{ width: 20, height: 20 }}>
-      <div className="absolute w-5 h-5 rounded-full opacity-30 animate-ping" style={{ backgroundColor: 'rgb(0,109,91)' }} />
-      <div className="absolute w-3 h-3 rounded-full" style={{ backgroundColor: 'rgb(0,109,91)' }} />
+    <div className="flex space-x-[2px]">
+      {Array.from({ length: count }, (_, i) => {
+        const p = i / count
+        const color = p < 0.4 ? colors[0] : p < 0.7 ? colors[1] : p < 0.9 ? colors[2] : colors[3]
+        return (
+          <div key={i} className="w-[10px] h-[10px]" style={{ backgroundColor: color }} />
+        )
+      })}
     </div>
   )
 }
@@ -683,8 +670,8 @@ function RiskGauge({ risk, color = '#ef4444' }: { risk: number; color?: string }
   return (
     <div className="flex flex-row items-center justify-center" style={{ width: 60 }}>
       <svg width="36" height="36" viewBox="0 0 36 36" className="mb-1">
-        <circle cx="18" cy="18" r={r} fill="none" stroke="#e5e7eb" strokeWidth="4" />
-        <circle cx="18" cy="18" r={r} fill="none" stroke={color} strokeWidth="4" strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" transform="rotate(-90 18 18)" />
+        <circle cx="18" cy="18" r={r} fill="none" stroke="#e5e7eb" strokeWidth="7" />
+        <circle cx="18" cy="18" r={r} fill="none" stroke={color} strokeWidth="7" strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" transform="rotate(-90 18 18)" />
       </svg>
       <div className="ml-1">
         <div className="text-[16px] font-semibold text-gray-900">{risk}%</div>
@@ -694,86 +681,54 @@ function RiskGauge({ risk, color = '#ef4444' }: { risk: number; color?: string }
   )
 }
 
-function AssetSparkline({ id, trend }: { id: string; trend: number[] }) {
-  const data = trend.map((v, i) => ({ i, v }))
-  return (
-    <div className="w-full h-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 0 }}>
-          <defs>
-            <linearGradient id={`areaGradient-${id}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
-              <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          <Area type="monotone" dataKey="v" stroke="#3b82f6" strokeWidth={2} fill={`url(#areaGradient-${id})`} isAnimationActive={false} />
-        </AreaChart>
-      </ResponsiveContainer>
-    </div>
-  )
+const assetTableRows = Array.from({ length: 5 }, () => ({
+  name: 'Chiller 10',
+  type: 'Chiller',
+  status: 'ON',
+  uptime: '89.6%',
+  risk: 10 + Math.floor(Math.random() * 86),
+  kpi: '89.6%',
+  kpiCount: 5 + Math.floor(Math.random() * 11),
+}))
+
+type LastViewedItem = {
+  type: 'asset' | 'incident' | 'task'
+  time?: string
+  title: string
+  sub: string
+  avatar?: string
+  path: string[]
 }
 
-function statusSquares(risk: number): string[] {
-  if (risk >= 80) return ['#ef4444', '#ef4444', '#f59e0b', '#22c55e']
-  if (risk >= 50) return ['#ef4444', '#f59e0b', '#22c55e', '#22c55e']
-  if (risk >= 30) return ['#f59e0b', '#f59e0b', '#22c55e', '#22c55e']
-  return ['#22c55e', '#f59e0b', '#22c55e', '#22c55e']
-}
+const lastViewed: LastViewedItem[] = [
+  { type: 'asset', title: 'Chiller 10', sub: 'Risk Score : 89.6% ▲ 10%', path: ['Nestle UAE', 'HVAC', 'Primary Cooling Water System'] },
+  { type: 'incident', time: '02/08/2026, 9:00 am', title: 'Compressor Specific Power High', sub: 'Compressor 3 Specific Power : 2.23kW/CFM ▲10%', path: ['Nestle UAE', 'HVAC', 'Chiller 10'] },
+  { type: 'task', title: 'Inspect Cooling Tower Fans', sub: 'Overdue by : 1d 4h', avatar: 'AJ', path: ['Nestle UAE', 'HVAC', 'Cooling Tower A'] },
+  { type: 'incident', time: '02/08/2026, 9:00 am', title: 'Compressor Specific Power High', sub: 'Compressor 3 Specific Power : 2.23kW/CFM ▲10%', path: ['Nestle UAE', 'HVAC', 'Chiller 10'] },
+]
 
-function StatusSquares({ risk }: { risk: number }) {
+function LastViewedCard() {
   return (
-    <div className="flex space-x-[2px]">
-      {statusSquares(risk).map((c, i) => (
-        <div key={i} className="relative w-[10px] h-[10px] cursor-pointer">
-          <div className="absolute inset-0 animate-pulse" style={{ backgroundColor: 'rgb(0,109,91)', opacity: 0.3, animation: '2s cubic-bezier(0.4, 0, 0.6, 1) 0s infinite normal none running pulse' }} />
-          <div className="absolute inset-0 hover:opacity-80 transition-opacity rounded-sm" style={{ backgroundColor: c }} />
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function AssetRow({ a }: { a: (typeof assetCards)[number] }) {
-  return (
-    <div className="bg-white border-b border-gray-100 px-2 py-2 pl-[15px] flex items-center space-x-4 hover:bg-gray-50/50 transition-colors group relative">
-      <div className="flex-shrink-0 mr-1" style={{ width: 25 }}>
-        <StatusDot />
-      </div>
-      <div style={{ width: 130 }} className="flex-shrink-0">
-        <div className="truncate cursor-pointer hover:text-blue-600 transition-colors font-medium mb-0.5">{a.name}</div>
-        <div className="flex items-center">
-          <span className="text-[10px] text-gray-400 tracking-tight whitespace-nowrap cursor-help">{a.uptime}</span>
-        </div>
-      </div>
-      <div className="flex-shrink-0 flex flex-row items-center justify-center" style={{ width: 60 }}>
-        <RiskGauge risk={a.risk} />
-      </div>
-      <div className="flex-shrink-0" style={{ width: 140, height: 40 }}>
-        <AssetSparkline id={a.id} trend={a.trend} />
-      </div>
-      <div className="flex-shrink-0 flex items-left" style={{ minWidth: 100 }}>
-        <StatusSquares risk={a.risk} />
-      </div>
-      <div className="flex-1 flex items-center justify-end" style={{ maxWidth: 160 }}>
-        <div className="flex flex-col items-end leading-tight pl-[15px]">
-          <div className="whitespace-nowrap"><span className="mr-1 text-sm font-bold">{a.incidents}</span><span className="text-xs text-gray-500">Incidents</span></div>
-          <div className="whitespace-nowrap"><span className="mr-1 text-sm font-bold">{a.recommendations}</span><span className="text-xs text-gray-500">Recommendations</span></div>
-          <div className="whitespace-nowrap"><span className="mr-1 text-sm font-bold">{a.tasks}</span><span className="text-xs text-gray-500">Tasks</span></div>
-        </div>
-      </div>
-      <div className="flex-shrink-0 flex items-center border border-gray-300 rounded-md overflow-hidden bg-white shadow-sm">
-        <button className="flex flex-col items-center justify-center px-2 py-1 text-gray-700 hover:bg-blue-50 transition-colors border-r border-gray-300 cursor-pointer min-w-[46px]">
-          <PenLine className="w-3.5 h-3.5" strokeWidth={2} />
-          <span className="text-[10px] mt-1">Task</span>
-        </button>
-        <button className="flex flex-col items-center justify-center px-2 py-1 text-gray-700 hover:bg-blue-50 transition-colors border-r border-gray-300 cursor-pointer min-w-[82px]">
-          <TriangleAlert className="w-3.5 h-3.5" strokeWidth={2} />
-          <span className="text-[10px] mt-1">Report Failure</span>
-        </button>
-        <button className="flex flex-col items-center justify-center px-2 py-1 text-gray-700 hover:bg-blue-50 transition-colors cursor-pointer min-w-[40px]">
-          <EllipsisVertical className="w-3.5 h-3.5" strokeWidth={2} />
-          <span className="text-[10px] mt-1">More</span>
-        </button>
+    <div className="bg-white border border-gray-200 rounded-md overflow-hidden h-[240px] flex flex-col">
+      <div className="px-4 py-3 border-b border-gray-100 text-sm font-bold text-gray-800 shrink-0">Last Viewed</div>
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        {lastViewed.map((item) => (
+          <div key={item.title + item.path.length} className="px-4 py-3 border-b border-gray-100 last:border-b-0">
+            <div className="flex items-center gap-2.5 cursor-pointer group">
+              <span className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${item.type === 'asset' ? 'bg-[#E3F2FD] text-[#1565C0]' : item.type === 'incident' ? 'bg-[#FFEBEE] text-[#dc3545]' : 'bg-[#E8F5E9] text-[#2E7D32]'}`}>
+                {item.type === 'asset' ? <Wrench className="w-3.5 h-3.5" strokeWidth={1.8} /> : item.type === 'incident' ? <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: '#dc3545', WebkitMaskImage: 'url(/incidents.svg)', maskImage: 'url(/incidents.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} /> : <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: '#2E7D32', WebkitMaskImage: 'url(/Tasks.svg)', maskImage: 'url(/Tasks.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} />}
+              </span>
+              <div className="flex-1 min-w-0">
+                {item.time && <div className="text-[10px] text-gray-400">{item.time}</div>}
+                <div className="flex items-center"><div className="text-[12px] font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">{item.title}</div></div>
+                <div className="text-[11px] text-gray-500 truncate">{item.sub}</div>
+              </div>
+              {item.avatar && <span className="w-6 h-6 rounded-full bg-[#5B5FC7] text-white text-[10px] font-bold flex items-center justify-center shrink-0">{item.avatar}</span>}
+              <ChevronRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-blue-500 transition-colors shrink-0" />
+            </div>
+            <div className="mt-2"><div className="text-[11px] text-gray-500 truncate">{item.path.map((p, i) => <span key={i}>{i > 0 && <span className="text-gray-400 mx-0.5">&gt;</span>}{p}</span>)}</div></div>
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -802,24 +757,69 @@ function OverviewTab() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 shrink-0">
         <KpiStatusCard onKpiClick={(name) => { setPopupKpi(name); setSelectedIncident(null) }} />
         <IncidentsTrendCard />
-        <OverviewMiniStack />
+        <LastViewedCard />
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-md overflow-hidden flex flex-col min-h-0">
-        <div className="px-4 pt-3 shrink-0 flex items-center justify-between gap-3">
+      <div className="bg-white border border-gray-200 rounded-md overflow-hidden flex flex-col shrink-0">
+        <div className="px-4 pt-3 pb-2 shrink-0">
           <div className="text-[13px] font-bold text-gray-800 whitespace-nowrap">Assets (10)</div>
-          <Chips
-            items={[
-              { status: 'cr', label: 'Critical', count: 3 },
-              { status: 'ar', label: 'At Risk', count: 2 },
-              { status: 'ok', label: 'Healthy', count: 5 },
-            ]}
-          />
         </div>
-        <div className="mt-1 pb-1 overflow-x-auto">
-          {assetCards.map((a) => (
-            <AssetRow key={a.id} a={a} />
-          ))}
+        <div className="pb-1">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-[#ECF2FA]">
+                <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100 whitespace-nowrap">Asset Name</th>
+                <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100 whitespace-nowrap">Asset type</th>
+                <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100 whitespace-nowrap">Uptime</th>
+                <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100 whitespace-nowrap">Risk Score</th>
+                <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100 whitespace-nowrap">KPI Indicator</th>
+                <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100 whitespace-nowrap">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {assetTableRows.map((r, i) => (
+                <tr key={i} className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 transition-colors">
+                  <td className="py-2.5 px-3 whitespace-nowrap">
+                    <div className="flex items-center gap-2">
+                      {r.status === 'ON' ? (
+                        <div className="flex-shrink-0 w-2.5">
+                          <div className="relative flex items-center justify-center" style={{ width: 10, height: 10 }}>
+                            <div className="absolute w-2.5 h-2.5 rounded-full opacity-30 animate-ping" style={{ backgroundColor: 'rgb(0, 109, 91)' }} />
+                            <div className="absolute w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'rgb(0, 109, 91)' }} />
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="relative inline-flex w-2.5 h-2.5 shrink-0">
+                          <span className="relative inline-flex items-center justify-center w-2.5 h-2.5 rounded-full bg-[#C62828] animate-pulse" />
+                        </span>
+                      )}
+                      <span className="text-sm font-medium text-gray-900">{r.name}</span>
+                    </div>
+                  </td>
+                  <td className="py-2.5 px-3 text-sm text-gray-600 whitespace-nowrap">{r.type}</td>
+                  <td className="py-2.5 px-3 text-sm text-gray-900 whitespace-nowrap">{r.uptime}</td>
+                  <td className="py-2.5 px-3">
+                    <RiskGauge risk={r.risk} />
+                  </td>
+                  <td className="py-2.5 px-3">
+                    <KpiSquares count={r.kpiCount} />
+                  </td>
+                  <td className="py-2.5 px-3">
+                    <div className="flex-shrink-0 flex items-center border border-gray-300 rounded-md overflow-hidden bg-white shadow-sm">
+                      <button className="flex flex-col items-center justify-center px-2 py-1 text-gray-700 hover:bg-blue-50 transition-colors border-r border-gray-300 cursor-pointer min-w-[46px]">
+                        <PenLine className="w-3.5 h-3.5" strokeWidth={2} />
+                        <span className="text-[10px] mt-1">Task</span>
+                      </button>
+                      <button className="flex flex-col items-center justify-center px-2 py-1 text-gray-700 hover:bg-blue-50 transition-colors cursor-pointer min-w-[82px]">
+                        <TriangleAlert className="w-3.5 h-3.5" strokeWidth={2} />
+                        <span className="text-[10px] mt-1">Report Failure</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </>
@@ -937,7 +937,7 @@ export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
           </button>
         </div>
 
-        <div className={`flex-1 min-h-0 ${isAssetSelected ? '' : 'overflow-y-auto'} px-4 lg:px-6 py-4 flex flex-col gap-4`}>
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 lg:px-6 py-4 flex flex-col gap-4">
           {isSiteSelected && (
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 shrink-0">
               {kpis.map((k) => {

@@ -39,7 +39,7 @@ export default function App() {
   const showOperatorView = persona.view === 'operator' && page === 'customers' && iconNav === 'home'
   const showExternalOperatorView = persona.type === 'external' && showOperatorView
   const showExternalManagementView = persona.type === 'external' && persona.view === 'management' && page === 'customers' && iconNav === 'home'
-  const showCustomGrid = showExternalOperatorView || showExternalManagementView || persona.view === 'buhead'
+  const showInternalOperatorView = persona.type === 'internal' && showOperatorView && activeCustomer !== 'all'
   const hidePerformanceMetrics = persona.type === 'internal' && persona.view === 'operator'
 
   const openDashboard = (siteName: string) => {
@@ -137,7 +137,7 @@ export default function App() {
         {/* Right side */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* BU bar below header */}
-          {!showCustomGrid && page !== 'dashboard' && page !== 'incidents' && page !== 'tasks' && page !== 'report' && persona.type !== 'external' && (
+          {persona.type === 'internal' && persona.view === 'management' && page !== 'dashboard' && page !== 'incidents' && page !== 'tasks' && page !== 'report' && (
             <BUBar
               items={budgetUnits as BUItem[]}
               active={activeBU}
@@ -189,6 +189,22 @@ export default function App() {
                 />
               </div>
             </main>
+          ) : showInternalOperatorView ? (
+            <div className="relative flex flex-1 min-h-0 overflow-hidden">
+              <CustomerSidebar
+                active={activeCustomer}
+                onSelect={setActiveCustomer}
+              />
+              <main className="flex-1 px-3 sm:px-4 md:px-6 lg:px-8 pt-[15px] pb-0 overflow-y-auto min-h-0 flex flex-col bg-white">
+                <div className="max-w-full sm:max-w-[700px] md:max-w-[900px] lg:max-w-[1050px] xl:max-w-[1200px] min-[1920px]:max-w-[1500px] mx-auto space-y-6 w-full pb-8 shrink-0">
+                  <ExternalOperatorView
+                    customer={currentCustomer ?? customers[0]}
+                    onOpenDashboard={openDashboard}
+                    hideMetrics
+                  />
+                </div>
+              </main>
+            </div>
           ) : page === 'dashboard' ? (
             <DashboardPage
               siteName={dashboardSite}
@@ -219,12 +235,14 @@ export default function App() {
                         <div className="header-sub text-xs text-gray-500">{customers.length} customers</div>
                       </div>
                     </div>
+                    {!hidePerformanceMetrics && (
                     <div className="flex items-center gap-3">
                       <button className="sidebar-add-btn flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold shadow-sm hover:bg-blue-700 transition-all cursor-pointer">
                         <Plus className="w-3.5 h-3.5" strokeWidth={2.4} />
                         Add Customer
                       </button>
                     </div>
+                    )}
                   </div>
                 ) : (
                   <div className="header-row flex items-center justify-between flex-wrap gap-3 mb-[15px]">

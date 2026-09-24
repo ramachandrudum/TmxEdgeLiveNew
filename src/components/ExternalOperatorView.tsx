@@ -1,21 +1,22 @@
 import {
+  Activity,
   AlertTriangle,
   ArrowRight,
+  BarChart3,
+  BookOpen,
   Building2,
   CheckCircle,
   ChevronDown,
   ChevronRight,
-  ClipboardList,
-  Info,
+  History,
   Wrench,
-  CheckCircle2,
   Zap,
   Clock,
+  Tag,
 } from 'lucide-react'
 import { useState, useMemo } from 'react'
-import { generateSites, type Customer, type SiteStat, type UnitStat } from '../data/dashboard'
+import { generateSites, type Customer, type UnitStat } from '../data/dashboard'
 import SummaryCards from './SummaryCards'
-import SiteSummaryRow from './SiteSummaryRow'
 import { hashSeed, seededRandom } from '../lib/vary'
 
 type Props = {
@@ -48,11 +49,11 @@ const lastViewed = [
 ]
 
 const quickLinks = [
-  { id: 'ql1', title: 'Logbook', desc: 'View all the shift handover information logged by operators on-site' },
-  { id: 'ql2', title: 'Asset Monitor', desc: 'View real-time health and risk trends for every monitored asset' },
-  { id: 'ql3', title: 'Consumption Reports', desc: 'View power, thermal, and water consumption reports across all sites' },
-  { id: 'ql4', title: 'Tags', desc: 'View and manage asset tags across all sites and monitored units' },
-  { id: 'ql5', title: 'Service History', desc: 'View past maintenance visits and completed work orders across all sites' },
+  { id: 'ql1', title: 'Logbook', desc: 'View all the shift handover information logged by operators on-site', icon: BookOpen },
+  { id: 'ql2', title: 'Asset Monitor', desc: 'View real-time health and risk trends for every monitored asset', icon: Activity },
+  { id: 'ql3', title: 'Consumption Reports', desc: 'View power, thermal, and water consumption reports across all sites', icon: BarChart3 },
+  { id: 'ql4', title: 'Tags', desc: 'View and manage asset tags across all sites and monitored units', icon: Tag },
+  { id: 'ql5', title: 'Service History', desc: 'View past maintenance visits and completed work orders across all sites', icon: History },
 ]
 
 const baseMetrics = [
@@ -77,7 +78,7 @@ function AvailabilityGauge({ percent, color }: { percent: number; color: string 
   )
 }
 
-function UnitTable({ units, summary }: { units: UnitStat[]; summary?: SiteStat }) {
+function UnitTable({ units }: { units: UnitStat[] }) {
   return (
     <div className="bg-white border border-gray-200 overflow-x-auto [&_th]:border-r [&_th]:border-gray-200 [&_td]:border-r [&_td]:border-gray-200 [&_th:last-child]:border-r-0 [&_td:last-child]:border-r-0">
       <table className="w-full border-collapse">
@@ -95,7 +96,6 @@ function UnitTable({ units, summary }: { units: UnitStat[]; summary?: SiteStat }
           </tr>
         </thead>
         <tbody className="bg-white">
-          {summary && <SiteSummaryRow site={summary} />}
           {units.map((unit) => {
             const color = STATUS_COLOR[unit.status]
             const isOffline = unit.status === 'offline'
@@ -209,9 +209,9 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
       </div>
 
       <div className="flex items-center gap-2 flex-wrap mb-4">
-        <button onClick={() => setActiveSite('all')} className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${activeSite === 'all' ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>All Sites</button>
+        <button onClick={() => setActiveSite('all')} className={`badge badge-sm ${activeSite === 'all' ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>All Sites</button>
         {sites.map((s) => (
-          <button key={s.id} onClick={() => setActiveSite(s.name)} className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${activeSite === s.name ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{s.name}</button>
+          <button key={s.id} onClick={() => setActiveSite(s.name)} className={`badge badge-sm ${activeSite === s.name ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{s.name}</button>
         ))}
       </div>
 
@@ -225,9 +225,9 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
               {recentActivity.map((item) => (
                 <div key={item.id} className="px-4 py-3 border-b border-gray-100 last:border-b-0">
                   <div className="flex items-center gap-2.5 cursor-pointer group">
-                    <span className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${item.kind === 'warn' ? 'bg-[#FFF3E0] text-[#E65100]' : 'bg-[#E8F5E9] text-[#2E7D32]'}`}>
-                      {item.kind === 'warn' ? <Info className="w-3.5 h-3.5" strokeWidth={1.8} /> : <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={1.8} />}
-                    </span>
+<span className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${item.kind === 'warn' ? 'bg-[#FFF3E0]' : 'bg-[#E8F5E9]'}`}>
+  {item.kind === 'warn' ? <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: '#E65100', WebkitMaskImage: 'url(/incidents.svg)', maskImage: 'url(/incidents.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} /> : <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: '#2E7D32', WebkitMaskImage: 'url(/Tasks.svg)', maskImage: 'url(/Tasks.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} />}
+</span>
                     <div className="flex-1 min-w-0">
                       <div className="text-[12px] font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">{item.title}</div>
                       <div className="text-[11px] text-gray-500 truncate">{item.sub}</div>
@@ -246,11 +246,11 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
                 <div key={item.id} className="px-4 py-3 border-b border-gray-100 last:border-b-0">
                   <div className="flex items-center gap-2.5 cursor-pointer group">
                     <span className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${item.type === 'asset' ? 'bg-[#E3F2FD] text-[#1565C0]' : item.type === 'incident' ? 'bg-[#FFEBEE] text-[#dc3545]' : 'bg-[#E8F5E9] text-[#2E7D32]'}`}>
-                      {item.type === 'asset' ? <Wrench className="w-3.5 h-3.5" strokeWidth={1.8} /> : item.type === 'incident' ? <AlertTriangle className="w-3.5 h-3.5" strokeWidth={1.8} /> : <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={1.8} />}
+                      {item.type === 'asset' ? <Wrench className="w-3.5 h-3.5" strokeWidth={1.8} /> : item.type === 'incident' ? <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: '#dc3545', WebkitMaskImage: 'url(/incidents.svg)', maskImage: 'url(/incidents.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} /> : <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: '#2E7D32', WebkitMaskImage: 'url(/Tasks.svg)', maskImage: 'url(/Tasks.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} />}
                     </span>
                     <div className="flex-1 min-w-0">
                       {item.time && <div className="text-[10px] text-gray-400">{item.time}</div>}
-                      <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#dc3545] shrink-0" /><div className="text-[12px] font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">{item.title}</div></div>
+                      <div className="flex items-center"><div className="text-[12px] font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">{item.title}</div></div>
                       <div className="text-[11px] text-gray-500 truncate">{item.sub}</div>
                     </div>
                     {item.avatar && <span className="w-6 h-6 rounded-full bg-[#5B5FC7] text-white text-[10px] font-bold flex items-center justify-center shrink-0">{item.avatar}</span>}
@@ -264,7 +264,7 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
           <div className="flex flex-col gap-3">
             {quickLinks.map((link) => (
               <button key={link.id} className="flex items-center gap-3 p-3.5 bg-white border border-gray-200 rounded-md text-left hover:border-blue-200 hover:shadow-sm transition-all cursor-pointer group">
-                <span className="w-8 h-8 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"><ClipboardList className="w-4 h-4" strokeWidth={1.8} /></span>
+                <span className="w-8 h-8 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"><link.icon className="w-4 h-4" strokeWidth={1.8} /></span>
                 <span className="flex-1 min-w-0"><span className="block text-[13px] font-semibold text-gray-900">{link.title}</span><span className="block text-[11px] text-gray-500">{link.desc}</span></span>
                 <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-blue-500 transition-colors shrink-0" />
               </button>
@@ -381,7 +381,7 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
                 </div>
                 {!hideSiteDetails && isOpen && (
                   <div className="border-t border-gray-100 bg-white p-2.5">
-                    <UnitTable units={site.unitList} summary={site} />
+                    <UnitTable units={site.unitList} />
                   </div>
                 )}
               </div>
