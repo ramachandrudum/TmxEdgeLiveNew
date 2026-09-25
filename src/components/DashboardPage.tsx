@@ -16,6 +16,7 @@ import {
   TREND_PATH,
   TREND_X,
   TREND_Y,
+  assetCards,
   hierarchy,
   kpiStatus,
   kpis,
@@ -581,8 +582,8 @@ function KpiStatusCard({ onKpiClick }: { onKpiClick: (name: string) => void }) {
         <span style={{ width: '8%', background: 'var(--rm)' }} />
       </div>
       <div className="flex justify-between text-[11px] text-gray-500 mt-1.5">
-        <span>{kpiStatus.healthy} Healthy</span>
-        <span>{kpiStatus.unhealthy} Unhealthy</span>
+        <span>{kpiStatus.healthy}% Healthy</span>
+        <span>{kpiStatus.unhealthy}% Unhealthy</span>
       </div>
       <div className="mt-3 overflow-y-auto flex-1 min-h-0 pr-1">
         {kpiStatus.items.map((item, i) => (
@@ -597,6 +598,7 @@ function KpiStatusCard({ onKpiClick }: { onKpiClick: (name: string) => void }) {
             />
             <span className="flex-1 text-[12px] text-gray-700 truncate">{item.name}</span>
             {item.bad && <span className="text-[11px] text-gray-400">{item.count} incidents</span>}
+            <ChevronRight className="w-3.5 h-3.5 text-gray-300 shrink-0" />
           </div>
         ))}
       </div>
@@ -691,20 +693,36 @@ const assetTableRows = Array.from({ length: 5 }, () => ({
   kpiCount: 5 + Math.floor(Math.random() * 11),
 }))
 
+type Severity = 'critical' | 'warning' | 'deviation'
+
+const SEVERITY: Record<Severity, { label: string; color: string; bg: string }> = {
+  critical: { label: 'CRITICAL', color: '#dc3545', bg: '#FFEBEE' },
+  warning: { label: 'WARNING', color: '#e65100', bg: '#FFF3E0' },
+  deviation: { label: 'DEVIATION', color: '#F9A825', bg: '#FFF8E1' },
+}
+
+function SeverityBadge({ severity }: { severity: Severity }) {
+  const s = SEVERITY[severity]
+  return (
+    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap shrink-0" style={{ backgroundColor: s.bg, color: s.color }}>{s.label}</span>
+  )
+}
+
 type LastViewedItem = {
   type: 'asset' | 'incident' | 'task'
   time?: string
   title: string
   sub: string
   avatar?: string
+  severity?: Severity
   path: string[]
 }
 
 const lastViewed: LastViewedItem[] = [
   { type: 'asset', title: 'Chiller 10', sub: 'Risk Score : 89.6% ▲ 10%', path: ['Nestle UAE', 'HVAC', 'Primary Cooling Water System'] },
-  { type: 'incident', time: '02/08/2026, 9:00 am', title: 'Compressor Specific Power High', sub: 'Compressor 3 Specific Power : 2.23kW/CFM ▲10%', path: ['Nestle UAE', 'HVAC', 'Chiller 10'] },
+  { type: 'incident', time: '02/08/2026, 9:00 am', title: 'Compressor Specific Power High', sub: 'Compressor 3 Specific Power : 2.23kW/CFM ▲10%', severity: 'critical', path: ['Nestle UAE', 'HVAC', 'Chiller 10'] },
   { type: 'task', title: 'Inspect Cooling Tower Fans', sub: 'Overdue by : 1d 4h', avatar: 'AJ', path: ['Nestle UAE', 'HVAC', 'Cooling Tower A'] },
-  { type: 'incident', time: '02/08/2026, 9:00 am', title: 'Compressor Specific Power High', sub: 'Compressor 3 Specific Power : 2.23kW/CFM ▲10%', path: ['Nestle UAE', 'HVAC', 'Chiller 10'] },
+  { type: 'incident', time: '02/08/2026, 9:00 am', title: 'Compressor Specific Power High', sub: 'Compressor 3 Specific Power : 2.23kW/CFM ▲10%', severity: 'warning', path: ['Nestle UAE', 'HVAC', 'Chiller 10'] },
 ]
 
 function LastViewedCard() {
@@ -719,7 +737,12 @@ function LastViewedCard() {
                 {item.type === 'asset' ? <Wrench className="w-3.5 h-3.5" strokeWidth={1.8} /> : item.type === 'incident' ? <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: '#dc3545', WebkitMaskImage: 'url(/incidents.svg)', maskImage: 'url(/incidents.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} /> : <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: '#2E7D32', WebkitMaskImage: 'url(/Tasks.svg)', maskImage: 'url(/Tasks.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} />}
               </span>
               <div className="flex-1 min-w-0">
-                {item.time && <div className="text-[10px] text-gray-400">{item.time}</div>}
+                {item.time && (
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-[10px] text-gray-400">{item.time}</div>
+                    {item.severity && <SeverityBadge severity={item.severity} />}
+                  </div>
+                )}
                 <div className="flex items-center"><div className="text-[12px] font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">{item.title}</div></div>
                 <div className="text-[11px] text-gray-500 truncate">{item.sub}</div>
               </div>
@@ -734,7 +757,7 @@ function LastViewedCard() {
   )
 }
 
-function OverviewTab() {
+function OverviewTab({ onSelectAsset }: { onSelectAsset: (name: string) => void }) {
   const [popupKpi, setPopupKpi] = useState<string | null>(null)
   const [selectedIncident, setSelectedIncident] = useState<IncidentItem | null>(null)
 
@@ -778,7 +801,7 @@ function OverviewTab() {
             </thead>
             <tbody>
               {assetTableRows.map((r, i) => (
-                <tr key={i} className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 transition-colors">
+                <tr key={i} onClick={() => onSelectAsset(r.name)} className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 transition-colors cursor-pointer">
                   <td className="py-2.5 px-3 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       {r.status === 'ON' ? (
@@ -1013,7 +1036,12 @@ export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
           {isAssetSelected ? (
             <AssetOverview />
           ) : tab === 'Overview' ? (
-            <OverviewTab />
+            <OverviewTab
+            onSelectAsset={(name) => {
+              const card = assetCards.find((a) => a.name === name)
+              if (card) setSelectedPath([...card.path, card.name])
+            }}
+          />
           ) : (
             <Placeholder name={tab} />
           )}

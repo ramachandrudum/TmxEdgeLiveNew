@@ -33,20 +33,39 @@ const STATUS_COLOR: Record<UnitStat['status'], string> = {
   offline: '#dc3545',
 }
 
-const recentActivity = [
-  { id: 'ra1', kind: 'warn' as const, title: '10 new incidents in HVAC', sub: 'Vibration levels are beyond the acceptable threshold', path: ['Nestle UAE', 'HVAC'] },
+type Sev = 'critical' | 'warning' | 'deviation'
+
+type ActivityItem = { id: string; kind: 'warn' | 'ok'; severity?: Sev; title: string; sub: string; path: string[] }
+
+type ViewedItem = { id: string; type: 'asset' | 'incident' | 'task'; time: string | null; title: string; sub: string; avatar: string | null; severity?: Sev; path: string[] }
+
+const recentActivity: ActivityItem[] = [
+  { id: 'ra1', kind: 'warn' as const, severity: 'warning' as const, title: '10 new incidents in HVAC', sub: 'Vibration levels are beyond the acceptable threshold', path: ['Nestle UAE', 'HVAC'] },
   { id: 'ra2', kind: 'ok' as const, title: 'Chiller 10 preventive maintenance completed', sub: 'All tasks for August 2026 are completed', path: ['Nestle UAE', 'HVAC', 'Chiller 10'] },
   { id: 'ra3', kind: 'ok' as const, title: 'Chiller 10 preventive maintenance completed', sub: 'All tasks for August 2026 are completed', path: ['Nestle UAE', 'HVAC', 'Chiller 10'] },
-  { id: 'ra4', kind: 'warn' as const, title: '10 new incidents in Compressor', sub: 'Vibration levels are beyond the acceptable threshold', path: ['Nestle UAE', 'Compressors'] },
-  { id: 'ra5', kind: 'warn' as const, title: '10 new incidents in Compressor', sub: 'Vibration levels are beyond the acceptable threshold', path: ['Nestle UAE', 'Compressors'] },
+  { id: 'ra4', kind: 'warn' as const, severity: 'warning' as const, title: '10 new incidents in Compressor', sub: 'Vibration levels are beyond the acceptable threshold', path: ['Nestle UAE', 'Compressors'] },
+  { id: 'ra5', kind: 'warn' as const, severity: 'warning' as const, title: '10 new incidents in Compressor', sub: 'Vibration levels are beyond the acceptable threshold', path: ['Nestle UAE', 'Compressors'] },
 ]
 
-const lastViewed = [
+const lastViewed: ViewedItem[] = [
   { id: 'lv1', type: 'asset' as const, time: null as string | null, title: 'Chiller 10', sub: 'Risk Score : 89.6% ▲ 10%', avatar: null as string | null, path: ['Nestle UAE', 'HVAC', 'Primary Cooling Water System'] },
-  { id: 'lv2', type: 'incident' as const, time: '02/08/2026, 9:00 am', title: 'Compressor Specific Power High', sub: 'Compressor 3 Specific Power : 2.23kW/CFM ▲10%', avatar: null, path: ['Nestle UAE', 'HVAC', 'Chiller 10'] },
+  { id: 'lv2', type: 'incident' as const, time: '02/08/2026, 9:00 am', title: 'Compressor Specific Power High', sub: 'Compressor 3 Specific Power : 2.23kW/CFM ▲10%', avatar: null, severity: 'critical', path: ['Nestle UAE', 'HVAC', 'Chiller 10'] },
   { id: 'lv3', type: 'task' as const, time: null, title: 'Inspect Cooling Tower Fans', sub: 'Overdue by : 1d 4h', avatar: 'AJ', path: ['Nestle UAE', 'HVAC', 'Cooling Tower A'] },
-  { id: 'lv4', type: 'incident' as const, time: '02/08/2026, 9:00 am', title: 'Compressor Specific Power High', sub: 'Compressor 3 Specific Power : 2.23kW/CFM ▲10%', avatar: null, path: ['Nestle UAE', 'HVAC', 'Chiller 10'] },
+  { id: 'lv4', type: 'incident' as const, time: '02/08/2026, 9:00 am', title: 'Compressor Specific Power High', sub: 'Compressor 3 Specific Power : 2.23kW/CFM ▲10%', avatar: null, severity: 'deviation', path: ['Nestle UAE', 'HVAC', 'Chiller 10'] },
 ]
+
+const SEVERITY: Record<Sev, { label: string; color: string; bg: string }> = {
+  critical: { label: 'CRITICAL', color: '#dc3545', bg: '#FFEBEE' },
+  warning: { label: 'WARNING', color: '#e65100', bg: '#FFF3E0' },
+  deviation: { label: 'DEVIATION', color: '#F9A825', bg: '#FFF8E1' },
+}
+
+function SeverityBadge({ severity }: { severity: Sev }) {
+  const s = SEVERITY[severity]
+  return (
+    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap shrink-0" style={{ backgroundColor: s.bg, color: s.color }}>{s.label}</span>
+  )
+}
 
 const quickLinks = [
   { id: 'ql1', title: 'Logbook', desc: 'View all the shift handover information logged by operators on-site', icon: BookOpen },
@@ -249,7 +268,12 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
                       {item.type === 'asset' ? <Wrench className="w-3.5 h-3.5" strokeWidth={1.8} /> : item.type === 'incident' ? <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: '#dc3545', WebkitMaskImage: 'url(/incidents.svg)', maskImage: 'url(/incidents.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} /> : <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: '#2E7D32', WebkitMaskImage: 'url(/Tasks.svg)', maskImage: 'url(/Tasks.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} />}
                     </span>
                     <div className="flex-1 min-w-0">
-                      {item.time && <div className="text-[10px] text-gray-400">{item.time}</div>}
+                      {item.time && (
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="text-[10px] text-gray-400">{item.time}</div>
+                          {item.severity && <SeverityBadge severity={item.severity} />}
+                        </div>
+                      )}
                       <div className="flex items-center"><div className="text-[12px] font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">{item.title}</div></div>
                       <div className="text-[11px] text-gray-500 truncate">{item.sub}</div>
                     </div>

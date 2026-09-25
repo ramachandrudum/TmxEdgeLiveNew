@@ -115,10 +115,13 @@ export default function Header({ customer, customers, dark, isDashboard, persona
             <div className="relative shrink-0">
               <button
                 onClick={() => setCustomerOpen((o) => !o)}
-                className="flex items-center gap-2 h-9 px-3 rounded-lg border border-gray-200 bg-white text-[15px] hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer"
+                className="flex items-center gap-2 px-2 pt-1 pb-1 rounded-lg border border-gray-200 bg-white text-[15px] hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer"
               >
-                <span className="max-w-[160px] truncate text-gray-800 font-medium">{customer?.name ?? customers[0]?.name}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+                <span className="flex flex-col items-start leading-none">
+                  <span className="text-[10px] text-gray-400 leading-tight">Customer</span>
+                  <span className="max-w-[160px] truncate text-gray-800 font-medium text-sm">{customer?.name ?? customers[0]?.name}</span>
+                </span>
+                <ChevronDown className="w-3.5 h-3.5 text-gray-400 shrink-0" />
               </button>
               {customerOpen && (
                 <div className="absolute left-0 top-full mt-1 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
