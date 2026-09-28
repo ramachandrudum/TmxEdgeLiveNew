@@ -11,6 +11,7 @@ import SummaryCards from './components/SummaryCards'
 import PerformanceMetrics from './components/PerformanceMetrics'
 import CustomerTable from './components/CustomerTable'
 import DashboardPage from './components/DashboardPage'
+import CalendarPage from './components/CalendarPage'
 import ExternalOperatorView from './components/ExternalOperatorView'
 import { budgetUnits, customers, generateSites } from './data/dashboard'
 import { personaKey, personaNav, type Persona, type PersonaType, type PersonaView } from './data/personas'
@@ -47,7 +48,7 @@ export default function App() {
   const [persona, setPersona] = useState<Persona>({ type: 'internal', view: 'management' })
   const [activeCustomer, setActiveCustomer] = useState('all')
   const [dark, setDark] = useState(false)
-  const [page, setPage] = useState<'customers' | 'dashboard' | 'incidents' | 'tasks' | 'report'>('customers')
+  const [page, setPage] = useState<'customers' | 'dashboard' | 'incidents' | 'tasks' | 'calendar' | 'report'>('customers')
   const [dashboardSite, setDashboardSite] = useState('')
   const [selectedUnitPath, setSelectedUnitPath] = useState<string[]>([])
   const [showAICopilot, setShowAICopilot] = useState(false)
@@ -104,6 +105,8 @@ export default function App() {
       setPage('incidents')
     } else if (id === 'tasks') {
       setPage('tasks')
+    } else if (id === 'calendar') {
+      setPage('calendar')
     } else if (id === 'report') {
       setPage('report')
     } else {
@@ -189,7 +192,7 @@ export default function App() {
         {/* Right side */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* BU bar below header */}
-          {persona.type === 'internal' && persona.view === 'management' && page !== 'dashboard' && page !== 'incidents' && page !== 'tasks' && page !== 'report' && (
+          {persona.type === 'internal' && persona.view === 'management' && page !== 'dashboard' && page !== 'incidents' && page !== 'tasks' && page !== 'calendar' && page !== 'report' && (
             <BUBar
               items={budgetUnits as BUItem[]}
               active={activeBU}
@@ -207,6 +210,8 @@ export default function App() {
               onAddMore={handleCompareAddMore}
               onReset={handleCompareReset}
             />
+          ) : page === 'calendar' ? (
+            <CalendarPage />
           ) : page === 'incidents' || page === 'tasks' || page === 'report' ? (
             <div className="flex-1 flex items-center justify-center bg-white min-h-0">
               <div className="text-center">

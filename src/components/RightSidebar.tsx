@@ -129,26 +129,21 @@ export default function RightSidebar({ onClose }: { onClose: () => void }) {
                 </span>
               </div>
               <div className="text-[12px] font-semibold text-gray-900 leading-tight">{a.title}</div>
-              <div className="flex items-center justify-between mt-1 pt-1.5 border-t border-gray-100">
-                {a.unit && (
-                  <div className="text-[9px]">
-                    <span className="text-gray-400 font-normal">Unit </span>
-                    <span className="font-bold text-gray-700">{a.unit}</span>
-                  </div>
-                )}
-                {a.asset && (
-                  <div className="text-[9px]">
-                    <span className="text-gray-400 font-normal">Asset </span>
-                    <span className="font-bold text-gray-700">{a.asset}</span>
-                  </div>
-                )}
-              </div>
               {a.tagLabel && (
                 <div className="text-[10px] text-gray-600 mt-0.5">
                   <span className="font-normal">{a.tagLabel}</span>
                   {a.tagValue && <span className="ml-1 text-amber-500 font-medium">{a.tagValue}</span>}
                 </div>
               )}
+              <div className="flex min-w-0 items-center justify-between mt-1 pt-1.5 border-t border-gray-100">
+                {(a.unit || a.asset) && (
+                  <div className="min-w-0 truncate text-[9px]">
+                    {a.unit && <span className="font-bold text-gray-700">{a.unit}</span>}
+                    {a.unit && a.asset && <span className="mx-1 text-gray-400">→</span>}
+                    {a.asset && <span className="font-bold text-gray-700">{a.asset}</span>}
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>

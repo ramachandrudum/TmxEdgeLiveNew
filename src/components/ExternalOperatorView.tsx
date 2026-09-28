@@ -228,9 +228,9 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
       </div>
 
       <div className="flex items-center gap-2 flex-wrap mb-4">
-        <button onClick={() => setActiveSite('all')} className={`badge badge-sm ${activeSite === 'all' ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>All Sites</button>
+        <button onClick={() => setActiveSite('all')} className={`badge badge-sm ${activeSite === 'all' ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-100 chip-gray text-gray-600 hover:bg-gray-200'}`}>All Sites</button>
         {sites.map((s) => (
-          <button key={s.id} onClick={() => setActiveSite(s.name)} className={`badge badge-sm ${activeSite === s.name ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{s.name}</button>
+          <button key={s.id} onClick={() => setActiveSite(s.name)} className={`badge badge-sm ${activeSite === s.name ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-100 chip-gray text-gray-600 hover:bg-gray-200'}`}>{s.name}</button>
         ))}
       </div>
 

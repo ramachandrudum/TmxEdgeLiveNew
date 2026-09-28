@@ -73,6 +73,20 @@
   background-color: var(--theme-surface-hover);
 }
 
+/* Site chips keep the real gray-100 instead of the themed surface tint */
+.theme-root .bg-gray-100.chip-gray {
+  background-color: #f3f4f6;
+}
+.theme-root .bg-gray-100.chip-gray:hover {
+  background-color: #e5e7eb;
+}
+.dark .theme-root .bg-gray-100.chip-gray {
+  background-color: #1f2937;
+}
+.dark .theme-root .bg-gray-100.chip-gray:hover {
+  background-color: #374151;
+}
+
 .theme-root .bg-\[\#F8FAFC\],
 .theme-root .bg-\[\#F9FAFC\] {
   background-color: var(--theme-background);
@@ -749,6 +763,10 @@ html, body, #root {
 .am-gantt .gantt-container {
   font-family: inherit;
   border-radius: 0;
+}
+
+.am-gantt.am-timeline .gantt-container {
+  height: 100% !important;
 }
 
 .am-gantt .gantt .grid-row {

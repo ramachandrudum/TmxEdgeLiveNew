@@ -8,7 +8,7 @@ import {
   Wrench,
   X,
 } from 'lucide-react'
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { filterMonitorAssets } from '../data/assetMonitor'
 import {
   DOT_COLOR,
@@ -905,6 +905,11 @@ export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
   const [selectedPath, setSelectedPath] = useState<string[]>(selectedUnitPath?.length ? selectedUnitPath : [siteName])
   const [ahCollapsed, setAhCollapsed] = useState(false)
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true)
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0
+  }, [tab])
 
   const isAssetSelected = selectedPath.length >= 4
   const isSiteSelected = selectedPath.length >= 1
@@ -1008,7 +1013,12 @@ export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
           </button>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 lg:px-6 py-4 flex flex-col gap-4">
+        <div
+          ref={scrollRef}
+          className={`flex-1 min-h-0 px-4 lg:px-6 py-4 flex flex-col gap-4 ${
+            tab === 'Asset Monitor' ? 'overflow-hidden' : 'overflow-y-auto'
+          }`}
+        >
           {isSiteSelected && tab !== 'Asset Monitor' && (
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 shrink-0">
               {kpis.map((k) => {

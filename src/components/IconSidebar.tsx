@@ -1,7 +1,11 @@
+import type { ComponentType } from 'react'
+import { Calendar as CalendarIcon } from 'lucide-react'
+
 type RailItem = {
   id: string
   title: string
   img?: string
+  Icon?: ComponentType<{ className?: string; strokeWidth?: number }>
 }
 
 const railNav: RailItem[] = [
@@ -24,6 +28,11 @@ const railNav: RailItem[] = [
     id: 'tasks',
     title: 'Tasks',
     img: '/Tasks.svg',
+  },
+  {
+    id: 'calendar',
+    title: 'Calendar',
+    Icon: CalendarIcon,
   },
   {
     id: 'report',
@@ -52,7 +61,16 @@ function RailButton({ item, active, onClick, buGradient }: { item: RailItem; act
             : 'text-white/70 hover:text-white hover:bg-white/10'
       }`}
     >
-      <img
+      {item.Icon ? (
+        <span
+          className={`w-4 h-4 shrink-0 ${
+            showBlueBg ? 'theme-on-primary-text' : active ? 'theme-primary-text' : 'text-white/70'
+          }`}
+        >
+          <item.Icon className="w-4 h-4" strokeWidth={2} />
+        </span>
+      ) : (
+        <img
           src={item.img}
           alt={item.title}
           className={`w-4 h-4 object-contain transition-all ${
@@ -64,6 +82,7 @@ function RailButton({ item, active, onClick, buGradient }: { item: RailItem; act
               : { filter: 'brightness(0) saturate(100%) invert(33%) sepia(99%) saturate(7500%) hue-rotate(198deg) brightness(97%) contrast(97%)' }
             : undefined}
         />
+      )}
       <span className={`text-[8px] font-medium leading-none truncate w-full px-0.5 text-center uppercase tracking-wide pt-[5px] ${
         showBlueBg
           ? 'theme-on-primary-text'

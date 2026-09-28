@@ -27,13 +27,14 @@ const DEVIATION = '#f59e0b'
 
 const DAY_MS = 86_400_000
 
-const DURATIONS = ['This Week', 'This Month', 'Last 3 Months', 'Last 6 Months']
-
 const EVENT_OPTIONS = [
-  { value: 'all', label: 'All Event Types' },
+  { value: 'all', label: 'All' },
   { value: 'incident', label: 'Incident' },
   { value: 'deviation', label: 'Deviation' },
 ] as const
+
+const HEADER_H = 85
+const ROW_H = 48
 
 type View = 'timeline' | 'kpis' | 'risk' | 'history'
 
@@ -121,14 +122,40 @@ function useGantt(
       if (collides) current.style.visibility = 'hidden'
     }
     const observer = new MutationObserver(fixMonthLabels)
+
+    const assets = host.closest('.am-gantt')?.querySelector<HTMLElement>('.am-assets') ?? null
+    let syncing = false
+    const syncFromGantt = () => {
+      if (syncing || !assets || !container) return
+      syncing = true
+      assets.scrollTop = container.scrollTop
+      requestAnimationFrame(() => {
+        syncing = false
+      })
+    }
+    const syncFromAssets = () => {
+      if (syncing || !container) return
+      syncing = true
+      container.scrollTop = assets?.scrollTop ?? 0
+      requestAnimationFrame(() => {
+        syncing = false
+      })
+    }
+
     if (container) {
       container.addEventListener('scroll', fixMonthLabels, { passive: true })
+      container.addEventListener('scroll', syncFromGantt, { passive: true })
+      assets?.addEventListener('scroll', syncFromAssets, { passive: true })
       observer.observe(container, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] })
       fixMonthLabels()
     }
 
     return () => {
-      if (container) container.removeEventListener('scroll', fixMonthLabels)
+      if (container) {
+        container.removeEventListener('scroll', fixMonthLabels)
+        container.removeEventListener('scroll', syncFromGantt)
+      }
+      assets?.removeEventListener('scroll', syncFromAssets)
       observer.disconnect()
       gantt.clear()
       host.innerHTML = ''
@@ -154,11 +181,11 @@ function OnOffDot({ on }: { on: boolean }) {
 
 export default function AssetMonitor({ assets, isAsset = true, onOpenAsset }: Props) {
   const [view, setView] = useState<View>('timeline')
-  const [duration, setDuration] = useState(DURATIONS[0])
   const [eventFilter, setEventFilter] = useState<'all' | 'incident' | 'deviation'>('all')
   const [assetFilter, setAssetFilter] = useState('all')
   const [onlyActivity, setOnlyActivity] = useState(true)
   const [openInsights, setOpenInsights] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
   const hostRef = useRef<HTMLDivElement>(null)
 
   const activeView: View = isAsset ? view : 'timeline'
@@ -173,15 +200,24 @@ export default function AssetMonitor({ assets, isAsset = true, onOpenAsset }: Pr
   const activeAssetFilter = assetFilter !== 'all' && scopedIds.has(assetFilter) ? assetFilter : 'all'
 
   const rows = useMemo(() => {
+    const needle = query.trim().toLowerCase()
     const out: MonitorRow[] = []
     for (const asset of assets) {
       if (activeAssetFilter !== 'all' && asset.id !== activeAssetFilter) continue
       const events = eventFilter === 'all' ? asset.events : asset.events.filter((e) => e.kind === eventFilter)
-      if (onlyActivity && events.length === 0) continue
-      events.forEach((event, index) => out.push({ key: `${asset.id}-${index}`, asset, event, first: index === 0 }))
+      const visible = needle
+        ? events.filter(
+            (e) => e.title.toLowerCase().includes(needle) || asset.name.toLowerCase().includes(needle),
+          )
+        : events
+      if (onlyActivity && visible.length === 0) continue
+      visible.forEach((event, index) => out.push({ key: `${asset.id}-${index}`, asset, event, first: index === 0 }))
     }
     return out
-  }, [assets, activeAssetFilter, eventFilter, onlyActivity])
+  }, [assets, activeAssetFilter, eventFilter, onlyActivity, query])
+
+  const contentH = HEADER_H + rows.length * ROW_H
+  const cardH = contentH + 35
 
   const tasks = useMemo(
     () =>
@@ -213,7 +249,7 @@ export default function AssetMonitor({ assets, isAsset = true, onOpenAsset }: Pr
   )
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
       {isAsset && (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-4">
@@ -252,25 +288,22 @@ export default function AssetMonitor({ assets, isAsset = true, onOpenAsset }: Pr
 
       {activeView === 'timeline' && (
         <>
-          <div className="flex flex-wrap items-center gap-2">
-            <select className={selectClass} value={duration} onChange={(e) => setDuration(e.target.value)} aria-label="Duration">
-              {DURATIONS.map((d) => (
-                <option key={d}>{d}</option>
-              ))}
-            </select>
-
-            <select
-              className={selectClass}
-              value={eventFilter}
-              onChange={(e) => setEventFilter(e.target.value as 'all' | 'incident' | 'deviation')}
-              aria-label="Event type"
-            >
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <div className="flex h-7 items-center rounded-md border border-gray-200 bg-white p-0.5" role="group" aria-label="Event type">
               {EVENT_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
+                <button
+                  key={o.value}
+                  type="button"
+                  aria-pressed={eventFilter === o.value}
+                  onClick={() => setEventFilter(o.value)}
+                  className={`h-full rounded-[4px] px-2.5 text-[11px] font-medium transition-colors ${
+                    eventFilter === o.value ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
                   {o.label}
-                </option>
+                </button>
               ))}
-            </select>
+            </div>
 
             <select className={selectClass} value={activeAssetFilter} onChange={(e) => setAssetFilter(e.target.value)} aria-label="Asset">
               <option value="all">All Assets</option>
@@ -298,16 +331,27 @@ export default function AssetMonitor({ assets, isAsset = true, onOpenAsset }: Pr
           </div>
 
           {rows.length === 0 ? (
-            <div className="rounded-md border border-gray-200 bg-white px-4 py-10 text-center text-[13px] text-gray-400">
+            <div className="shrink-0 rounded-md border border-gray-200 bg-white px-4 py-10 text-center text-[13px] text-gray-400">
               No assets match the current filters.
             </div>
           ) : (
-            <div className="am-gantt overflow-hidden rounded-md border border-gray-200 bg-white">
-              <div className="flex">
-                <div className="am-assets w-[260px] shrink-0 border-r border-[#ebeff2]">
-                  <div className="flex h-[85px] items-end border-b border-[#c7c7c7] px-3 pb-2.5">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Asset</span>
-                  </div>
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="am-gantt am-timeline max-h-full overflow-hidden rounded-md border border-gray-200 bg-white" style={{ height: cardH }}>
+                <div className="flex h-full min-h-0">
+                  <div className="am-assets h-full w-[260px] shrink-0 overflow-y-auto border-r border-[#ebeff2]">
+                    <div className="sticky top-0 z-10 flex h-[85px] items-end justify-between gap-2 border-b border-[#c7c7c7] bg-white px-3 pb-2.5">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Asset</span>
+                      <div className="relative mb-0.5">
+                        <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+                        <input
+                          className="h-7 w-[142px] rounded-md border border-gray-200 bg-white pl-7 pr-2 text-[11px] text-gray-700 outline-none placeholder:text-gray-400 focus:border-blue-400"
+                          value={query}
+                          onChange={(e) => setQuery(e.target.value)}
+                          placeholder="Search assets"
+                          aria-label="Search assets"
+                        />
+                      </div>
+                    </div>
 
                   {rows.map((row) => (
                     <div key={row.key} className="am-row relative flex h-12 flex-col justify-center gap-1 border-b border-[#ebeff2] px-3">
@@ -377,8 +421,9 @@ export default function AssetMonitor({ assets, isAsset = true, onOpenAsset }: Pr
                   ))}
                 </div>
 
-                <div className="min-w-0 flex-1">
-                  <div ref={hostRef} />
+                <div className="h-full min-w-0 flex-1">
+                  <div ref={hostRef} className="h-full" />
+                </div>
                 </div>
               </div>
             </div>
@@ -386,9 +431,13 @@ export default function AssetMonitor({ assets, isAsset = true, onOpenAsset }: Pr
         </>
       )}
 
-      {activeView === 'kpis' && <TrackView rows={kpiRows} label="Measure" onTimeline={() => setView('timeline')} />}
-      {activeView === 'risk' && <TrackView rows={riskRows} label="Contributor" onTimeline={() => setView('timeline')} />}
-      {activeView === 'history' && <HistoryView />}
+      {activeView !== 'timeline' && (
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+          {activeView === 'kpis' && <TrackView rows={kpiRows} label="Measure" onTimeline={() => setView('timeline')} />}
+          {activeView === 'risk' && <TrackView rows={riskRows} label="Contributor" onTimeline={() => setView('timeline')} />}
+          {activeView === 'history' && <HistoryView />}
+        </div>
+      )}
     </div>
   )
 }
