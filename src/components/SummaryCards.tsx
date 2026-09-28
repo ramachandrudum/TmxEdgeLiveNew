@@ -11,59 +11,43 @@ type Card = {
   iconBg: string
 }
 
-function Pie({ legends, size = 60 }: { legends: Legend[]; size?: number }) {
+function Donut({ legends, size = 60, thickness = 12 }: { legends: Legend[]; size?: number; thickness?: number }) {
   const total = legends.reduce((a, l) => a + l.value, 0)
-  const cx = size / 2, cy = size / 2, r = size / 2
-  let cum = 0
+  const cx = size / 2
+  const r = (size - thickness) / 2
+  const c = 2 * Math.PI * r
+
+  if (total <= 0) {
+    return (
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0">
+        <circle cx={cx} cy={cx} r={r} fill="none" stroke="#e5e7eb" strokeWidth={thickness} />
+      </svg>
+    )
+  }
+
+  const segments = legends.reduce<{ legend: Legend; start: number }[]>((out, l) => {
+    const prev = out[out.length - 1]
+    const start = prev ? prev.start + prev.legend.value / total : 0
+    if (l.value > 0) out.push({ legend: l, start })
+    return out
+  }, [])
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0">
-      {total > 0 && legends.map((l) => {
-        const start = (cum / total) * 2 * Math.PI - Math.PI / 2
-        cum += l.value
-        const end = (cum / total) * 2 * Math.PI - Math.PI / 2
-        const large = l.value / total > 0.5 ? 1 : 0
-        const x1 = cx + r * Math.cos(start), y1 = cy + r * Math.sin(start)
-        const x2 = cx + r * Math.cos(end), y2 = cy + r * Math.sin(end)
-        return (
-          <path
-            key={l.label}
-            d={`M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2} Z`}
-            fill={l.color}
-          />
-        )
-      })}
-    </svg>
-  )
-}
-
-function Pyramid({ legends }: { legends: Legend[] }) {
-  const w = 60
-  const h = 60
-  const rows = legends.length
-  const rowH = h / rows
-  const maxVal = Math.max(...legends.map((l) => l.value), 1)
-  const reversed = legends.slice().reverse()
-
-  const getWidth = (val: number) => Math.max((val / maxVal) * w, 10)
-
-  return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="shrink-0">
-      {reversed.map((l, i) => {
-        const ri = rows - 1 - i
-        const y = ri * rowH
-        const topW = i < rows - 1 ? getWidth(reversed[i + 1].value) : getWidth(l.value) * 0.4
-        const botW = getWidth(l.value)
-        const topX = (w - topW) / 2
-        const botX = (w - botW) / 2
-        return (
-          <polygon
-            key={l.label}
-            points={`${topX},${y} ${topX + topW},${y} ${botX + botW},${y + rowH} ${botX},${y + rowH}`}
-            fill={l.color}
-          />
-        )
-      })}
+      {segments.map(({ legend, start }) => (
+        <circle
+          key={legend.label}
+          cx={cx}
+          cy={cx}
+          r={r}
+          fill="none"
+          stroke={legend.color}
+          strokeWidth={thickness}
+          strokeDasharray={`${(legend.value / total) * c} ${c}`}
+          strokeDashoffset={-start * c}
+          transform={`rotate(-90 ${cx} ${cx})`}
+        />
+      ))}
     </svg>
   )
 }
@@ -112,9 +96,9 @@ export default function SummaryCards({ active, variant = '' }: { active: string;
         { label: 'Offline', value: s.unitsOffline, color: '#dc3545' },
         { label: 'Online', value: s.unitsOnline, color: '#28a745' },
       ],
-      iconBg: 'bg-blue-50',
+      iconBg: 'theme-primary-bg-soft',
       icon: (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="theme-primary-text">
           <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
           <circle cx="12" cy="10" r="3" />
         </svg>
@@ -129,9 +113,9 @@ export default function SummaryCards({ active, variant = '' }: { active: string;
         { label: 'At Risk', value: s.assetHealth.atRisk, color: '#ffc107' },
         { label: 'Healthy', value: s.assetHealth.healthy, color: '#28a745' },
       ],
-      iconBg: 'bg-purple-50',
+      iconBg: 'theme-status-info-soft',
       icon: (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-600">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="theme-status-info-text">
           <rect x="2" y="6" width="20" height="12" rx="2" />
           <path d="M12 12h.01" />
           <path d="M17 12h.01" />
@@ -148,9 +132,9 @@ export default function SummaryCards({ active, variant = '' }: { active: string;
         { label: 'Warning', value: s.incidentsBreakdown.warning, color: '#fd7e14' },
         { label: 'Deviation', value: s.incidentsBreakdown.deviation, color: '#ffc107' },
       ],
-      iconBg: 'bg-red-50',
+      iconBg: 'theme-status-critical-soft',
       icon: (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="theme-status-critical-text">
           <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
           <line x1="12" y1="9" x2="12" y2="13" />
           <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -167,9 +151,9 @@ export default function SummaryCards({ active, variant = '' }: { active: string;
         { label: 'Not Started', value: s.tasksBreakdown.notStarted, color: '#6c757d' },
         { label: 'Completed', value: s.tasksBreakdown.completed, color: '#28a745' },
       ],
-      iconBg: 'bg-amber-50',
+      iconBg: 'theme-status-warning-soft',
       icon: (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-600">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="theme-status-warning-text">
           <path d="M9 11l3 3L22 4" />
           <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
         </svg>
@@ -193,8 +177,8 @@ export default function SummaryCards({ active, variant = '' }: { active: string;
               </div>
               <div className="shrink-0 pt-1 ml-auto">
                 {card.key === 'sites' && <VBars legends={card.legends} />}
-                {card.key === 'assets' && <Pyramid legends={card.legends} />}
-                {card.key === 'incidents' && <Pie legends={card.legends} />}
+                {card.key === 'assets' && <Donut legends={card.legends} />}
+                {card.key === 'incidents' && <Donut legends={card.legends} />}
                 {card.key === 'tasks' && <VBars legends={card.legends} />}
               </div>
               <div className="flex flex-col gap-px">

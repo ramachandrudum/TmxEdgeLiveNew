@@ -31,7 +31,7 @@ export default function SiteSummaryRow({ site }: { site: SiteStat }) {
   const shutdown = site.unitList.reduce((acc, u) => acc + u.shutdown, 0)
 
   return (
-    <tr className="bg-[#F0F7FF] border-b border-gray-100 group/site-summary cursor-pointer">
+    <tr className="bg-[var(--theme-surface-header)] border-b border-gray-100 group/site-summary cursor-pointer">
       <td className={`${CELL} align-middle`} style={{ paddingLeft: 50 }}>
         <div className="flex items-center gap-2">
           <div className="flex-1">
@@ -42,7 +42,7 @@ export default function SiteSummaryRow({ site }: { site: SiteStat }) {
       </td>
       <td className={`${CELL} text-center`}>
         <div className="flex flex-col items-center">
-          <span className="text-[#0968DB] font-semibold text-base">{avail}%</span>
+          <span className="theme-primary-text font-semibold text-base">{avail}%</span>
           <span className="text-[10px] text-gray-500 font-medium">Avg</span>
         </div>
       </td>

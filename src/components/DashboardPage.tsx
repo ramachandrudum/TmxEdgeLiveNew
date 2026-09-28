@@ -3,14 +3,13 @@ import {
   ChevronRight,
   ChevronsUpDown,
   MapPin,
-  PenLine,
   Plus,
   Search,
-  TriangleAlert,
   Wrench,
   X,
 } from 'lucide-react'
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
+import { filterMonitorAssets } from '../data/assetMonitor'
 import {
   DOT_COLOR,
   TREND_PATH,
@@ -24,16 +23,18 @@ import {
   type NodeStatus,
   type TreeNode,
 } from '../data/dashboardPage'
+import AssetMonitor from './AssetMonitor'
 import AssetOverview from './AssetOverview'
 import RightSidebar from './RightSidebar'
 
 type Props = {
   siteName: string
+  customerName?: string
   selectedUnitPath?: string[]
   onSelectSite?: (siteName: string) => void
 }
 
-const TABS = ['Overview', 'Process Flow', 'Attachments', 'Tags', 'Asset Timeline', 'Dashboard']
+const TABS = ['Overview', 'Process Flow', 'Attachments', 'Tags', 'Asset Monitor', 'Dashboard']
 
 function Dot({ status, size = 8 }: { status: NodeStatus; size?: number }) {
   return (
@@ -77,10 +78,10 @@ function TreeBranch({
         onClick={() => onSelect(currentPath)}
         className={`group flex items-center gap-2 py-1.5 pr-2 rounded-md text-[13px] cursor-pointer ${
           isActive
-            ? 'text-blue-700 font-semibold bg-blue-50'
-            : 'hover:bg-gray-100'
+            ? 'theme-primary-text theme-primary-bg-soft font-semibold'
+            : 'text-[var(--theme-text)] hover:bg-gray-100'
         }`}
-        style={{ paddingLeft: pad, color: isActive ? undefined : '#364153' }}
+        style={{ paddingLeft: pad }}
         onMouseEnter={(e) => onShowTooltip(node.name, e.currentTarget)}
         onMouseLeave={onHideTooltip}
       >
@@ -98,10 +99,10 @@ function TreeBranch({
       <div
         className={`group flex items-center gap-2 py-1.5 pr-2 rounded-md text-[13px] ${
           isActive
-            ? 'text-blue-700 font-semibold'
-            : 'hover:bg-gray-50'
+            ? 'theme-primary-text font-semibold'
+            : 'text-[var(--theme-text)] hover:bg-gray-50'
         }`}
-        style={{ paddingLeft: node.kind === 'system' ? 35 : pad, color: isActive ? undefined : '#364153' }}
+        style={{ paddingLeft: node.kind === 'system' ? 35 : pad }}
         onMouseEnter={(e) => onShowTooltip(node.name, e.currentTarget)}
         onMouseLeave={onHideTooltip}
       >
@@ -120,7 +121,7 @@ function TreeBranch({
         <span
           onClick={() => onSelect(currentPath)}
           className={`flex-1 min-w-0 cursor-pointer ${node.kind === 'system' ? 'font-semibold' : ''}`}
-          style={node.kind === 'system' ? { color: '#364153', fontSize: 10 } : undefined}
+          style={node.kind === 'system' ? { fontSize: 10 } : undefined}
         >
           <span className={`block truncate ${node.kind === 'system' ? 'uppercase' : ''}`}>{node.name}</span>
         </span>
@@ -180,7 +181,7 @@ function HierarchyPanel({ siteName, onSelect, selectedUnitPath, selectedPath, co
   }
 
   return (
-    <aside className="w-[210px] shrink-0 border-r border-gray-200 bg-[#F9FAFC] flex flex-col min-h-0">
+    <aside className="w-[210px] shrink-0 border-r border-gray-200 bg-[var(--theme-background)] flex flex-col min-h-0">
       <div className="h-11 flex items-center gap-2 px-3 border-b border-gray-100 shrink-0">
         <span className="text-[13px] font-bold text-gray-800 flex-1">Asset hierarchy</span>
         <button onClick={() => setCollapsed(true)} className="rp-collapse-btn" title="Collapse">
@@ -208,7 +209,7 @@ function HierarchyPanel({ siteName, onSelect, selectedUnitPath, selectedPath, co
         <button
           onClick={() => setMenuOpen((o) => !o)}
           title={siteName}
-          className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg border border-gray-200 bg-[#F8FAFC] hover:bg-gray-100 transition"
+          className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg border border-gray-200 bg-[var(--theme-background)] hover:bg-gray-100 transition"
         >
           <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
           <span className="flex-1 text-left text-[12px] font-semibold text-gray-800 truncate">
@@ -240,8 +241,8 @@ function HierarchyPanel({ siteName, onSelect, selectedUnitPath, selectedPath, co
           onClick={() => onSelect([hierarchy.name])}
           className={`flex items-center gap-2 py-1.5 px-2 rounded-md text-[13px] cursor-pointer ${
             selectedPath.length === 1
-              ? 'font-semibold text-blue-700 bg-blue-50'
-              : 'font-semibold text-gray-700 hover:bg-gray-50'
+              ? 'font-semibold theme-primary-text theme-primary-bg-soft'
+              : 'font-semibold text-[var(--theme-text)] hover:bg-gray-50'
           }`}
         >
           <MapPin className="w-3.5 h-3.5 shrink-0" />
@@ -496,10 +497,10 @@ function IncidentPopup({ incident, onBack, onClose }: { incident: IncidentItem; 
             <table className="w-full border-collapse">
               <tbody>
                 <tr className="border-b border-gray-200">
-                  <td className="px-3 py-2 font-bold bg-[#E7EDF6] w-[130px] text-gray-700">Unit Name</td>
-                  <td className="px-3 py-2 bg-[#E7EDF6] text-gray-900">{incident.unitName}</td>
-                  <td className="px-3 py-2 font-bold bg-[#E7EDF6] w-[180px] text-gray-700">Equipment</td>
-                  <td className="px-3 py-2 bg-[#E7EDF6] text-gray-900">{incident.equipment}</td>
+                  <td className="px-3 py-2 font-bold bg-[var(--theme-surface-header)] w-[130px] text-gray-700">Unit Name</td>
+                  <td className="px-3 py-2 bg-[var(--theme-surface-header)] text-gray-900">{incident.unitName}</td>
+                  <td className="px-3 py-2 font-bold bg-[var(--theme-surface-header)] w-[180px] text-gray-700">Equipment</td>
+                  <td className="px-3 py-2 bg-[var(--theme-surface-header)] text-gray-900">{incident.equipment}</td>
                 </tr>
                 <tr>
                   <td className="px-3 py-2 font-bold text-gray-700">KPI</td>
@@ -534,8 +535,8 @@ function IncidentPopup({ incident, onBack, onClose }: { incident: IncidentItem; 
               <div className="h-[200px] bg-white rounded border border-gray-100 overflow-hidden">
                 <svg viewBox="0 0 600 200" preserveAspectRatio="none" className="w-full h-full block">
                   <line x1="0" y1="40" x2="600" y2="40" stroke="#dc3545" strokeWidth="1" strokeDasharray="4,4" opacity="0.5" />
-                  <line x1="0" y1="100" x2="600" y2="100" stroke="#e5e7eb" strokeWidth="1" />
-                  <line x1="0" y1="160" x2="600" y2="160" stroke="#e5e7eb" strokeWidth="1" />
+                  <line x1="0" y1="100" x2="600" y2="100" stroke="var(--theme-border)" strokeWidth="1" />
+                  <line x1="0" y1="160" x2="600" y2="160" stroke="var(--theme-border)" strokeWidth="1" />
                   <polyline
                     fill="none"
                     stroke="#BD4F5B"
@@ -551,12 +552,12 @@ function IncidentPopup({ incident, onBack, onClose }: { incident: IncidentItem; 
                     opacity="0.6"
                   />
                   <rect x="0" y="130" width="600" height="30" fill="rgb(251,177,74)" fillOpacity="0.3" />
-                  <text x="5" y="15" fontSize="10" fill="#6b7280">mm</text>
-                  <text x="570" y="15" fontSize="10" fill="#6b7280">Kg/cm²</text>
-                  <text x="100" y="195" fontSize="9" fill="#9ca3af">08:30</text>
-                  <text x="250" y="195" fontSize="9" fill="#9ca3af">09:30</text>
-                  <text x="400" y="195" fontSize="9" fill="#9ca3af">10:00</text>
-                  <text x="530" y="195" fontSize="9" fill="#9ca3af">10:30</text>
+                  <text x="5" y="15" fontSize="10" fill="var(--theme-muted)">mm</text>
+                  <text x="570" y="15" fontSize="10" fill="var(--theme-muted)">Kg/cm²</text>
+                  <text x="100" y="195" fontSize="9" fill="var(--theme-muted)">08:30</text>
+                  <text x="250" y="195" fontSize="9" fill="var(--theme-muted)">09:30</text>
+                  <text x="400" y="195" fontSize="9" fill="var(--theme-muted)">10:00</text>
+                  <text x="530" y="195" fontSize="9" fill="var(--theme-muted)">10:30</text>
                 </svg>
               </div>
             </div>
@@ -575,7 +576,7 @@ function IncidentPopup({ incident, onBack, onClose }: { incident: IncidentItem; 
 
 function KpiStatusCard({ onKpiClick }: { onKpiClick: (name: string) => void }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-md p-4 flex flex-col h-[240px] min-h-0">
+    <div className="bg-white border border-gray-200 rounded-md p-4 flex flex-col h-[240px] min-h-0 hover-scroll-host">
       <div className="text-[13px] font-bold text-gray-800">KPI Status ({kpiStatus.total})</div>
       <div className="flex h-2 rounded-full overflow-hidden mt-3">
         <span style={{ width: '92%', background: 'var(--gm)' }} />
@@ -585,7 +586,7 @@ function KpiStatusCard({ onKpiClick }: { onKpiClick: (name: string) => void }) {
         <span>{kpiStatus.healthy}% Healthy</span>
         <span>{kpiStatus.unhealthy}% Unhealthy</span>
       </div>
-      <div className="mt-3 overflow-y-auto flex-1 min-h-0 pr-1">
+      <div className="mt-3 overflow-y-auto flex-1 min-h-0 pr-1 hover-scroll">
         {kpiStatus.items.map((item, i) => (
           <div
             key={i}
@@ -665,14 +666,14 @@ function KpiSquares({ count }: { count: number }) {
   )
 }
 
-function RiskGauge({ risk, color = '#ef4444' }: { risk: number; color?: string }) {
+function RiskGauge({ risk, color = 'var(--status-critical-text)' }: { risk: number; color?: string }) {
   const r = 14
   const circ = 2 * Math.PI * r
   const dash = (risk / 100) * circ
   return (
     <div className="flex flex-row items-center justify-center" style={{ width: 60 }}>
       <svg width="36" height="36" viewBox="0 0 36 36" className="mb-1">
-        <circle cx="18" cy="18" r={r} fill="none" stroke="#e5e7eb" strokeWidth="7" />
+        <circle cx="18" cy="18" r={r} fill="none" stroke="var(--theme-border)" strokeWidth="7" />
         <circle cx="18" cy="18" r={r} fill="none" stroke={color} strokeWidth="7" strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" transform="rotate(-90 18 18)" />
       </svg>
       <div className="ml-1">
@@ -696,9 +697,9 @@ const assetTableRows = Array.from({ length: 5 }, () => ({
 type Severity = 'critical' | 'warning' | 'deviation'
 
 const SEVERITY: Record<Severity, { label: string; color: string; bg: string }> = {
-  critical: { label: 'CRITICAL', color: '#dc3545', bg: '#FFEBEE' },
-  warning: { label: 'WARNING', color: '#e65100', bg: '#FFF3E0' },
-  deviation: { label: 'DEVIATION', color: '#F9A825', bg: '#FFF8E1' },
+  critical: { label: 'CRITICAL', color: 'var(--status-critical-text)', bg: 'var(--status-critical-surface)' },
+  warning: { label: 'WARNING', color: 'var(--status-warning-text)', bg: 'var(--status-warning-surface)' },
+  deviation: { label: 'DEVIATION', color: 'var(--status-deviation-text)', bg: 'var(--status-deviation-surface)' },
 }
 
 function SeverityBadge({ severity }: { severity: Severity }) {
@@ -727,14 +728,14 @@ const lastViewed: LastViewedItem[] = [
 
 function LastViewedCard() {
   return (
-    <div className="bg-white border border-gray-200 rounded-md overflow-hidden h-[240px] flex flex-col">
-      <div className="px-4 py-3 border-b border-gray-100 text-sm font-bold text-gray-800 shrink-0">Last Viewed</div>
-      <div className="flex-1 min-h-0 overflow-y-auto">
-        {lastViewed.map((item) => (
-          <div key={item.title + item.path.length} className="px-4 py-3 border-b border-gray-100 last:border-b-0">
+    <div className="bg-white border border-gray-200 rounded-md overflow-hidden h-[240px] flex flex-col hover-scroll-host">
+      <div className="px-4 py-3 border-b border-gray-100 text-sm font-bold text-gray-800 shrink-0">Recent Activity</div>
+      <div className="flex-1 min-h-0 overflow-y-auto hover-scroll">
+        {lastViewed.map((item, i) => (
+          <div key={`${item.title}-${item.path.length}-${i}`} className="px-4 py-3 border-b border-gray-100 last:border-b-0">
             <div className="flex items-center gap-2.5 cursor-pointer group">
-              <span className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${item.type === 'asset' ? 'bg-[#E3F2FD] text-[#1565C0]' : item.type === 'incident' ? 'bg-[#FFEBEE] text-[#dc3545]' : 'bg-[#E8F5E9] text-[#2E7D32]'}`}>
-                {item.type === 'asset' ? <Wrench className="w-3.5 h-3.5" strokeWidth={1.8} /> : item.type === 'incident' ? <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: '#dc3545', WebkitMaskImage: 'url(/incidents.svg)', maskImage: 'url(/incidents.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} /> : <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: '#2E7D32', WebkitMaskImage: 'url(/Tasks.svg)', maskImage: 'url(/Tasks.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} />}
+              <span className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${item.type === 'asset' ? 'theme-status-info-soft theme-status-info-text' : item.type === 'incident' ? 'theme-status-critical-soft theme-status-critical-text' : 'theme-status-healthy-soft theme-status-healthy-text'}`}>
+                {item.type === 'asset' ? <Wrench className="w-3.5 h-3.5" strokeWidth={1.8} /> : item.type === 'incident' ? <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: 'var(--status-critical-text)', WebkitMaskImage: 'url(/incidents.svg)', maskImage: 'url(/incidents.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} /> : <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: 'var(--status-healthy-text)', WebkitMaskImage: 'url(/Tasks.svg)', maskImage: 'url(/Tasks.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} />}
               </span>
               <div className="flex-1 min-w-0">
                 {item.time && (
@@ -790,7 +791,7 @@ function OverviewTab({ onSelectAsset }: { onSelectAsset: (name: string) => void 
         <div className="pb-1">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="bg-[#ECF2FA]">
+              <tr className="bg-[var(--theme-surface-header)]">
                 <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100 whitespace-nowrap">Asset Name</th>
                 <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100 whitespace-nowrap">Asset type</th>
                 <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100 whitespace-nowrap">Uptime</th>
@@ -813,7 +814,7 @@ function OverviewTab({ onSelectAsset }: { onSelectAsset: (name: string) => void 
                         </div>
                       ) : (
                         <span className="relative inline-flex w-2.5 h-2.5 shrink-0">
-                          <span className="relative inline-flex items-center justify-center w-2.5 h-2.5 rounded-full bg-[#C62828] animate-pulse" />
+                          <span className="relative inline-flex items-center justify-center w-2.5 h-2.5 rounded-full bg-[var(--status-critical-text)] animate-pulse" />
                         </span>
                       )}
                       <span className="text-sm font-medium text-gray-900">{r.name}</span>
@@ -828,14 +829,44 @@ function OverviewTab({ onSelectAsset }: { onSelectAsset: (name: string) => void 
                     <KpiSquares count={r.kpiCount} />
                   </td>
                   <td className="py-2.5 px-3">
-                    <div className="flex-shrink-0 flex items-center border border-gray-300 rounded-md overflow-hidden bg-white shadow-sm">
-                      <button className="flex flex-col items-center justify-center px-2 py-1 text-gray-700 hover:bg-blue-50 transition-colors border-r border-gray-300 cursor-pointer min-w-[46px]">
-                        <PenLine className="w-3.5 h-3.5" strokeWidth={2} />
-                        <span className="text-[10px] mt-1">Task</span>
+                    <div className="flex items-start border rounded overflow-hidden bg-white w-fit" style={{ borderColor: '#c5c5c5' }}>
+                      <button
+                        type="button"
+                        title="At Risk"
+                        className="flex items-center justify-center bg-white cursor-pointer"
+                        style={{ width: 35, height: 30, borderRight: '1px solid #c5c5c5' }}
+                      >
+                        <svg
+                          stroke="currentColor"
+                          fill="currentColor"
+                          strokeWidth={0}
+                          viewBox="0 0 576 512"
+                          height="15"
+                          width="15"
+                          style={{ color: '#6c757d' }}
+                          aria-hidden="true"
+                        >
+                          <path d="M569.517 440.013C587.975 472.007 564.806 512 527.94 512H48.054c-36.937 0-59.999-40.055-41.577-71.987L246.423 23.985c18.467-32.009 64.72-31.951 83.154 0l239.94 416.028zM288 354c-25.405 0-46 20.595-46 46s20.595 46 46 46 46-20.595 46-46-20.595-46-46-46zm-43.673-165.346l7.418 136c.347 6.364 5.609 11.346 11.982 11.346h48.546c6.373 0 11.635-4.982 11.982-11.346l7.418-136c.375-6.874-5.098-12.654-11.982-12.654h-63.383c-6.884 0-12.356 5.78-11.981 12.654z" />
+                        </svg>
                       </button>
-                      <button className="flex flex-col items-center justify-center px-2 py-1 text-gray-700 hover:bg-blue-50 transition-colors cursor-pointer min-w-[82px]">
-                        <TriangleAlert className="w-3.5 h-3.5" strokeWidth={2} />
-                        <span className="text-[10px] mt-1">Report Failure</span>
+                      <button
+                        type="button"
+                        title="In review"
+                        className="flex items-center justify-center bg-white cursor-pointer"
+                        style={{ width: 35, height: 30 }}
+                      >
+                        <svg
+                          stroke="currentColor"
+                          fill="currentColor"
+                          strokeWidth={0}
+                          viewBox="0 0 512 512"
+                          height="15"
+                          width="15"
+                          style={{ color: '#6c757d' }}
+                          aria-hidden="true"
+                        >
+                          <path d="M416 48c0-8.84-7.16-16-16-16h-64c-8.84 0-16 7.16-16 16v48h96V48zM63.91 159.99C61.4 253.84 3.46 274.22 0 404v44c0 17.67 14.33 32 32 32h96c17.67 0 32-14.33 32-32V288h32V128H95.84c-17.63 0-31.45 14.37-31.93 31.99zm384.18 0c-.48-17.62-14.3-31.99-31.93-31.99H320v160h32v160c0 17.67 14.33 32 32 32h96c17.67 0 32-14.33 32-32v-44c-3.46-129.78-61.4-150.16-63.91-244.01zM176 32h-64c-8.84 0-16 7.16-16 16v48h96V48c0-8.84-7.16-16-16-16zm48 256h64V128h-64v160z" />
+                        </svg>
                       </button>
                     </div>
                   </td>
@@ -855,6 +886,18 @@ function Placeholder({ name }: { name: string }) {
       {name}
     </div>
   )
+}
+
+const collectAssetNames = (nodes: TreeNode[], path: string[]): string[] => {
+  const allAssets = nodes.flatMap((node) =>
+    node.kind === 'asset' ? [node.name] : collectAssetNames(node.children ?? [], []),
+  )
+  if (path.length === 0) return allAssets
+
+  const node = nodes.find((n) => n.name === path[0])
+  if (!node) return allAssets
+  if (node.kind === 'asset') return [node.name]
+  return collectAssetNames(node.children ?? [], path.slice(1))
 }
 
 export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
@@ -888,8 +931,13 @@ export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
     setSelectedPath(selectedPath.slice(0, index + 1))
   }
 
+  const monitorAssetList = useMemo(
+    () => filterMonitorAssets(collectAssetNames(hierarchy.children ?? [], selectedPath.slice(1))),
+    [selectedPath],
+  )
+
   return (
-    <div className="flex flex-1 min-h-0 overflow-hidden bg-[#F8FAFC]">
+    <div className="flex flex-1 min-h-0 overflow-hidden bg-[var(--theme-background)]">
       <HierarchyPanel siteName={siteName} onSelect={setSelectedPath} selectedUnitPath={selectedUnitPath} selectedPath={selectedPath} collapsed={ahCollapsed} setCollapsed={setAhCollapsed} />
 
       <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-white">
@@ -899,7 +947,7 @@ export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
               <button
                 onClick={() => setAhCollapsed(false)}
                 className="rp-collapse-btn group relative rounded-md"
-                style={{ padding: 6, background: '#f3f4f6' }}
+                style={{ padding: 6, background: 'var(--theme-surface-hover)' }}
               >
                 <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6">
                   <rect x="3" y="3.5" width="14" height="13" rx="2" />
@@ -961,7 +1009,7 @@ export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
         </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto px-4 lg:px-6 py-4 flex flex-col gap-4">
-          {isSiteSelected && (
+          {isSiteSelected && tab !== 'Asset Monitor' && (
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 shrink-0">
               {kpis.map((k) => {
                 const iconMap: Record<string, { icon: React.ReactNode; bg: string }> = {
@@ -1022,7 +1070,7 @@ export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
                       </span>
                       <span className="text-[11px] font-bold" style={{ color: k.deltaColor }}>{k.delta}</span>
                     </div>
-                    <div className="mt-2 -mx-4">
+                    <div className="mt-auto -mx-4">
                       <svg viewBox="0 0 220 26" preserveAspectRatio="none" className="w-full h-[26px] block">
                         <path d={`${k.path} L220,26 L0,26 Z`} fill={k.color} opacity="0.15" />
                         <path d={k.path} fill="none" stroke={k.color} strokeWidth="1.5" strokeLinejoin="miter" />
@@ -1033,7 +1081,16 @@ export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
               })}
             </div>
           )}
-          {isAssetSelected ? (
+          {tab === 'Asset Monitor' ? (
+            <AssetMonitor
+              assets={monitorAssetList}
+              isAsset={isAssetSelected}
+              onOpenAsset={(name) => {
+                const card = assetCards.find((a) => a.name === name)
+                if (card) setSelectedPath([...card.path, card.name])
+              }}
+            />
+          ) : isAssetSelected ? (
             <AssetOverview />
           ) : tab === 'Overview' ? (
             <OverviewTab

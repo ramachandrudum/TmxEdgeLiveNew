@@ -46,7 +46,7 @@ function RailButton({ item, active, onClick, buGradient }: { item: RailItem; act
       onClick={onClick}
       className={`group relative rail-item w-full flex flex-col items-center justify-center gap-[3px] transition-all cursor-pointer mb-[15px] overflow-visible pt-[10px] pb-[10px] ${
         showBlueBg
-          ? 'rounded-[10px] bg-[#005EDB]'
+          ? 'rounded-[10px] bg-[var(--theme-primary)]'
           : active
             ? 'rounded-[10px]'
             : 'text-white/70 hover:text-white hover:bg-white/10'
@@ -66,9 +66,9 @@ function RailButton({ item, active, onClick, buGradient }: { item: RailItem; act
         />
       <span className={`text-[8px] font-medium leading-none truncate w-full px-0.5 text-center uppercase tracking-wide pt-[5px] ${
         showBlueBg
-          ? 'text-white'
+          ? 'theme-on-primary-text'
           : active
-            ? 'text-[#005EDB]'
+            ? 'theme-primary-text'
             : 'text-white/70'
       }`}>
         {item.title}
@@ -86,7 +86,7 @@ function RailButton({ item, active, onClick, buGradient }: { item: RailItem; act
 export default function IconSidebar({ active, onSelect, navIds, buGradient }: Props) {
   const items = navIds ? railNav.filter((item) => navIds.includes(item.id)) : railNav
   return (
-    <aside className="bg-[#121212] flex flex-col z-[110] border-r border-white/5 shrink-0 overflow-hidden w-[76px]">
+    <aside className="bg-[var(--theme-navigation)] flex flex-col z-[110] border-r border-white/5 shrink-0 overflow-hidden w-[76px]">
 
       <div className="flex-1 pt-4 pb-3 flex flex-col justify-between min-h-0">
         <div className="rail w-[65px] ml-[5px]">

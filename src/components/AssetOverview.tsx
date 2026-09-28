@@ -68,7 +68,7 @@ function GaugeCard({
       <div className="gauge-body">
         <svg viewBox="0 0 240 140" width="100%" style={{ overflow: 'visible', display: 'block', maxHeight: 130 }}>
           <g>
-            <path d={arcD(svgR, 0, 180)} fill="none" stroke="#e5e7eb" strokeWidth={sw} strokeLinecap="round" />
+            <path d={arcD(svgR, 0, 180)} fill="none" stroke="var(--theme-border)" strokeWidth={sw} strokeLinecap="round" />
             {segments.map((seg, i) => (
               <path key={i} d={arcD(svgR, seg.from, seg.to)} fill="none" stroke={seg.color} strokeWidth={sw} strokeLinecap="butt" />
             ))}
@@ -79,14 +79,14 @@ function GaugeCard({
               const rot = t.angle > 90 && t.angle < 270 ? t.angle - 180 : t.angle
               return (
                 <g key={i}>
-                  <line x1={p.x} y1={p.y} x2={e.x} y2={e.y} stroke="#333" strokeWidth="1" />
+                  <line x1={p.x} y1={p.y} x2={e.x} y2={e.y} stroke="var(--theme-muted)" strokeWidth="1" />
                   <text
                     x={l.x}
                     y={l.y}
                     textAnchor={t.angle === 0 ? 'start' : t.angle === 180 ? 'end' : 'middle'}
                     dominantBaseline="middle"
                     fontSize="10"
-                    fill="#333"
+                    fill="var(--theme-muted)"
                     transform={t.angle !== 0 && t.angle !== 180 ? `rotate(${rot}, ${l.x}, ${l.y})` : undefined}
                   >
                     {t.label}
@@ -94,7 +94,7 @@ function GaugeCard({
                 </g>
               )
             })}
-            <text x={cx} y={cy - 4} textAnchor="middle" fontSize="22" fontWeight="900" fill="#111827" style={{ stroke: 'none' }}>
+            <text x={cx} y={cy - 4} textAnchor="middle" fontSize="22" fontWeight="900" fill="var(--theme-text)" style={{ stroke: 'none' }}>
               {value}
             </text>
             <text x={cx} y={cy + 14} textAnchor="middle" fontSize="11" fontWeight="500" fill={pillColor}>
@@ -217,8 +217,8 @@ export default function AssetOverview() {
                 { angle: 180, label: '10' },
               ]}
               pillText="↑ 18% vs baseline"
-              pillColor="var(--rm)"
-              pillBg="var(--rbg)"
+pillColor="var(--status-critical-text)"
+               pillBg="var(--status-critical-surface)"
             />
             <GaugeCard
               title="Evaporator ΔT"
@@ -236,8 +236,8 @@ export default function AssetOverview() {
                 { angle: 180, label: '7' },
               ]}
               pillText="↓ 12% vs baseline"
-              pillColor="var(--aym)"
-              pillBg="var(--aybg)"
+pillColor="var(--status-warning-text)"
+               pillBg="var(--status-warning-surface)"
             />
             <GaugeCard
               title="Specific Power"
@@ -255,8 +255,8 @@ export default function AssetOverview() {
                 { angle: 180, label: '2.0' },
               ]}
               pillText="↑ 10% vs baseline"
-              pillColor="var(--aym)"
-              pillBg="var(--aybg)"
+pillColor="var(--status-warning-text)"
+               pillBg="var(--status-warning-surface)"
             />
             <GaugeCard
               title="Superheat"
@@ -274,8 +274,8 @@ export default function AssetOverview() {
                 { angle: 180, label: '30' },
               ]}
               pillText="↑ 9% vs baseline"
-              pillColor="var(--aym)"
-              pillBg="var(--aybg)"
+pillColor="var(--status-warning-text)"
+               pillBg="var(--status-warning-surface)"
             />
           </div>
 

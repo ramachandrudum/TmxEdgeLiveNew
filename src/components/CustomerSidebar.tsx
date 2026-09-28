@@ -52,7 +52,7 @@ export default function CustomerSidebar({ active, onSelect }: Props) {
         collapsed ? 'px-2 justify-center' : 'px-4 justify-start'
       } ${
         active === c.id
-          ? 'bg-[#2563EB]/10 border-r-2 border-[#2563EB]'
+          ? 'theme-primary-bg-soft border-r-2 border-[var(--theme-primary)]'
           : 'hover:bg-gray-50'
       }`}
     >
@@ -86,7 +86,7 @@ export default function CustomerSidebar({ active, onSelect }: Props) {
 
   return (
     <aside
-      className={`flex flex-col shrink-0 border-r border-gray-200 bg-[#F9FAFC] transition-all duration-300 overflow-hidden ${
+      className={`flex flex-col shrink-0 border-r border-gray-200 bg-[var(--theme-background)] transition-all duration-300 overflow-hidden ${
         collapsed ? 'w-[50px]' : 'w-[200px]'
       }`}
     >
@@ -117,7 +117,7 @@ export default function CustomerSidebar({ active, onSelect }: Props) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search customers..."
-              className="w-full pl-8 pr-3 py-1.5 rounded-md border border-gray-200 bg-gray-50 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600/10 focus:border-blue-600 focus:bg-white transition-all"
+              className="w-full pl-8 pr-3 py-1.5 rounded-md border border-gray-200 bg-gray-50 text-xs focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)]/20 focus:border-[var(--theme-primary)] focus:bg-[var(--theme-card)] transition-all"
             />
           </div>
         </div>
@@ -133,12 +133,12 @@ export default function CustomerSidebar({ active, onSelect }: Props) {
             collapsed ? 'px-2 justify-center' : 'px-4 justify-start'
           } ${
             active === 'all'
-              ? 'bg-[#2563EB]/10 border-r-2 border-[#2563EB]'
+              ? 'theme-primary-bg-soft border-r-2 border-[var(--theme-primary)]'
               : 'hover:bg-gray-50'
           }`}
         >
-          <div className="w-7 h-7 rounded-md flex items-center justify-center shrink-0" style={{ background: '#2563EB' }}>
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M4 21V7a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v14M12 21v-9a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-white" /></svg>
+          <div className="w-7 h-7 rounded-md flex items-center justify-center shrink-0 bg-[var(--theme-primary)]">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M4 21V7a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v14M12 21v-9a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="theme-on-primary-text" /></svg>
           </div>
           {!collapsed && (
             <div className="min-w-0 text-left flex-1">

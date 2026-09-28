@@ -49,7 +49,7 @@ export default function BUBar({ items, active, onSelect, onCollapse, gradient = 
   return (
     <div
       className="flex-shrink-0 h-[45px] border-b border-gray-200 flex items-stretch"
-      style={gradient ? { background: 'radial-gradient(circle at 50% 0%, #1e3a8a 0%, #0b2c6e 55%, #000000 100%)' } : { background: '#F9FAFC' }}
+      style={gradient ? { background: 'radial-gradient(circle at 50% 0%, #1e3a8a 0%, #0b2c6e 55%, #000000 100%)' } : { background: 'var(--theme-background)' }}
     >
       {onCollapse && (
         <button
@@ -76,11 +76,11 @@ export default function BUBar({ items, active, onSelect, onCollapse, gradient = 
                 } ${
                   isActive
                     ? gradient
-                      ? 'bg-[#ECF2FA] text-blue-600 border-transparent'
-                      : 'text-blue-600 border-b-2 border-blue-600'
+                      ? 'bg-[var(--theme-card)] theme-primary-text border-transparent'
+                      : 'theme-primary-text border-b-2 border-[var(--theme-primary)]'
                     : gradient
                       ? 'text-gray-400 border-transparent hover:text-gray-600 hover:bg-gray-50'
-                      : 'text-gray-600 border-transparent hover:text-blue-600 hover:bg-gray-50'
+                      : 'text-gray-600 border-transparent hover:text-[var(--theme-primary-readable)] hover:bg-gray-50'
                 }`}
               >
                 {gradient && <Icon className="w-4 h-4 shrink-0" />}

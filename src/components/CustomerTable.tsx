@@ -13,9 +13,9 @@ const columns = 'grid-cols-[minmax(220px,2fr)_1fr_1fr_1.2fr_1fr_35px]'
 const siteColumns = 'grid-cols-[24px_minmax(220px,2fr)_1fr_1fr_1.2fr_1fr_1.4fr]'
 
 const STATUS_COLOR: Record<UnitStat['status'], string> = {
-  healthy: '#0A6347',
-  critical: '#C1292E',
-  offline: '#C1292E',
+  healthy: 'var(--status-healthy-text)',
+  critical: 'var(--status-critical-text)',
+  offline: 'var(--status-critical-text)',
 }
 
 const TH =
@@ -31,7 +31,7 @@ function RingPlot({ value, color, size = 40 }: { value: number; color: string; s
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0">
-      <circle cx={center} cy={center} r={radius} fill="none" stroke="#E5E7EB" strokeWidth={stroke} />
+      <circle cx={center} cy={center} r={radius} fill="none" stroke="var(--theme-border)" strokeWidth={stroke} />
       <circle
         cx={center}
         cy={center}
@@ -73,7 +73,7 @@ function UnitTable({ units, onSelectUnit }: { units: UnitStat[]; onSelectUnit: (
     <div className="bg-white border border-gray-200 overflow-x-auto [&_th]:border-r [&_th]:border-gray-200 [&_td]:border-r [&_td]:border-gray-200 [&_th:last-child]:border-r-0 [&_td:last-child]:border-r-0">
       <table className="w-full border-collapse">
         <thead>
-          <tr className="bg-[#ECF2FA]">
+          <tr className="bg-[var(--theme-surface-header)]">
             <th className={TH} style={{ paddingLeft: 15 }}>Units</th>
             <th className={TH}>Availability</th>
             <th className={TH}>Assets</th>
@@ -114,7 +114,7 @@ function UnitTable({ units, onSelectUnit }: { units: UnitStat[]; onSelectUnit: (
                       </div>
                       <div className="text-[11px] text-gray-500 font-medium">
                         {unit.status === 'offline' ? (
-                          <span style={{ color: '#C1292E' }}>offline</span>
+                          <span style={{ color: 'var(--status-critical-text)' }}>offline</span>
                         ) : (
                           <>Last update: {unit.updated}</>
                         )}
@@ -151,19 +151,19 @@ function UnitTable({ units, onSelectUnit }: { units: UnitStat[]; onSelectUnit: (
                   <div className="flex flex-col gap-0.5 items-center">
                     <span className="text-gray-900 text-base">{unit.tasks.total}</span>
                     {unit.tasks.overdue > 0 ? (
-                      <div className="whitespace-nowrap" style={{ color: 'var(--rm)' }}>
+                      <div className="whitespace-nowrap" style={{ color: 'var(--status-critical-text)' }}>
                         <span className="text-xs">{unit.tasks.overdue}</span>{' '}
                         <span className="text-[10px] font-medium">Overdue</span>
                       </div>
                     ) : index === 0 ? (
-                      <div className="whitespace-nowrap" style={{ color: 'var(--am)' }}>
+                      <div className="whitespace-nowrap" style={{ color: 'var(--status-warning-text)' }}>
                         <span className="text-xs">1</span>{' '}
                         <span className="text-[10px] font-medium">Action required soon</span>
                       </div>
                     ) : (
                       <div
                         className="whitespace-nowrap text-[10px] font-medium"
-                        style={{ color: 'var(--gm)' }}
+                        style={{ color: 'var(--status-healthy-text)' }}
                       >
                         No overdue tasks
                       </div>
@@ -203,7 +203,7 @@ function UnitTable({ units, onSelectUnit }: { units: UnitStat[]; onSelectUnit: (
 function SitesHeadRow() {
   return (
     <div
-      className={`grid ${siteColumns} gap-2 items-center px-4 py-2.5 border-b border-gray-100 bg-[#ECF2FA]`}
+      className={`grid ${siteColumns} gap-2 items-center px-4 py-2.5 border-b border-gray-100 bg-[var(--theme-surface-header)]`}
     >
       <span />
       <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Site</span>
@@ -264,34 +264,34 @@ function SiteRow({ site, onOpenDashboard, onSelectUnit }: { site: SiteStat; onOp
         <div>
           <span className="text-sm font-bold text-gray-900">{site.units}</span>
           {showUnitsAlert && offlineUnits > 0 && (
-            <span className="block text-[10px] text-[#dc3545] font-medium">{offlineUnits} offline</span>
+            <span className="block text-[10px] theme-status-critical-text font-medium">{offlineUnits} offline</span>
           )}
         </div>
         <div>
           <span className="text-sm font-bold text-gray-900">{totals.assets}</span>
           {showAssetsAlert && assetCritical > 0 && (
-            <span className="block text-[10px] text-[#dc3545] font-medium">{assetCritical} critical</span>
+            <span className="block text-[10px] theme-status-critical-text font-medium">{assetCritical} critical</span>
           )}
           {showAssetsAlert && assetCritical === 0 && assetAtRisk > 0 && (
-            <span className="block text-[10px] text-[#dc3545] font-medium">{assetAtRisk} at risk</span>
+            <span className="block text-[10px] theme-status-critical-text font-medium">{assetAtRisk} at risk</span>
           )}
         </div>
         <div>
           <span className="text-sm font-bold text-gray-900">{totals.incidents}</span>
           {showIncidentsAlert && incidentCritical > 0 && (
-            <span className="block text-[10px] text-[#dc3545] font-medium">{incidentCritical} critical</span>
+            <span className="block text-[10px] theme-status-critical-text font-medium">{incidentCritical} critical</span>
           )}
           {showIncidentsAlert && incidentCritical === 0 && incidentWarning > 0 && (
-            <span className="block text-[10px] text-[#dc3545] font-medium">{incidentWarning} warning</span>
+            <span className="block text-[10px] theme-status-critical-text font-medium">{incidentWarning} warning</span>
           )}
         </div>
         <div>
           <span className="text-sm font-bold text-gray-900">{totals.tasks}</span>
           {showTasksAlert && taskOverdue > 0 && (
-            <span className="block text-[10px] text-[#dc3545] font-medium">{taskOverdue} overdue</span>
+            <span className="block text-[10px] theme-status-critical-text font-medium">{taskOverdue} overdue</span>
           )}
           {showTasksAlert && taskOverdue === 0 && taskNotStarted > 0 && (
-            <span className="block text-[10px] text-[#dc3545] font-medium">{taskNotStarted} not started</span>
+            <span className="block text-[10px] theme-status-critical-text font-medium">{taskNotStarted} not started</span>
           )}
         </div>
 
@@ -301,7 +301,7 @@ function SiteRow({ site, onOpenDashboard, onSelectUnit }: { site: SiteStat; onOp
               e.stopPropagation()
               onOpenDashboard(site.name)
             }}
-            className="text-[#005EDB] text-sm font-semibold inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-[#005EDB] hover:bg-[#005EDB] hover:text-white hover:shadow-md transition-all group-hover/site:bg-[#005EDB] group-hover/site:text-white group-hover/site:shadow-md"
+                  className="text-[#005EDB] text-sm font-semibold inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-[#005EDB] hover:bg-[#005EDB] hover:text-white hover:shadow-md transition-all group-hover/site:bg-[#005EDB] group-hover/site:text-white group-hover/site:shadow-md"
           >
             <ArrowRight className="w-4 h-4" />
           </button>
@@ -349,7 +349,7 @@ export default function CustomerTable({
   return (
     <div className="bg-white border border-gray-200 rounded-md overflow-hidden">
       <div
-        className={`grid ${columns} gap-2 items-center px-4 py-2.5 border-b border-gray-100 bg-[#ECF2FA]`}
+        className={`grid ${columns} gap-2 items-center px-4 py-2.5 border-b border-gray-100 bg-[var(--theme-surface-header)]`}
       >
         <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
           Customer
@@ -422,34 +422,34 @@ export default function CustomerTable({
               <div>
                 <span className="text-sm font-bold text-gray-900">{c.units}</span>
                 {showUnitsAlert && siteTotals.offlineUnits > 0 && (
-                  <span className="block text-[10px] text-[#dc3545] font-medium">{siteTotals.offlineUnits} offline</span>
+                  <span className="block text-[10px] theme-status-critical-text font-medium">{siteTotals.offlineUnits} offline</span>
                 )}
               </div>
               <div>
                 <span className="text-sm font-bold text-gray-900">{c.assets}</span>
                 {showAssetsAlert && siteTotals.assetCritical > 0 && (
-                  <span className="block text-[10px] text-[#dc3545] font-medium">{siteTotals.assetCritical} critical</span>
+                  <span className="block text-[10px] theme-status-critical-text font-medium">{siteTotals.assetCritical} critical</span>
                 )}
                 {showAssetsAlert && siteTotals.assetCritical === 0 && siteTotals.assetAtRisk > 0 && (
-                  <span className="block text-[10px] text-[#dc3545] font-medium">{siteTotals.assetAtRisk} at risk</span>
+                  <span className="block text-[10px] theme-status-critical-text font-medium">{siteTotals.assetAtRisk} at risk</span>
                 )}
               </div>
               <div>
                 <span className="text-sm font-bold text-gray-900">{c.incidents}</span>
                 {showIncidentsAlert && siteTotals.incidentCritical > 0 && (
-                  <span className="block text-[10px] text-[#dc3545] font-medium">{siteTotals.incidentCritical} critical</span>
+                  <span className="block text-[10px] theme-status-critical-text font-medium">{siteTotals.incidentCritical} critical</span>
                 )}
                 {showIncidentsAlert && siteTotals.incidentCritical === 0 && siteTotals.incidentWarning > 0 && (
-                  <span className="block text-[10px] text-[#dc3545] font-medium">{siteTotals.incidentWarning} warning</span>
+                  <span className="block text-[10px] theme-status-critical-text font-medium">{siteTotals.incidentWarning} warning</span>
                 )}
               </div>
               <div>
                 <span className="text-sm font-bold text-gray-900">{c.tasks}</span>
                 {showTasksAlert && siteTotals.taskOverdue > 0 && (
-                  <span className="block text-[10px] text-[#dc3545] font-medium">{siteTotals.taskOverdue} overdue</span>
+                  <span className="block text-[10px] theme-status-critical-text font-medium">{siteTotals.taskOverdue} overdue</span>
                 )}
                 {showTasksAlert && siteTotals.taskOverdue === 0 && siteTotals.taskNotStarted > 0 && (
-                  <span className="block text-[10px] text-[#dc3545] font-medium">{siteTotals.taskNotStarted} not started</span>
+                  <span className="block text-[10px] theme-status-critical-text font-medium">{siteTotals.taskNotStarted} not started</span>
                 )}
               </div>
 
@@ -459,7 +459,7 @@ export default function CustomerTable({
                     e.stopPropagation()
                     onOpenDashboard(sites[0]?.name ?? c.name)
                   }}
-                  className="text-[#005EDB] text-sm font-semibold inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-[#005EDB] hover:bg-[#005EDB] hover:text-white hover:shadow-md transition-all group-hover/site:bg-[#005EDB] group-hover/site:text-white group-hover/site:shadow-md"
+            className="text-[#005EDB] text-sm font-semibold inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-[#005EDB] hover:bg-[#005EDB] hover:text-white hover:shadow-md transition-all group-hover/site:bg-[#005EDB] group-hover/site:text-white group-hover/site:shadow-md"
                 >
                   <ArrowRight className="w-4 h-4" />
                 </button>
@@ -470,7 +470,7 @@ export default function CustomerTable({
               <div className="border-t border-gray-100 bg-white p-2.5">
                 <table className="w-full border-collapse border border-gray-200">
                   <thead>
-                    <tr className="bg-[#ECF2FA]">
+                    <tr className="bg-[var(--theme-surface-header)]">
                       <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100">Site Name</th>
                       <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100">Assets</th>
                       <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100">Incidents</th>
@@ -488,9 +488,9 @@ export default function CustomerTable({
                         <td className="py-3 px-3 text-left">
                           <span className="text-sm font-bold text-gray-900">{site.assets.value}</span>
                           {site.assets.legends.find((l) => l.label === 'Critical' && l.value > 0) ? (
-                            <span className="block text-[10px] text-[#dc3545] font-medium">{site.assets.legends.find((l) => l.label === 'Critical')!.value} critical</span>
+                            <span className="block text-[10px] theme-status-critical-text font-medium">{site.assets.legends.find((l) => l.label === 'Critical')!.value} critical</span>
                           ) : site.assets.legends.find((l) => l.label === 'At Risk' && l.value > 0) ? (
-                            <span className="block text-[10px] text-[#dc3545] font-medium">{site.assets.legends.find((l) => l.label === 'At Risk')!.value} at risk</span>
+                            <span className="block text-[10px] theme-status-critical-text font-medium">{site.assets.legends.find((l) => l.label === 'At Risk')!.value} at risk</span>
                           ) : (
                             <span className="block text-[10px] text-gray-400">-</span>
                           )}
@@ -498,9 +498,9 @@ export default function CustomerTable({
                         <td className="py-3 px-3 text-left">
                           <span className="text-sm font-bold text-gray-900">{site.incidents.value}</span>
                           {site.incidents.legends.find((l) => l.label === 'Critical' && l.value > 0) ? (
-                            <span className="block text-[10px] text-[#dc3545] font-medium">{site.incidents.legends.find((l) => l.label === 'Critical')!.value} critical</span>
+                            <span className="block text-[10px] theme-status-critical-text font-medium">{site.incidents.legends.find((l) => l.label === 'Critical')!.value} critical</span>
                           ) : site.incidents.legends.find((l) => l.label === 'Warning' && l.value > 0) ? (
-                            <span className="block text-[10px] text-[#dc3545] font-medium">{site.incidents.legends.find((l) => l.label === 'Warning')!.value} warning</span>
+                            <span className="block text-[10px] theme-status-critical-text font-medium">{site.incidents.legends.find((l) => l.label === 'Warning')!.value} warning</span>
                           ) : (
                             <span className="block text-[10px] text-gray-400">-</span>
                           )}
@@ -508,9 +508,9 @@ export default function CustomerTable({
                         <td className="py-3 px-3 text-left">
                           <span className="text-sm font-bold text-gray-900">{site.tasks.value}</span>
                           {site.tasks.legends.find((l) => l.label === 'Overdue' && l.value > 0) ? (
-                            <span className="block text-[10px] text-[#dc3545] font-medium">{site.tasks.legends.find((l) => l.label === 'Overdue')!.value} overdue</span>
+                            <span className="block text-[10px] theme-status-critical-text font-medium">{site.tasks.legends.find((l) => l.label === 'Overdue')!.value} overdue</span>
                           ) : site.tasks.legends.find((l) => l.label === 'Not Started' && l.value > 0) ? (
-                            <span className="block text-[10px] text-[#dc3545] font-medium">{site.tasks.legends.find((l) => l.label === 'Not Started')!.value} not started</span>
+                            <span className="block text-[10px] theme-status-critical-text font-medium">{site.tasks.legends.find((l) => l.label === 'Not Started')!.value} not started</span>
                           ) : (
                             <span className="block text-[10px] text-gray-400">-</span>
                           )}

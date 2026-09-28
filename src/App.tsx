@@ -1,9 +1,10 @@
 import { Building2, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import AICopilot from './components/AICopilot'
 import BUBar, { type BUItem } from './components/BUBar'
 import CompareView from './components/CompareView'
 import CustomerSidebar from './components/CustomerSidebar'
+import SettingsDrawer from './components/SettingsDrawer'
 import Header from './components/Header'
 import IconSidebar from './components/IconSidebar'
 import SummaryCards from './components/SummaryCards'
@@ -13,12 +14,31 @@ import DashboardPage from './components/DashboardPage'
 import ExternalOperatorView from './components/ExternalOperatorView'
 import { budgetUnits, customers, generateSites } from './data/dashboard'
 import { personaKey, personaNav, type Persona, type PersonaType, type PersonaView } from './data/personas'
+import { defaultTheme, type ThemeConfig } from './data/themes'
 
 const compareItems: Record<string, string[]> = {
   site: ['Nestle UAE', 'Cairo Plant', 'Lagos Plant', 'Riyadh Plant'],
   unit: ['HVAC', 'Compressors'],
   system: ['Primary Cooling Water System', 'Secondary Cooling Water System', 'Cooling Water Condensor', 'Compressor System 1', 'Compressor System 2'],
   asset: ['Chiller 10', 'Chiller 20', 'Chiller 30', 'Cooling Tower A', 'Cooling Tower B', 'Primary Pump 1', 'Pump 3', 'Compressor 1', 'Compressor 2', 'Compressor 3'],
+}
+
+function getReadableTextColor(hex: string) {
+  const normalized = hex.replace('#', '').trim()
+  if (!/^[0-9a-f]{6}$/i.test(normalized)) return '#0f172a'
+
+  const value = Number.parseInt(normalized, 16)
+  const channels = [value >> 16 & 255, value >> 8 & 255, value & 255]
+  const luminance = channels
+    .map((channel) => {
+      const srgb = channel / 255
+      return srgb <= 0.03928 ? srgb / 12.92 : ((srgb + 0.055) / 1.055) ** 2.4
+    })
+    .reduce((sum, channel, index) => sum + channel * [0.2126, 0.7152, 0.0722][index], 0)
+  const blackContrast = (luminance + 0.05) / 0.05
+  const whiteContrast = 1.05 / (luminance + 0.05)
+
+  return blackContrast >= whiteContrast ? '#0f172a' : '#ffffff'
 }
 
 export default function App() {
@@ -33,6 +53,26 @@ export default function App() {
   const [showAICopilot, setShowAICopilot] = useState(false)
   const [compareView, setCompareView] = useState<'select-type' | { type: string; items: string[] } | null>(null)
   const [buGradient, setBuGradient] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [profileImage, setProfileImage] = useState<string | undefined>()
+  const [theme, setTheme] = useState<ThemeConfig | null>(null)
+
+  const activeTheme = theme ?? defaultTheme
+  const themeMatchesMode = activeTheme.dark === dark
+  const activeBackground = themeMatchesMode ? activeTheme.background : dark ? '#0f172a' : '#f8fafc'
+  const activeCard = themeMatchesMode ? activeTheme.card : dark ? '#1e293b' : '#ffffff'
+  const activeHeader = theme ? activeCard : dark ? '#1e293b' : '#ecf2fa'
+  const themeStyle = {
+    '--theme-primary': activeTheme.primary,
+    '--theme-accent': activeTheme.accent,
+    '--theme-navigation': theme ? `color-mix(in srgb, ${activeTheme.primary} 18%, #0f172a 82%)` : '#121212',
+    '--theme-background': activeBackground,
+    '--theme-card': activeCard,
+    '--theme-on-primary': getReadableTextColor(activeTheme.primary),
+    '--bg-main': activeBackground,
+    '--bg-header': activeHeader,
+    '--theme-surface-header': activeHeader,
+  } as CSSProperties
 
   const currentCustomer = customers.find((c) => c.id === activeCustomer)
   const currentLabel = currentCustomer?.name ?? 'Polar Thermal Systems'
@@ -112,17 +152,29 @@ export default function App() {
     }
   }
 
+  const handleThemeChange = (nextTheme: ThemeConfig) => {
+    setTheme(nextTheme)
+    setDark(nextTheme.dark)
+  }
+
+  const handleResetTheme = () => {
+    setTheme(null)
+  }
+
   return (
-    <div className={`flex flex-col h-screen bg-[var(--bg-main)] overflow-hidden ${dark ? 'dark' : ''}`}>
+    <div
+      className={`theme-root flex flex-col h-screen bg-[var(--bg-main)] overflow-hidden ${dark ? 'dark' : ''}`}
+      style={themeStyle}
+    >
       {/* Full-width Header top bar */}
       <Header
         customer={currentCustomer ?? (persona.type === 'external' ? customers[0] : null)}
         customers={customers}
-        dark={dark}
         isDashboard={page === 'dashboard'}
         persona={persona}
-        onToggleDark={() => setDark((d) => !d)}
+        profileImage={profileImage}
         onOpenAICopilot={() => setShowAICopilot(true)}
+        onOpenSettings={() => setSettingsOpen(true)}
         onSwitchCustomer={handleSwitchCustomer}
         onSelectPersona={handleSelectPersona}
         onCompare={handleOpenCompare}
@@ -208,6 +260,7 @@ export default function App() {
           ) : page === 'dashboard' ? (
             <DashboardPage
               siteName={dashboardSite}
+              customerName={currentCustomer?.name ?? 'All customers'}
               selectedUnitPath={selectedUnitPath}
             />
           ) : (
@@ -283,6 +336,23 @@ export default function App() {
           customer={currentCustomer}
           activeBU={activeBU}
           site={dashboardSite || undefined}
+        />
+
+        <SettingsDrawer
+          open={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          dark={dark}
+          theme={theme}
+          profileImage={profileImage}
+          persona={persona}
+          customer={currentCustomer ?? (persona.type === 'external' ? customers[0] : null)}
+          activeBU={activeBU}
+          dashboardSite={dashboardSite}
+          selectedUnitPath={selectedUnitPath}
+          onToggleDark={() => setDark((d) => !d)}
+          onThemeChange={handleThemeChange}
+          onResetTheme={handleResetTheme}
+          onProfileImageChange={setProfileImage}
         />
       </div>
     </div>

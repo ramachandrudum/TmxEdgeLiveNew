@@ -125,19 +125,19 @@ export default function CompareView({ compareType, items, onBack, onAddMore, onR
                         </div>
                         <div className="flex items-center justify-between mt-1">
                           <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${d.color}15`, color: d.color }}>{d.level}</span>
-                          <span className="text-[10px] font-bold text-[#C00000]">{d.incidents} incidents</span>
+                          <span className="text-[10px] font-bold theme-status-critical-text">{d.incidents} incidents</span>
                         </div>
                       </div>
                       <ul className="flex-1">
                         <li className="h-[54px] flex items-center px-3 border-b border-gray-200 text-xs text-gray-700"><span className="text-gray-600">{d.level}</span></li>
-                        <li className="h-[54px] flex items-center px-3 border-b border-gray-200 text-xs text-gray-700"><b className="text-[#C00000]">{d.incidents}</b></li>
-                        <li className="h-[54px] flex items-center px-3 border-b border-gray-200 text-xs text-gray-700"><b className="text-[#FFB900]">{d.atRisk}</b></li>
-                        <li className="h-[54px] flex items-center px-3 border-b border-gray-200 text-xs text-gray-700"><b className="text-[#006D4E]">{d.availability}</b></li>
+                        <li className="h-[54px] flex items-center px-3 border-b border-gray-200 text-xs text-gray-700"><b className="theme-status-critical-text">{d.incidents}</b></li>
+                        <li className="h-[54px] flex items-center px-3 border-b border-gray-200 text-xs text-gray-700"><b className="theme-status-deviation-text">{d.atRisk}</b></li>
+                        <li className="h-[54px] flex items-center px-3 border-b border-gray-200 text-xs text-gray-700"><b className="theme-status-healthy-text">{d.availability}</b></li>
                         <li className="h-[54px] flex items-center px-3 border-b border-gray-200 text-xs text-gray-700"><span>{d.totalAssets}</span></li>
                         <li className="h-[54px] flex items-center px-3 border-b border-gray-200 text-xs text-gray-700"><span className="text-gray-600">{d.offline}</span></li>
-                        <li className="h-[54px] flex items-center px-3 border-b border-gray-200 text-xs text-gray-700"><b className="text-[#C00000]">{d.critical}</b></li>
-                        <li className="h-[54px] flex items-center px-3 border-b border-gray-200 text-xs text-gray-700"><b className="text-[#FFB900]">{d.warning}</b></li>
-                        <li className="h-[54px] flex items-center px-3 border-b border-gray-200 text-xs text-gray-700"><b className="text-[#006D4E]">{d.healthy}</b></li>
+                        <li className="h-[54px] flex items-center px-3 border-b border-gray-200 text-xs text-gray-700"><b className="theme-status-critical-text">{d.critical}</b></li>
+                        <li className="h-[54px] flex items-center px-3 border-b border-gray-200 text-xs text-gray-700"><b className="theme-status-deviation-text">{d.warning}</b></li>
+                        <li className="h-[54px] flex items-center px-3 border-b border-gray-200 text-xs text-gray-700"><b className="theme-status-healthy-text">{d.healthy}</b></li>
                       </ul>
                     </div>
                   )

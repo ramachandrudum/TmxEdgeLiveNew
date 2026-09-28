@@ -55,9 +55,9 @@ const lastViewed: ViewedItem[] = [
 ]
 
 const SEVERITY: Record<Sev, { label: string; color: string; bg: string }> = {
-  critical: { label: 'CRITICAL', color: '#dc3545', bg: '#FFEBEE' },
-  warning: { label: 'WARNING', color: '#e65100', bg: '#FFF3E0' },
-  deviation: { label: 'DEVIATION', color: '#F9A825', bg: '#FFF8E1' },
+  critical: { label: 'CRITICAL', color: 'var(--status-critical-text)', bg: 'var(--status-critical-surface)' },
+  warning: { label: 'WARNING', color: 'var(--status-warning-text)', bg: 'var(--status-warning-surface)' },
+  deviation: { label: 'DEVIATION', color: 'var(--status-deviation-text)', bg: 'var(--status-deviation-surface)' },
 }
 
 function SeverityBadge({ severity }: { severity: Sev }) {
@@ -76,10 +76,10 @@ const quickLinks = [
 ]
 
 const baseMetrics = [
-  { num: 46, label: 'Avg Risk Score', caption: 'Across all assets, fleet-wide', icon: Zap, bg: '#FFF3E0', color: '#E65100' },
-  { num: 16, label: 'Critical Asset Ratio', caption: 'Share of assets in critical state', icon: AlertTriangle, bg: '#FFEBEE', color: '#dc3545' },
-  { num: 33, label: 'Task Completion Rate', caption: 'Of all tasks raised, fleet-wide', icon: CheckCircle, bg: '#E8F5E9', color: '#2E7D32' },
-  { num: 50, label: 'On-Time Task Rate', caption: 'Not overdue, fleet-wide', icon: Clock, bg: '#E3F2FD', color: '#1565C0' },
+  { num: 46, label: 'Avg Risk Score', caption: 'Across all assets, fleet-wide', icon: Zap, bg: 'var(--status-warning-surface)', color: 'var(--status-warning-text)' },
+  { num: 16, label: 'Critical Asset Ratio', caption: 'Share of assets in critical state', icon: AlertTriangle, bg: 'var(--status-critical-surface)', color: 'var(--status-critical-text)' },
+  { num: 33, label: 'Task Completion Rate', caption: 'Of all tasks raised, fleet-wide', icon: CheckCircle, bg: 'var(--status-healthy-surface)', color: 'var(--status-healthy-text)' },
+  { num: 50, label: 'On-Time Task Rate', caption: 'Not overdue, fleet-wide', icon: Clock, bg: 'var(--status-info-surface)', color: 'var(--status-info-text)' },
 ]
 
 const siteColumns = 'grid-cols-[24px_minmax(220px,2fr)_1fr_1fr_1.2fr_1fr_1.4fr]'
@@ -90,7 +90,7 @@ function AvailabilityGauge({ percent, color }: { percent: number; color: string 
   const offset = circumference - (percent / 100) * circumference
   return (
     <svg width="40" height="40" viewBox="0 0 40 40" className="shrink-0">
-      <circle cx="20" cy="20" r={r} fill="none" stroke="#E5E7EB" strokeWidth="4" />
+      <circle cx="20" cy="20" r={r} fill="none" stroke="var(--theme-border)" strokeWidth="4" />
       <circle cx="20" cy="20" r={r} fill="none" strokeWidth="4" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={offset} transform="rotate(-90 20 20)" style={{ stroke: color }} />
       <text x="50%" y="50%" dominantBaseline="central" textAnchor="middle" fontSize="10" fontWeight="700" style={{ fill: color }}>{percent}%</text>
     </svg>
@@ -102,7 +102,7 @@ function UnitTable({ units }: { units: UnitStat[] }) {
     <div className="bg-white border border-gray-200 overflow-x-auto [&_th]:border-r [&_th]:border-gray-200 [&_td]:border-r [&_td]:border-gray-200 [&_th:last-child]:border-r-0 [&_td:last-child]:border-r-0">
       <table className="w-full border-collapse">
         <thead>
-          <tr className="bg-[#ECF2FA]">
+          <tr className="bg-[var(--theme-surface-header)]">
             <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100" style={{ paddingLeft: 50 }}>Units</th>
             <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100">Availability</th>
             <th className="text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 py-2 px-3 border-b border-gray-100">Assets</th>
@@ -118,7 +118,7 @@ function UnitTable({ units }: { units: UnitStat[] }) {
           {units.map((unit) => {
             const color = STATUS_COLOR[unit.status]
             const isOffline = unit.status === 'offline'
-            const healthColor = isOffline ? '#dc3545' : '#0A6347'
+            const healthColor = isOffline ? 'var(--status-critical-text)' : 'var(--status-healthy-text)'
             const healthPercent = isOffline ? 0 : unit.health
             return (
               <tr key={unit.id} className="border-b border-gray-100 hover:bg-blue-50/50 transition-colors last:border-b-0 cursor-pointer group/unit">
@@ -153,7 +153,7 @@ function UnitTable({ units }: { units: UnitStat[] }) {
                 <td className="py-3 px-3 align-top">
                   <div className="flex flex-col gap-0.5 items-center">
                     <span className="text-gray-900 text-base">{unit.tasks.total}</span>
-                    {unit.tasks.overdue > 0 ? <div className="whitespace-nowrap" style={{ color: 'var(--rm)' }}><span className="text-xs">{unit.tasks.overdue}</span> <span className="text-[10px] font-medium">Overdue</span></div> : unit.tasks.open > 0 ? <div className="whitespace-nowrap" style={{ color: 'var(--am)' }}><span className="text-xs">{unit.tasks.open}</span> <span className="text-[10px] font-medium">Action required soon</span></div> : null}
+                    {unit.tasks.overdue > 0 ? <div className="whitespace-nowrap" style={{ color: 'var(--status-critical-text)' }}><span className="text-xs">{unit.tasks.overdue}</span> <span className="text-[10px] font-medium">Overdue</span></div> : unit.tasks.open > 0 ? <div className="whitespace-nowrap" style={{ color: 'var(--status-warning-text)' }}><span className="text-xs">{unit.tasks.open}</span> <span className="text-[10px] font-medium">Action required soon</span></div> : null}
                   </div>
                 </td>
                 <td className="py-3 px-3 align-top">
@@ -221,7 +221,7 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
             <div className="text-xs text-gray-500 font-medium mt-0.5">{customer.sites} sites · {customer.units} units ({activeSite === 'all' ? 'All Sites' : activeSite})</div>
           </div>
         </div>
-        <button onClick={() => onOpenDashboard(sites[0]?.name ?? '')} className="btn btn-md text-[#005EDB] border border-[#005EDB]/25 hover:bg-[#005EDB] hover:text-white hover:shadow-md">
+        <button onClick={() => onOpenDashboard(sites[0]?.name ?? '')} className="btn btn-md text-[#005EDB] border border-[#005EDB] hover:bg-[#005EDB] hover:text-white hover:shadow-md">
           Go to Dashboard
           <ChevronRight className="w-4 h-4" />
         </button>
@@ -244,8 +244,8 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
               {recentActivity.map((item) => (
                 <div key={item.id} className="px-4 py-3 border-b border-gray-100 last:border-b-0">
                   <div className="flex items-center gap-2.5 cursor-pointer group">
-<span className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${item.kind === 'warn' ? 'bg-[#FFF3E0]' : 'bg-[#E8F5E9]'}`}>
-  {item.kind === 'warn' ? <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: '#E65100', WebkitMaskImage: 'url(/incidents.svg)', maskImage: 'url(/incidents.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} /> : <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: '#2E7D32', WebkitMaskImage: 'url(/Tasks.svg)', maskImage: 'url(/Tasks.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} />}
+<span className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${item.kind === 'warn' ? 'theme-status-warning-soft' : 'theme-status-healthy-soft'}`}>
+  {item.kind === 'warn' ? <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: 'var(--status-warning-text)', WebkitMaskImage: 'url(/incidents.svg)', maskImage: 'url(/incidents.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} /> : <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: 'var(--status-healthy-text)', WebkitMaskImage: 'url(/Tasks.svg)', maskImage: 'url(/Tasks.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} />}
 </span>
                     <div className="flex-1 min-w-0">
                       <div className="text-[12px] font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">{item.title}</div>
@@ -264,8 +264,8 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
               {lastViewed.map((item) => (
                 <div key={item.id} className="px-4 py-3 border-b border-gray-100 last:border-b-0">
                   <div className="flex items-center gap-2.5 cursor-pointer group">
-                    <span className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${item.type === 'asset' ? 'bg-[#E3F2FD] text-[#1565C0]' : item.type === 'incident' ? 'bg-[#FFEBEE] text-[#dc3545]' : 'bg-[#E8F5E9] text-[#2E7D32]'}`}>
-                      {item.type === 'asset' ? <Wrench className="w-3.5 h-3.5" strokeWidth={1.8} /> : item.type === 'incident' ? <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: '#dc3545', WebkitMaskImage: 'url(/incidents.svg)', maskImage: 'url(/incidents.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} /> : <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: '#2E7D32', WebkitMaskImage: 'url(/Tasks.svg)', maskImage: 'url(/Tasks.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} />}
+                    <span className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${item.type === 'asset' ? 'theme-status-info-soft theme-status-info-text' : item.type === 'incident' ? 'theme-status-critical-soft theme-status-critical-text' : 'theme-status-healthy-soft theme-status-healthy-text'}`}>
+                      {item.type === 'asset' ? <Wrench className="w-3.5 h-3.5" strokeWidth={1.8} /> : item.type === 'incident' ? <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: 'var(--status-critical-text)', WebkitMaskImage: 'url(/incidents.svg)', maskImage: 'url(/incidents.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} /> : <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: 'var(--status-healthy-text)', WebkitMaskImage: 'url(/Tasks.svg)', maskImage: 'url(/Tasks.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} />}
                     </span>
                     <div className="flex-1 min-w-0">
                       {item.time && (
@@ -325,7 +325,7 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
       <div>
         <h3 className="text-sm font-bold text-gray-800 mb-3">Sites ({visibleSites.length})</h3>
         <div className="sites-table-wrap bg-white border border-gray-200 rounded-md overflow-hidden">
-          <div className={`grid ${siteColumns} gap-2 items-center px-4 py-2.5 border-b border-gray-100 bg-[#ECF2FA]`}>
+          <div className={`grid ${siteColumns} gap-2 items-center px-4 py-2.5 border-b border-gray-100 bg-[var(--theme-surface-header)]`}>
             <span />
             <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Site</span>
             <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Units</span>
@@ -367,34 +367,34 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
                   <div>
                     <span className="text-sm font-bold text-gray-900">{site.units}</span>
                     {showUnitsAlert && offlineUnits > 0 && (
-                      <span className="block text-[10px] text-[#dc3545] font-medium">{offlineUnits} offline</span>
+                      <span className="block text-[10px] theme-status-critical-text font-medium">{offlineUnits} offline</span>
                     )}
                   </div>
                   <div>
                     <span className="text-sm font-bold text-gray-900">{totals.assets}</span>
                     {showAssetsAlert && assetCritical > 0 && (
-                      <span className="block text-[10px] text-[#dc3545] font-medium">{assetCritical} critical</span>
+                      <span className="block text-[10px] theme-status-critical-text font-medium">{assetCritical} critical</span>
                     )}
                     {showAssetsAlert && assetCritical === 0 && assetAtRisk > 0 && (
-                      <span className="block text-[10px] text-[#dc3545] font-medium">{assetAtRisk} at risk</span>
+                      <span className="block text-[10px] theme-status-critical-text font-medium">{assetAtRisk} at risk</span>
                     )}
                   </div>
                   <div>
                     <span className="text-sm font-bold text-gray-900">{totals.incidents}</span>
                     {showIncidentsAlert && incidentCritical > 0 && (
-                      <span className="block text-[10px] text-[#dc3545] font-medium">{incidentCritical} critical</span>
+                      <span className="block text-[10px] theme-status-critical-text font-medium">{incidentCritical} critical</span>
                     )}
                     {showIncidentsAlert && incidentCritical === 0 && incidentWarning > 0 && (
-                      <span className="block text-[10px] text-[#dc3545] font-medium">{incidentWarning} warning</span>
+                      <span className="block text-[10px] theme-status-critical-text font-medium">{incidentWarning} warning</span>
                     )}
                   </div>
                   <div>
                     <span className="text-sm font-bold text-gray-900">{totals.tasks}</span>
                     {showTasksAlert && taskOverdue > 0 && (
-                      <span className="block text-[10px] text-[#dc3545] font-medium">{taskOverdue} overdue</span>
+                      <span className="block text-[10px] theme-status-critical-text font-medium">{taskOverdue} overdue</span>
                     )}
                     {showTasksAlert && taskOverdue === 0 && taskNotStarted > 0 && (
-                      <span className="block text-[10px] text-[#dc3545] font-medium">{taskNotStarted} not started</span>
+                      <span className="block text-[10px] theme-status-critical-text font-medium">{taskNotStarted} not started</span>
                     )}
                   </div>
                   <div className="flex justify-end">
