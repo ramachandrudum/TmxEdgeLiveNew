@@ -1,10 +1,13 @@
 import Gantt, { type GanttPopupContext, type GanttTask } from 'frappe-gantt'
 import 'frappe-gantt/dist/frappe-gantt.css'
 import {
+  ArrowUpRight,
   BarChart3,
   ChevronDown,
   Download,
+  Filter,
   History,
+  MoreVertical,
   Search,
   TriangleAlert,
 } from 'lucide-react'
@@ -18,7 +21,7 @@ import {
   kpiRows,
   riskRows,
   type MonitorAsset,
-  type MonitorRow,
+  type MonitorEvent,
   type TrackRow,
 } from '../data/assetMonitor'
 
@@ -32,9 +35,6 @@ const EVENT_OPTIONS = [
   { value: 'incident', label: 'Incident' },
   { value: 'deviation', label: 'Deviation' },
 ] as const
-
-const HEADER_H = 85
-const ROW_H = 48
 
 type View = 'timeline' | 'kpis' | 'risk' | 'history'
 
@@ -72,17 +72,142 @@ const dayStamp = (index: number) => ganttStamp(ATRK_START.getTime() + index * DA
 const shortDate = (index: number) =>
   new Date(ATRK_START.getTime() + index * DAY_MS).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 
+const formatSpan = (span: { start: string; end: string }) => {
+  const day = (stamp: string) => {
+    const [y, m, d] = stamp.slice(0, 10).split('-').map(Number)
+    return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  }
+  return `${day(span.start)} → ${day(span.end)}`
+}
+
+type MonitorGroup = { asset: MonitorAsset; events: MonitorEvent[] }
+type MonitorBarTask = GanttTask & { event: MonitorEvent; asset: MonitorAsset }
+
+const ROW_H = 48
+const LANE_GAP = 2
+const SVG_NS = 'http://www.w3.org/2000/svg'
+
+const NOW_MS = Date.now()
+const EMPTY_SPAN = {
+  start: ganttStamp(NOW_MS - 30 * DAY_MS),
+  end: ganttStamp(NOW_MS),
+}
+
+const stampMs = (stamp: string) => Date.parse(stamp.replace(' ', 'T') + 'Z')
+
+const drawMonitorBars = (gantt: Gantt, groups: MonitorGroup[]) => {
+  const layer = gantt.layers?.bar
+  const dates = gantt.dates
+  if (!layer || !dates || dates.length === 0) return
+
+  gantt.$svg.querySelectorAll('.bar-wrapper').forEach((el) => {
+    el.setAttribute('opacity', '0')
+    ;(el as SVGElement).style.pointerEvents = 'none'
+  })
+
+  gantt.$svg.querySelector('.am-multi-bars')?.remove()
+
+  const group = document.createElementNS(SVG_NS, 'g')
+  group.setAttribute('class', 'am-multi-bars')
+  layer.appendChild(group)
+
+  const cw = gantt.config.column_width
+  const header = gantt.config.header_height
+
+  const columnOf = (ms: number) => {
+    if (ms <= dates[0].getTime()) return 0
+    const last = dates.length - 1
+    if (ms >= dates[last].getTime()) return last
+    let lo = 0
+    let hi = last
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1
+      if (dates[mid].getTime() <= ms) lo = mid
+      else hi = mid - 1
+    }
+    return lo
+  }
+
+  groups.forEach((entry, rowIndex) => {
+    const spans = entry.events
+      .map((event) => ({ event, span: eventSpan(event) }))
+      .sort((a, b) => stampMs(a.span.start) - stampMs(b.span.start))
+
+    const laneEnds: number[] = []
+    const lanes = spans.map(({ span }) => {
+      const startMs = stampMs(span.start)
+      let lane = laneEnds.findIndex((end) => end <= startMs)
+      if (lane === -1) {
+        lane = laneEnds.length
+        laneEnds.push(0)
+      }
+      laneEnds[lane] = stampMs(span.end)
+      return lane
+    })
+
+    const laneCount = Math.max(laneEnds.length, 1)
+    const barH = Math.max(4, Math.min(6, Math.floor((40 - (laneCount - 1) * LANE_GAP) / laneCount)))
+    const stack = laneCount * barH + (laneCount - 1) * LANE_GAP
+    const top = header + rowIndex * ROW_H + ROW_H / 2 - stack / 2
+
+    spans.forEach(({ event, span }, index) => {
+      const x1 = columnOf(stampMs(span.start)) * cw
+      const x2 = columnOf(stampMs(span.end)) * cw
+      const width = Math.max(cw * 0.3, x2 - x1)
+      const task: MonitorBarTask = {
+        id: `${entry.asset.id}-${index}`,
+        name: event.title,
+        start: span.start,
+        end: span.end,
+        event,
+        asset: entry.asset,
+      }
+
+      const rect = document.createElementNS(SVG_NS, 'rect')
+      rect.setAttribute('x', String(x1))
+      rect.setAttribute('y', String(top + lanes[index] * (barH + LANE_GAP)))
+      rect.setAttribute('width', String(width))
+      rect.setAttribute('height', String(barH))
+      rect.setAttribute('rx', '1.5')
+      rect.setAttribute('fill', event.kind === 'incident' ? INCIDENT : DEVIATION)
+      rect.setAttribute('opacity', '0.92')
+      rect.style.cursor = 'pointer'
+      let hoverTimer: ReturnType<typeof setTimeout> | undefined
+      rect.addEventListener('mouseenter', (e) => {
+        const mouse = e as MouseEvent
+        hoverTimer = setTimeout(
+          () => gantt.show_popup({ x: mouse.offsetX, y: mouse.offsetY, task, target: rect }),
+          200,
+        )
+      })
+      rect.addEventListener('mouseleave', () => {
+        clearTimeout(hoverTimer)
+        gantt.popup?.hide()
+      })
+      group.appendChild(rect)
+    })
+  })
+}
+
 function useGantt(
   hostRef: RefObject<HTMLDivElement | null>,
   tasks: GanttTask[],
   popup: (ctx: GanttPopupContext) => void | false,
   enabled = true,
+  viewMode: 'Day' | 'Month' = 'Day',
+  scrollTo: 'start' | 'today' = 'start',
+  drawOverlay?: (gantt: Gantt) => void,
 ) {
   const popupRef = useRef(popup)
+  const overlayRef = useRef(drawOverlay)
 
   useEffect(() => {
     popupRef.current = popup
   }, [popup])
+
+  useEffect(() => {
+    overlayRef.current = drawOverlay
+  }, [drawOverlay])
 
   useEffect(() => {
     if (!enabled) return
@@ -91,19 +216,26 @@ function useGantt(
     host.innerHTML = ''
     if (tasks.length === 0) return
 
+    let ready = false
     const gantt = new Gantt(host, tasks, {
-      view_mode: 'Day',
+      view_mode: viewMode,
       view_mode_select: true,
       today_button: true,
       readonly: true,
       popup_on: 'hover',
       lines: 'both',
-      scroll_to: 'start',
+      infinite_padding: false,
+      scroll_to: scrollTo,
       bar_height: 5,
       padding: 43,
       bar_corner_radius: 0,
       popup: (ctx) => popupRef.current(ctx),
+      on_view_change: () => {
+        if (ready) overlayRef.current?.(gantt)
+      },
     })
+    ready = true
+    overlayRef.current?.(gantt)
 
     const container = host.querySelector('.gantt-container')
     const fixMonthLabels = () => {
@@ -160,7 +292,7 @@ function useGantt(
       gantt.clear()
       host.innerHTML = ''
     }
-  }, [hostRef, tasks, enabled])
+  }, [hostRef, tasks, enabled, viewMode, scrollTo])
 }
 
 type Props = {
@@ -185,13 +317,16 @@ export default function AssetMonitor({ assets, isAsset = true, onOpenAsset }: Pr
   const [assetFilter, setAssetFilter] = useState('all')
   const [onlyActivity, setOnlyActivity] = useState(true)
   const [openInsights, setOpenInsights] = useState<string | null>(null)
+  const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [query, setQuery] = useState('')
+  const [searchOpen, setSearchOpen] = useState(false)
   const hostRef = useRef<HTMLDivElement>(null)
 
   const activeView: View = isAsset ? view : 'timeline'
 
   const goInsights = (next: View, assetName: string) => {
     setOpenInsights(null)
+    setOpenMenu(null)
     setView(next)
     if (!isAsset) onOpenAsset?.(assetName)
   }
@@ -199,9 +334,9 @@ export default function AssetMonitor({ assets, isAsset = true, onOpenAsset }: Pr
   const scopedIds = new Set(assets.map((a) => a.id))
   const activeAssetFilter = assetFilter !== 'all' && scopedIds.has(assetFilter) ? assetFilter : 'all'
 
-  const rows = useMemo(() => {
+  const groups = useMemo<MonitorGroup[]>(() => {
     const needle = query.trim().toLowerCase()
-    const out: MonitorRow[] = []
+    const out: MonitorGroup[] = []
     for (const asset of assets) {
       if (activeAssetFilter !== 'all' && asset.id !== activeAssetFilter) continue
       const events = eventFilter === 'all' ? asset.events : asset.events.filter((e) => e.kind === eventFilter)
@@ -211,41 +346,49 @@ export default function AssetMonitor({ assets, isAsset = true, onOpenAsset }: Pr
           )
         : events
       if (onlyActivity && visible.length === 0) continue
-      visible.forEach((event, index) => out.push({ key: `${asset.id}-${index}`, asset, event, first: index === 0 }))
+      out.push({ asset, events: visible })
     }
     return out
   }, [assets, activeAssetFilter, eventFilter, onlyActivity, query])
 
-  const contentH = HEADER_H + rows.length * ROW_H
-  const cardH = contentH + 35
-
-  const tasks = useMemo(
+  const tasks = useMemo<MonitorBarTask[]>(
     () =>
-      rows.map((row) => ({
-        id: row.key,
-        name: row.event.title,
-        ...eventSpan(row.event),
-        color: row.event.kind === 'incident' ? INCIDENT : DEVIATION,
-      })),
-    [rows],
+      groups.map((group) => {
+        const spans = group.events.map((event) => eventSpan(event))
+        const fallback = EMPTY_SPAN
+        const start = spans.reduce((min, s) => (s.start < min ? s.start : min), spans[0]?.start ?? fallback.start)
+        const end = spans.reduce((max, s) => (s.end > max ? s.end : max), spans[0]?.end ?? fallback.end)
+        return {
+          id: group.asset.id,
+          name: group.asset.name,
+          start,
+          end,
+          event: group.events[0],
+          asset: group.asset,
+        }
+      }),
+    [groups],
   )
-
-  const rowById = useMemo(() => new Map(rows.map((row) => [row.key, row])), [rows])
 
   useGantt(
     hostRef,
     tasks,
     (ctx) => {
-      const row = rowById.get(ctx.task.id)
-      if (!row) return false
-      ctx.set_title(row.event.title)
-      ctx.set_subtitle(`${row.asset.name} · ${row.event.kind === 'incident' ? 'Incident' : 'Deviation'}`)
-      ctx.set_details(`${row.event.when} · ${row.asset.risk}% risk (${row.asset.riskLevel})`)
-      ctx.add_action('View KPIs', () => goInsights('kpis', row.asset.name))
-      ctx.add_action('Asset History', () => goInsights('history', row.asset.name))
+      const task = ctx.task as MonitorBarTask
+      const { event, asset } = task
+      if (!event || !asset) return false
+      const span = eventSpan(event)
+      ctx.set_title(event.title)
+      ctx.set_subtitle(`${asset.name} · ${event.kind === 'incident' ? 'Incident' : 'Deviation'}`)
+      ctx.set_details(`${formatSpan(span)} · ${asset.risk}% risk (${asset.riskLevel})`)
+      ctx.add_action('View KPIs', () => goInsights('kpis', asset.name))
+      ctx.add_action('Asset History', () => goInsights('history', asset.name))
       return undefined
     },
     activeView === 'timeline',
+    'Month',
+    'today',
+    (gantt) => drawMonitorBars(gantt, groups),
   )
 
   return (
@@ -275,6 +418,7 @@ export default function AssetMonitor({ assets, isAsset = true, onOpenAsset }: Pr
                 type="button"
                 onClick={() => {
                   setOpenInsights(null)
+                  setOpenMenu(null)
                   setView(chip.id)
                 }}
                 className={`badge badge-sm ${activeView === chip.id ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
@@ -289,31 +433,6 @@ export default function AssetMonitor({ assets, isAsset = true, onOpenAsset }: Pr
       {activeView === 'timeline' && (
         <>
           <div className="flex flex-wrap items-center gap-2 shrink-0">
-            <div className="flex h-7 items-center rounded-md border border-gray-200 bg-white p-0.5" role="group" aria-label="Event type">
-              {EVENT_OPTIONS.map((o) => (
-                <button
-                  key={o.value}
-                  type="button"
-                  aria-pressed={eventFilter === o.value}
-                  onClick={() => setEventFilter(o.value)}
-                  className={`h-full rounded-[4px] px-2.5 text-[11px] font-medium transition-colors ${
-                    eventFilter === o.value ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  {o.label}
-                </button>
-              ))}
-            </div>
-
-            <select className={selectClass} value={activeAssetFilter} onChange={(e) => setAssetFilter(e.target.value)} aria-label="Asset">
-              <option value="all">All Assets</option>
-              {assets.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
-
             <button type="button" onClick={() => setOnlyActivity((v) => !v)} aria-pressed={onlyActivity} className="flex items-center gap-2">
               <span className={`flex h-4 w-7 shrink-0 items-center rounded-full p-0.5 transition-colors ${onlyActivity ? 'bg-blue-600' : 'bg-gray-300'}`}>
                 <span className={`block h-3 w-3 rounded-full bg-white transition-transform ${onlyActivity ? 'translate-x-3' : ''}`} />
@@ -330,68 +449,179 @@ export default function AssetMonitor({ assets, isAsset = true, onOpenAsset }: Pr
             </button>
           </div>
 
-          {rows.length === 0 ? (
+          {groups.length === 0 ? (
             <div className="shrink-0 rounded-md border border-gray-200 bg-white px-4 py-10 text-center text-[13px] text-gray-400">
               No assets match the current filters.
             </div>
           ) : (
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-              <div className="am-gantt am-timeline max-h-full overflow-hidden rounded-md border border-gray-200 bg-white" style={{ height: cardH }}>
+              <div className="am-gantt am-timeline min-h-0 flex-1 overflow-hidden rounded-md border border-gray-200 bg-white">
                 <div className="flex h-full min-h-0">
                   <div className="am-assets h-full w-[260px] shrink-0 overflow-y-auto border-r border-[#ebeff2]">
-                    <div className="sticky top-0 z-10 flex h-[85px] items-end justify-between gap-2 border-b border-[#c7c7c7] bg-white px-3 pb-2.5">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Asset</span>
-                      <div className="relative mb-0.5">
-                        <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
-                        <input
-                          className="h-7 w-[142px] rounded-md border border-gray-200 bg-white pl-7 pr-2 text-[11px] text-gray-700 outline-none placeholder:text-gray-400 focus:border-blue-400"
-                          value={query}
-                          onChange={(e) => setQuery(e.target.value)}
-                          placeholder="Search assets"
-                          aria-label="Search assets"
-                        />
+                    <div className="sticky top-0 z-10 flex h-[85px] flex-col justify-end gap-1.5 border-b border-[#c7c7c7] bg-white px-3 pb-2.5">
+                      <div className="flex h-7 w-full items-center rounded-md border border-gray-200 bg-white p-0.5" role="group" aria-label="Event type">
+                        {EVENT_OPTIONS.map((o) => (
+                          <button
+                            key={o.value}
+                            type="button"
+                            aria-pressed={eventFilter === o.value}
+                            onClick={() => setEventFilter(o.value)}
+                            className={`h-full flex-1 rounded-[4px] px-2.5 text-[11px] font-medium transition-colors ${
+                              eventFilter === o.value ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
+                            }`}
+                          >
+                            {o.label}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="flex items-end justify-between gap-2">
+                        <select
+                          className="h-7 min-w-0 flex-1 rounded-md border border-gray-200 bg-white px-2 text-[11px] font-medium text-gray-700 outline-none cursor-pointer focus:border-blue-400"
+                          value={activeAssetFilter}
+                          onChange={(e) => setAssetFilter(e.target.value)}
+                          aria-label="Asset"
+                        >
+                          <option value="all">All Assets</option>
+                          {assets.map((a) => (
+                            <option key={a.id} value={a.id}>
+                              {a.name}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="relative flex h-7 w-7 shrink-0 items-center justify-center">
+                          {searchOpen ? (
+                            <div className="absolute bottom-0 right-0 z-20 h-7 w-[190px]">
+                              <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+                              <input
+                                autoFocus
+                                className="h-7 w-full rounded-md border border-blue-400 bg-white pl-7 pr-2 text-[11px] text-gray-700 shadow-md outline-none placeholder:text-gray-400"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                onBlur={() => setSearchOpen(false)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Escape') setSearchOpen(false)
+                                }}
+                                placeholder="Search assets"
+                                aria-label="Search assets"
+                              />
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setSearchOpen(true)}
+                              title="Search assets"
+                              aria-label="Search assets"
+                              className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                            >
+                              <Search className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
 
-                  {rows.map((row) => (
-                    <div key={row.key} className="am-row relative flex h-12 flex-col justify-center gap-1 border-b border-[#ebeff2] px-3">
+                  {groups.map((group) => {
+                    const asset = group.asset
+                    return (
+                    <div key={asset.id} className="am-row relative flex h-12 flex-col justify-center gap-1 border-b border-[#ebeff2] px-3">
                       <div className="flex min-w-0 items-center gap-1.5">
-                        <OnOffDot on={row.asset.on} />
-                        <span
-                          className={`min-w-0 truncate text-[12.5px] ${
-                            row.first ? 'font-semibold text-gray-800' : 'font-medium text-gray-600'
+                        <OnOffDot on={asset.on} />
+                        <span className="min-w-0 truncate text-[12.5px] font-semibold text-gray-800">
+                          {asset.name}
+                        </span>
+                        <span className={`ml-auto shrink-0 rounded border px-1 py-px text-[9px] font-bold ${RISK_CLASS[asset.riskLevel]}`}>
+                          {asset.risk}% Risk
+                        </span>
+                        <button
+                          type="button"
+                          aria-label={`Actions for ${asset.name}`}
+                          title="Actions"
+                          onClick={() => {
+                            setOpenInsights(null)
+                            setOpenMenu((id) => (id === asset.id ? null : asset.id))
+                          }}
+                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded transition-colors cursor-pointer ${
+                            openMenu === asset.id
+                              ? 'bg-blue-50 text-blue-600'
+                              : 'text-gray-300 hover:bg-gray-100 hover:text-gray-600'
                           }`}
                         >
-                          {row.asset.name}
-                        </span>
-                        {row.first && (
-                          <span className={`ml-auto shrink-0 rounded border px-1 py-px text-[9px] font-bold ${RISK_CLASS[row.asset.riskLevel]}`}>
-                            {row.asset.risk}% Risk
-                          </span>
-                        )}
+                          <MoreVertical className="h-3.5 w-3.5" />
+                        </button>
                       </div>
 
-                      <div className="flex min-w-0 items-center gap-2 text-[11px] leading-none">
-                        <span className="min-w-0 flex-1 truncate text-gray-400">{row.event.title}</span>
-                        {row.first && (
-                          <span className="flex shrink-0 items-center gap-1.5">
-                            <button type="button" className="font-medium text-blue-600 hover:underline">
-                              {row.asset.tasks} {row.asset.tasks === 1 ? 'task' : 'tasks'}
-                            </button>
-                            <span className="text-gray-300">|</span>
+                      {openMenu === asset.id && (
+                        <>
+                          <button
+                            type="button"
+                            aria-label="Close menu"
+                            onClick={() => setOpenMenu(null)}
+                            className="fixed inset-0 z-20 cursor-default"
+                          />
+                          <div className="absolute right-2 top-full z-30 mt-1 w-[196px] rounded-md border border-gray-200 bg-white p-1 shadow-xl">
+                            {INSIGHT_MENU.map(({ id, label, Icon }) => (
+                              <button
+                                key={id}
+                                type="button"
+                                onClick={() => {
+                                  setOpenMenu(null)
+                                  goInsights(id, asset.name)
+                                }}
+                                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[11px] font-medium text-gray-700 transition-colors hover:bg-blue-50 hover:text-blue-700"
+                              >
+                                <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={2.2} />
+                                {label}
+                              </button>
+                            ))}
                             <button
                               type="button"
-                              onClick={() => setOpenInsights((id) => (id === row.asset.id ? null : row.asset.id))}
-                              className="flex items-center gap-0.5 font-medium text-blue-600 hover:underline"
+                              onClick={() => {
+                                setOpenMenu(null)
+                                setQuery('')
+                                setSearchOpen(false)
+                                setAssetFilter(asset.id)
+                              }}
+                              className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[11px] font-medium text-gray-700 transition-colors hover:bg-blue-50 hover:text-blue-700"
                             >
-                              Insights
-                              <ChevronDown className={`h-3 w-3 transition-transform ${openInsights === row.asset.id ? 'rotate-180' : ''}`} />
+                              <Filter className="h-3.5 w-3.5 shrink-0" strokeWidth={2.2} />
+                              Show only this asset
                             </button>
-                          </span>
-                        )}
+                            {!isAsset && onOpenAsset && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setOpenMenu(null)
+                                  onOpenAsset(asset.name)
+                                }}
+                                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[11px] font-medium text-gray-700 transition-colors hover:bg-blue-50 hover:text-blue-700"
+                              >
+                                <ArrowUpRight className="h-3.5 w-3.5 shrink-0" strokeWidth={2.2} />
+                                Open asset
+                              </button>
+                            )}
+                          </div>
+                        </>
+                      )}
+
+                      <div className="flex min-w-0 items-center gap-1.5 pl-4 text-[11px] leading-none">
+                        <button type="button" className="font-medium text-blue-600 hover:underline">
+                          {asset.tasks} {asset.tasks === 1 ? 'task' : 'tasks'}
+                        </button>
+                        <span className="text-gray-300">|</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOpenMenu(null)
+                            setOpenInsights((id) => (id === asset.id ? null : asset.id))
+                          }}
+                          className="flex items-center gap-0.5 font-medium text-blue-600 hover:underline"
+                        >
+                          Insights
+                          <ChevronDown className={`h-3 w-3 transition-transform ${openInsights === asset.id ? 'rotate-180' : ''}`} />
+                        </button>
                       </div>
 
-                      {row.first && openInsights === row.asset.id && (
+                      {openInsights === asset.id && (
                         <>
                           <button
                             type="button"
@@ -401,13 +631,13 @@ export default function AssetMonitor({ assets, isAsset = true, onOpenAsset }: Pr
                           />
                           <div className="absolute left-2 top-full z-30 mt-1 w-[196px] rounded-md border border-gray-200 bg-white p-1 shadow-xl">
                             <div className="px-2 py-1.5 text-[9px] font-bold uppercase tracking-wider text-gray-400">
-                              Insights · {row.asset.name}
+                              Insights · {asset.name}
                             </div>
                             {INSIGHT_MENU.map(({ id, label, Icon }) => (
                               <button
                                 key={id}
                                 type="button"
-                                onClick={() => goInsights(id, row.asset.name)}
+                                onClick={() => goInsights(id, asset.name)}
                                 className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[11px] font-medium text-gray-700 transition-colors hover:bg-blue-50 hover:text-blue-700"
                               >
                                 <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={2.2} />
@@ -418,7 +648,8 @@ export default function AssetMonitor({ assets, isAsset = true, onOpenAsset }: Pr
                         </>
                       )}
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
 
                 <div className="h-full min-w-0 flex-1">

@@ -4,10 +4,12 @@ import { useState } from 'react'
 type Props = {
   compareType: string
   items: string[]
+  addableItems: string[]
   onBack: () => void
-  onAddMore: () => void
   onReset: () => void
 }
+
+type Column = { key: string; name: string | null }
 
 const metrics = ['Level', 'Active Incidents', 'At Risk', 'Availability', 'Total Assets', 'Offline', 'Critical', 'Warning', 'Healthy']
 
@@ -60,10 +62,46 @@ function SparkArea() {
   )
 }
 
-export default function CompareView({ compareType, items, onBack, onAddMore, onReset }: Props) {
+export default function CompareView({ compareType, items, addableItems, onBack, onReset }: Props) {
+  const [columns, setColumns] = useState<Column[]>(() => items.map((name, i) => ({ key: `c-${i}`, name })))
   const [removed, setRemoved] = useState<string[]>([])
-  const visible = items.filter((i) => !removed.includes(i))
   const typeLabel = compareType === 'site' ? 'Sites' : compareType === 'unit' ? 'Units' : compareType === 'system' ? 'Systems' : 'Equipments'
+  const typeSingular = typeLabel.slice(0, -1)
+
+  const visible = columns.filter((c) => !removed.includes(c.key))
+
+  const addColumn = () =>
+    setColumns((cols) => [...cols, { key: `added-${cols.length}-${Date.now()}`, name: null }])
+
+  const setColumnName = (key: string, name: string | null) =>
+    setColumns((cols) => cols.map((c) => (c.key === key ? { ...c, name } : c)))
+
+  const removeColumn = (key: string) => setRemoved((r) => [...r, key])
+
+  const columnSelect = (col: Column) => (
+    <div className="flex items-center gap-1.5">
+      <select
+        className="h-7 min-w-0 flex-1 rounded-md border border-gray-200 bg-white px-2 text-[11px] font-medium text-gray-700 outline-none cursor-pointer focus:border-blue-400"
+        value={col.name ?? ''}
+        onChange={(e) => setColumnName(col.key, e.target.value || null)}
+        aria-label={`Select ${typeSingular}`}
+      >
+        <option value="">Select {typeSingular}</option>
+        {addableItems.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+      <button
+        onClick={() => removeColumn(col.key)}
+        title="Remove column"
+        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-gray-300 transition-all hover:bg-red-50 hover:text-red-600 cursor-pointer"
+      >
+        <X className="h-3 w-3" />
+      </button>
+    </div>
+  )
 
   return (
     <div className="flex-1 bg-white overflow-y-auto min-h-0">
@@ -84,7 +122,7 @@ export default function CompareView({ compareType, items, onBack, onAddMore, onR
               <ArrowLeft className="w-3 h-3" />
               Back
             </button>
-            <button onClick={onAddMore} className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer text-white bg-blue-600 hover:bg-blue-700">
+            <button onClick={addColumn} className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer text-white bg-blue-600 hover:bg-blue-700">
               <Plus className="w-3 h-3" />
               Add More
             </button>
@@ -110,19 +148,50 @@ export default function CompareView({ compareType, items, onBack, onAddMore, onR
 
             <div className="flex-1 overflow-x-auto">
               <div className="flex">
-                {visible.map((name) => {
-                  const d = mockData[name] ?? { level: compareType, incidents: 0, atRisk: 0, availability: 0, totalAssets: 0, offline: 0, critical: 0, warning: 0, healthy: 0, color: '#0968db' }
-                  return (
-                    <div key={name} className="w-[240px] shrink-0 flex flex-col border-r border-gray-200">
-                      <div className="h-[136px] px-3 pt-2 pb-3 border-b border-gray-200 relative">
-                        <button onClick={() => setRemoved((r) => [...r, name])} title={`Remove ${name}`} className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-md text-gray-300 hover:text-red-600 hover:bg-red-50 transition-all cursor-pointer">
-                          <X className="w-3 h-3" />
-                        </button>
-                        <SparkArea />
-                        <div className="flex items-center gap-1.5 mt-1 min-w-0">
-                          <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
-                          <h3 className="text-xs font-bold text-gray-900 truncate flex-1">{name}</h3>
+                {visible.map((col) => {
+                  const isAdded = col.key.startsWith('added-')
+
+                  if (!col.name) {
+                    return (
+                      <div key={col.key} className="w-[240px] shrink-0 flex flex-col border-r border-gray-200">
+                        <div className="h-[136px] px-3 pt-3 pb-3 border-b border-gray-200 flex flex-col justify-center gap-2">
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">New column</span>
+                          {columnSelect(col)}
+                          <p className="text-[10px] text-gray-400">Choose a {typeSingular.toLowerCase()} to compare</p>
                         </div>
+                        <ul className="flex-1">
+                          {metrics.map((m) => (
+                            <li key={m} className="h-[54px] flex items-center px-3 border-b border-gray-200 text-xs text-gray-400">—</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )
+                  }
+
+                  const d = mockData[col.name] ?? { level: typeSingular, incidents: 0, atRisk: 0, availability: 0, totalAssets: 0, offline: 0, critical: 0, warning: 0, healthy: 0, color: '#0968db' }
+                  return (
+                    <div key={col.key} className="w-[240px] shrink-0 flex flex-col border-r border-gray-200">
+                      <div className="h-[136px] px-3 pt-2 pb-3 border-b border-gray-200 relative">
+                        {isAdded ? (
+                          <>
+                            {columnSelect(col)}
+                            <div className="flex items-center gap-1.5 mt-2 min-w-0">
+                              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
+                              <h3 className="text-xs font-bold text-gray-900 truncate flex-1">{col.name}</h3>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <button onClick={() => removeColumn(col.key)} title={`Remove ${col.name}`} className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-md text-gray-300 hover:text-red-600 hover:bg-red-50 transition-all cursor-pointer">
+                              <X className="w-3 h-3" />
+                            </button>
+                            <SparkArea />
+                            <div className="flex items-center gap-1.5 mt-1 min-w-0">
+                              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
+                              <h3 className="text-xs font-bold text-gray-900 truncate flex-1">{col.name}</h3>
+                            </div>
+                          </>
+                        )}
                         <div className="flex items-center justify-between mt-1">
                           <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${d.color}15`, color: d.color }}>{d.level}</span>
                           <span className="text-[10px] font-bold theme-status-critical-text">{d.incidents} incidents</span>

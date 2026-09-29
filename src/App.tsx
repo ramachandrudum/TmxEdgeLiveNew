@@ -13,7 +13,7 @@ import CustomerTable from './components/CustomerTable'
 import DashboardPage from './components/DashboardPage'
 import CalendarPage from './components/CalendarPage'
 import ExternalOperatorView from './components/ExternalOperatorView'
-import { budgetUnits, customers, generateSites } from './data/dashboard'
+import { budgetUnits, customers, generateSites, unitNames } from './data/dashboard'
 import { personaKey, personaNav, type Persona, type PersonaType, type PersonaView } from './data/personas'
 import { defaultTheme, type ThemeConfig } from './data/themes'
 
@@ -22,6 +22,13 @@ const compareItems: Record<string, string[]> = {
   unit: ['HVAC', 'Compressors'],
   system: ['Primary Cooling Water System', 'Secondary Cooling Water System', 'Cooling Water Condensor', 'Compressor System 1', 'Compressor System 2'],
   asset: ['Chiller 10', 'Chiller 20', 'Chiller 30', 'Cooling Tower A', 'Cooling Tower B', 'Primary Pump 1', 'Pump 3', 'Compressor 1', 'Compressor 2', 'Compressor 3'],
+}
+
+const addableItems: Record<string, string[]> = {
+  site: compareItems.site,
+  unit: unitNames,
+  system: compareItems.system,
+  asset: compareItems.asset,
 }
 
 function getReadableTextColor(hex: string) {
@@ -53,6 +60,7 @@ export default function App() {
   const [selectedUnitPath, setSelectedUnitPath] = useState<string[]>([])
   const [showAICopilot, setShowAICopilot] = useState(false)
   const [compareView, setCompareView] = useState<'select-type' | { type: string; items: string[] } | null>(null)
+  const [compareResetKey, setCompareResetKey] = useState(0)
   const [buGradient, setBuGradient] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [profileImage, setProfileImage] = useState<string | undefined>()
@@ -145,13 +153,10 @@ export default function App() {
     setCompareView(null)
   }
 
-  const handleCompareAddMore = () => {
-    setCompareView(null)
-  }
-
   const handleCompareReset = () => {
     if (compareView && typeof compareView === 'object') {
       setCompareView({ type: compareView.type, items: compareItems[compareView.type] ?? [] })
+      setCompareResetKey((k) => k + 1)
     }
   }
 
@@ -204,10 +209,11 @@ export default function App() {
           {/* Content area */}
           {compareView && typeof compareView === 'object' ? (
             <CompareView
+              key={`${compareView.type}-${compareResetKey}`}
               compareType={compareView.type}
               items={compareView.items}
+              addableItems={addableItems[compareView.type] ?? []}
               onBack={handleCompareBack}
-              onAddMore={handleCompareAddMore}
               onReset={handleCompareReset}
             />
           ) : page === 'calendar' ? (

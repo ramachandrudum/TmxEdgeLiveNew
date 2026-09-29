@@ -33,7 +33,7 @@ export const monitorDays = [
   { date: '28 Sept', weekday: 'Mon' },
 ]
 
-export const monitorAssets: MonitorAsset[] = [
+const baseAssets: MonitorAsset[] = [
   {
     id: 'ch10',
     name: 'Chiller 10',
@@ -173,6 +173,90 @@ export const monitorAssets: MonitorAsset[] = [
   },
 ]
 
+const EXTRA_EVENTS: Record<string, { kind: MonitorEventKind; title: string }[]> = {
+  ch10: [
+    { kind: 'incident', title: 'Suction Pressure Low' },
+    { kind: 'incident', title: 'Compressor Short Cycling' },
+    { kind: 'deviation', title: 'Condenser Fouling' },
+    { kind: 'incident', title: 'High Discharge Temperature' },
+    { kind: 'deviation', title: 'Approach Temperature Drift' },
+  ],
+  ch20: [
+    { kind: 'incident', title: 'Motor Winding Hot' },
+    { kind: 'deviation', title: 'Load Imbalance' },
+    { kind: 'incident', title: 'Oil Pressure Low' },
+    { kind: 'deviation', title: 'Condenser Approach Drift' },
+    { kind: 'incident', title: 'Unexpected Shutdown' },
+  ],
+  ch30: [
+    { kind: 'incident', title: 'Superheat Out of Range' },
+    { kind: 'deviation', title: 'Approach Temperature Drift' },
+    { kind: 'incident', title: 'High Discharge Temperature' },
+    { kind: 'deviation', title: 'Tube Fouling' },
+    { kind: 'incident', title: 'Tripped on High Head' },
+    { kind: 'deviation', title: 'Evaporator ΔT Deviation' },
+  ],
+  twa: [
+    { kind: 'incident', title: 'Fan Vibration High' },
+    { kind: 'deviation', title: 'Basin Level Low' },
+    { kind: 'incident', title: 'Nozzle Blockage' },
+    { kind: 'deviation', title: 'Approach Temperature Drift' },
+    { kind: 'incident', title: 'Fan Belt Slippage' },
+  ],
+  twb: [
+    { kind: 'incident', title: 'Fan Motor Overload' },
+    { kind: 'deviation', title: 'Drift Loss High' },
+    { kind: 'incident', title: 'Vibration Alert' },
+    { kind: 'deviation', title: 'Water Chemistry Deviation' },
+    { kind: 'incident', title: 'Airflow Drop' },
+  ],
+  p1: [
+    { kind: 'incident', title: 'Seal Leakage' },
+    { kind: 'deviation', title: 'Discharge Pressure Drift' },
+    { kind: 'incident', title: 'Bearing Temperature High' },
+    { kind: 'deviation', title: 'Flow Deviation' },
+    { kind: 'incident', title: 'Motor Current High' },
+  ],
+  p3: [
+    { kind: 'incident', title: 'Cavitation Detected' },
+    { kind: 'deviation', title: 'Suction Pressure Deviation' },
+    { kind: 'incident', title: 'Mechanical Seal Failure' },
+    { kind: 'deviation', title: 'Vibration Rising' },
+    { kind: 'incident', title: 'Low Flow Rate' },
+  ],
+  c1: [
+    { kind: 'incident', title: 'Stage Loading Fault' },
+    { kind: 'deviation', title: 'Discharge Temp Drift' },
+    { kind: 'incident', title: 'Aftercooler High' },
+    { kind: 'deviation', title: 'Specific Power Deviation' },
+    { kind: 'incident', title: 'Anti-rotation Fault' },
+  ],
+  c2: [
+    { kind: 'incident', title: 'Risk of Failure' },
+    { kind: 'deviation', title: 'Vibration Rising' },
+    { kind: 'incident', title: 'High Discharge Temperature' },
+    { kind: 'deviation', title: 'Load Unbalance' },
+    { kind: 'incident', title: 'Trip on High Vibration' },
+  ],
+  c3: [
+    { kind: 'incident', title: 'Filter Differential High' },
+    { kind: 'deviation', title: 'Bearing Wear Trend' },
+    { kind: 'incident', title: 'Short Cycling' },
+    { kind: 'deviation', title: 'Vibration Rising' },
+    { kind: 'incident', title: 'High Oil Temperature' },
+  ],
+}
+
+baseAssets.forEach((asset) => {
+  const extra = EXTRA_EVENTS[asset.id]
+  if (!extra) return
+  extra.forEach(({ kind, title }) =>
+    asset.events.push({ kind, title, when: '', left: 0, width: 0, top: 17 }),
+  )
+})
+
+export const monitorAssets: MonitorAsset[] = baseAssets
+
 export const filterMonitorAssets = (names: string[]) =>
   monitorAssets.filter((asset) => names.includes(asset.name))
 
@@ -183,9 +267,13 @@ export type MonitorRow = {
   first: boolean
 }
 
-const WINDOW_START_MS = new Date(2026, 8, 22, 0, 0, 0, 0).getTime()
+const WINDOW_DAYS = 180
 const DAY_MS = 86_400_000
-const MIN_EVENT_MS = 4 * 60 * 60 * 1000
+const MIN_EVENT_DAYS = 10
+const MAX_EVENT_DAYS = 45
+
+const WINDOW_END_MS = Date.now()
+const WINDOW_START_MS = WINDOW_END_MS - WINDOW_DAYS * DAY_MS
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
@@ -194,11 +282,47 @@ export const ganttStamp = (ms: number) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-export const eventSpan = (event: MonitorEvent) => {
-  const start = WINDOW_START_MS + (event.left / 100) * 7 * DAY_MS
-  const endCandidate = WINDOW_START_MS + ((event.left + event.width) / 100) * 7 * DAY_MS
-  return { start: ganttStamp(start), end: ganttStamp(Math.max(endCandidate, start + MIN_EVENT_MS)) }
+type EventSpan = { start: string; end: string }
+
+const buildEventSpans = () => {
+  const spans = new Map<MonitorEvent, EventSpan>()
+  const spread = WINDOW_DAYS - MAX_EVENT_DAYS
+
+  monitorAssets.forEach((asset) => {
+    const count = asset.events.length
+    const step = spread / Math.max(count, 1)
+
+    asset.events.forEach((event, index) => {
+      const rnd = varySeed('monitor-span', asset.id, event.title, index)
+      const isLast = index === count - 1
+      const jitter = intBetween(rnd, -Math.round(step * 0.45), Math.round(step * 0.45))
+      const slot = Math.round((index + 0.5) * step + jitter)
+      const offset = isLast ? intBetween(rnd, spread - 25, spread) : Math.min(spread, Math.max(0, slot))
+      let duration = intBetween(rnd, MIN_EVENT_DAYS, MAX_EVENT_DAYS)
+      const start = WINDOW_START_MS + offset * DAY_MS
+      if (isLast) {
+        const daysLeft = Math.round((WINDOW_END_MS - start) / DAY_MS)
+        duration = Math.max(duration, Math.min(MAX_EVENT_DAYS, daysLeft))
+      }
+      const end = Math.min(start + duration * DAY_MS, WINDOW_END_MS)
+      const started = new Date(start)
+
+      event.left = (offset / WINDOW_DAYS) * 100
+      event.width = (duration / WINDOW_DAYS) * 100
+      event.top = 17 + (index % 3) * 22
+      event.when = `${pad(started.getDate())}/${pad(started.getMonth() + 1)}, ${pad(started.getHours())}:00 · ${duration}d`
+
+      spans.set(event, { start: ganttStamp(start), end: ganttStamp(end) })
+    })
+  })
+
+  return spans
 }
+
+const EVENT_SPANS = buildEventSpans()
+
+export const eventSpan = (event: MonitorEvent): EventSpan =>
+  EVENT_SPANS.get(event) ?? { start: ganttStamp(WINDOW_START_MS), end: ganttStamp(WINDOW_END_MS) }
 
 export const ATRK_START = new Date(2026, 7, 30)
 export const ATRK_TOTAL_DAYS = 30

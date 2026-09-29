@@ -43,12 +43,18 @@ declare module 'frappe-gantt' {
     holidays?: unknown
     arrow_markers?: boolean
     container_height_auto?: boolean
+    on_view_change?: (mode: unknown) => void
   }
 
   export default class Gantt {
     constructor(element: string | Element, tasks: GanttTask[], options?: GanttOptions)
     $container: HTMLElement
     $svg: SVGSVGElement
+    config: { column_width: number; header_height: number; view_mode: { name: string } }
+    dates: Date[]
+    layers: { grid: SVGGElement; bar: SVGGElement; arrow: SVGGElement; progress: SVGGElement }
+    popup: { hide: () => void }
+    show_popup: (opts: { x: number; y: number; task: GanttTask; target: Element }) => void
     change_view_mode(mode?: string, maintain_pos?: boolean): void
     clear(): void
     static VIEW_MODE: Record<string, unknown>

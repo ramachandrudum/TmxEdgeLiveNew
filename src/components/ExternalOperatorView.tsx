@@ -99,7 +99,7 @@ function AvailabilityGauge({ percent, color }: { percent: number; color: string 
 
 function UnitTable({ units }: { units: UnitStat[] }) {
   return (
-    <div className="bg-white border border-gray-200 overflow-x-auto [&_th]:border-r [&_th]:border-gray-200 [&_td]:border-r [&_td]:border-gray-200 [&_th:last-child]:border-r-0 [&_td:last-child]:border-r-0">
+    <div className="bg-white border border-gray-200 overflow-x-auto">
       <table className="w-full border-collapse">
         <thead>
           <tr className="bg-[var(--theme-surface-header)]">
@@ -135,13 +135,13 @@ function UnitTable({ units }: { units: UnitStat[] }) {
                   </div>
                 </td>
                 <td className="py-3 px-3 align-middle">
-                  <div className="flex items-center justify-center">
+                  <div className="flex items-center justify-start">
                     <AvailabilityGauge percent={healthPercent} color={healthColor} />
                   </div>
                 </td>
-                <td className="py-3 px-3 text-gray-900 text-base align-top text-center">{unit.assets.total}</td>
+                <td className="py-3 px-3 text-gray-900 text-base align-top text-left">{unit.assets.total}</td>
                 <td className="py-3 px-3 align-top">
-                  <div className="flex flex-col gap-0.5 items-center">
+                  <div className="flex flex-col gap-0.5 items-start">
                     <span className="text-gray-900 text-base">{unit.incidents.total}</span>
                     <div className="flex items-center gap-2 whitespace-nowrap mt-1.5">
                       <div className="flex items-center gap-0.5" title="Critical"><span className="w-2 h-2 rounded-full shrink-0" style={{ background: 'var(--rm)' }} /><span className="text-gray-900 text-[10px]">{unit.incidents.critical}</span></div>
@@ -151,13 +151,13 @@ function UnitTable({ units }: { units: UnitStat[] }) {
                   </div>
                 </td>
                 <td className="py-3 px-3 align-top">
-                  <div className="flex flex-col gap-0.5 items-center">
+                  <div className="flex flex-col gap-0.5 items-start">
                     <span className="text-gray-900 text-base">{unit.tasks.total}</span>
                     {unit.tasks.overdue > 0 ? <div className="whitespace-nowrap" style={{ color: 'var(--status-critical-text)' }}><span className="text-xs">{unit.tasks.overdue}</span> <span className="text-[10px] font-medium">Overdue</span></div> : unit.tasks.open > 0 ? <div className="whitespace-nowrap" style={{ color: 'var(--status-warning-text)' }}><span className="text-xs">{unit.tasks.open}</span> <span className="text-[10px] font-medium">Action required soon</span></div> : null}
                   </div>
                 </td>
                 <td className="py-3 px-3 align-top">
-                  <div className="flex flex-col gap-0.5 items-center">
+                  <div className="flex flex-col gap-0.5 items-start">
                     <span className="text-gray-900 text-base">{unit.trips.total}</span>
                     <div className="flex items-center gap-2 whitespace-nowrap mt-1.5">
                       <div className="flex items-center gap-0.5" title="Planned"><span className="w-2 h-2 rounded-full shrink-0" style={{ background: 'var(--gm)' }} /><span className="text-gray-900 text-[10px]">{unit.trips.planned}</span></div>
@@ -165,8 +165,8 @@ function UnitTable({ units }: { units: UnitStat[] }) {
                     </div>
                   </div>
                 </td>
-                <td className="py-3 px-3 text-gray-900 text-base align-top text-center">{unit.pmActivity}</td>
-                <td className="py-3 px-3 text-gray-900 text-base align-top text-center">{unit.shutdown}</td>
+                <td className="py-3 px-3 text-gray-900 text-base align-top text-left">{unit.pmActivity}</td>
+                <td className="py-3 px-3 text-gray-900 text-base align-top text-left">{unit.shutdown}</td>
                 <td className="py-3 px-3 align-middle">
                   <span className="relative flex items-center justify-center w-8 h-8">
                     <span className="absolute inset-0 rounded-full bg-blue-500/30 opacity-0 group-hover/unit:animate-ping" />

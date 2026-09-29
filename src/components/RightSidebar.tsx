@@ -1,5 +1,5 @@
-import { X } from 'lucide-react'
-import { useState } from 'react'
+import { ChevronRight } from 'lucide-react'
+import { useState, type CSSProperties } from 'react'
 
 const priorityRows: Record<string, { row: string; high: number; medium: number; low: number }[]> = {
   all: [
@@ -38,16 +38,35 @@ interface Alert {
   asset?: string
   tagLabel?: string
   tagValue?: string
+  avatar?: string
 }
+
+const ALERT_SEVERITY: Record<Alert['severity'], { bg: string; fg: string }> = {
+  HIGH: { bg: 'var(--status-critical-surface)', fg: 'var(--status-critical-text)' },
+  MEDIUM: { bg: 'var(--status-warning-surface)', fg: 'var(--status-warning-text)' },
+  DEVIATION: { bg: 'var(--status-deviation-surface)', fg: 'var(--status-deviation-text)' },
+}
+
+const maskIcon = (src: string, color: string): CSSProperties => ({
+  background: color,
+  WebkitMaskImage: `url(${src})`,
+  maskImage: `url(${src})`,
+  WebkitMaskRepeat: 'no-repeat',
+  maskRepeat: 'no-repeat',
+  WebkitMaskSize: 'contain',
+  maskSize: 'contain',
+  WebkitMaskPosition: 'center',
+  maskPosition: 'center',
+})
 
 const alerts: Alert[] = [
   { type: 'Incident', title: 'BWRO Com Cartridge Filter 2 Anomaly', time: '22 Sep, 11:04 AM', severity: 'DEVIATION', severityColor: 'rgb(255, 193, 7)', unit: 'Indian Rayon WTP', asset: 'BWRO Common 2', tagLabel: 'BWRO Cartridge Filter B Feed Flow', tagValue: '50.62' },
   { type: 'Incident', title: 'Mb 2-1 Anomaly', time: '22 Sep, 09:57 AM', severity: 'DEVIATION', severityColor: 'rgb(255, 193, 7)', unit: 'Indian Rayon WTP', asset: 'Mix Bed 2', tagLabel: 'Mixed Bed B DM Flow TOTAL FLOW', tagValue: '152291.87' },
-  { type: 'Task', title: 'High ORP in SWRO Feed (273.47)', time: '09:19 AM', severity: 'MEDIUM', severityColor: 'rgb(255, 113, 25)', unit: 'Indian Rayon WTP' },
-  { type: 'Task', title: 'Chemicals Data not entered on 21 September 2026', time: '12:00 AM', severity: 'MEDIUM', severityColor: 'rgb(255, 113, 25)', unit: 'Indian Rayon WTP' },
-  { type: 'Task', title: 'Opening stock is negative on 21 September 2026', time: '12:00 AM', severity: 'HIGH', severityColor: 'rgb(255, 46, 25)', unit: 'Indian Rayon WTP' },
-  { type: 'Task', title: 'SWRO Skid C High Feed Pressure (75.18)', time: '21 Sep, 2026', severity: 'MEDIUM', severityColor: 'rgb(255, 113, 25)', unit: 'Indian Rayon WTP' },
-  { type: 'Task', title: 'BWRO Common Low Feed Flow (6.88)', time: '21 Sep, 2026', severity: 'MEDIUM', severityColor: 'rgb(255, 113, 25)', unit: 'Indian Rayon WTP' },
+  { type: 'Task', title: 'High ORP in SWRO Feed (273.47)', time: '09:19 AM', severity: 'MEDIUM', severityColor: 'rgb(255, 113, 25)', unit: 'Indian Rayon WTP', avatar: 'RM' },
+  { type: 'Task', title: 'Chemicals Data not entered on 21 September 2026', time: '12:00 AM', severity: 'MEDIUM', severityColor: 'rgb(255, 113, 25)', unit: 'Indian Rayon WTP', avatar: 'AJ' },
+  { type: 'Task', title: 'Opening stock is negative on 21 September 2026', time: '12:00 AM', severity: 'HIGH', severityColor: 'rgb(255, 46, 25)', unit: 'Indian Rayon WTP', avatar: 'PS' },
+  { type: 'Task', title: 'SWRO Skid C High Feed Pressure (75.18)', time: '21 Sep, 2026', severity: 'MEDIUM', severityColor: 'rgb(255, 113, 25)', unit: 'Indian Rayon WTP', avatar: 'KV' },
+  { type: 'Task', title: 'BWRO Common Low Feed Flow (6.88)', time: '21 Sep, 2026', severity: 'MEDIUM', severityColor: 'rgb(255, 113, 25)', unit: 'Indian Rayon WTP', avatar: 'NG' },
 ]
 
 export default function RightSidebar({ onClose }: { onClose: () => void }) {
@@ -58,7 +77,11 @@ export default function RightSidebar({ onClose }: { onClose: () => void }) {
       <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 shrink-0">
         <span className="text-[13px] font-bold text-gray-900">Priority Actions</span>
         <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
-          <X className="w-4 h-4" />
+          <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6">
+            <rect x="3" y="3.5" width="14" height="13" rx="2"></rect>
+            <line x1="7.5" y1="3.5" x2="7.5" y2="16.5"></line>
+            <path d="M13 7.5l-2.5 2.5 2.5 2.5" strokeLinecap="round" strokeLinejoin="round"></path>
+          </svg>
         </button>
       </div>
 
@@ -68,7 +91,7 @@ export default function RightSidebar({ onClose }: { onClose: () => void }) {
             <button
               key={f.id}
               onClick={() => setFilter(f.id)}
-              className={`px-2 py-0.5 rounded-full text-[10px] font-semibold transition-colors cursor-pointer ${
+              className={`px-2 py-0.5 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
                 filter === f.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
@@ -113,39 +136,70 @@ export default function RightSidebar({ onClose }: { onClose: () => void }) {
         <div className="px-3 py-2 shrink-0">
           <span className="text-[12px] font-bold text-gray-900">Alerts and Recommendations</span>
         </div>
-        <div className="px-3 pb-3 flex flex-col gap-2">
-          {alerts.map((a, i) => (
-            <div key={i} className="border border-gray-200 rounded-md p-2.5 flex flex-col gap-1.5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-[10px] text-gray-400">
-                  <span>{a.type}</span>
-                  <span>{a.time}</span>
+        <div className="pb-3">
+          {alerts.map((a, i) => {
+            const isIncident = a.type === 'Incident'
+            const sev = ALERT_SEVERITY[a.severity]
+            return (
+              <div key={i} className="px-4 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 cursor-pointer group">
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${
+                      isIncident ? 'theme-status-critical-soft theme-status-critical-text' : 'theme-status-healthy-soft theme-status-healthy-text'
+                    }`}
+                  >
+                    <span
+                      className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100"
+                      style={maskIcon(isIncident ? '/incidents.svg' : '/Tasks.svg', isIncident ? 'var(--status-critical-text)' : 'var(--status-healthy-text)')}
+                    />
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    {isIncident && (
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="text-[10px] text-gray-400">{a.time}</div>
+                        <span
+                          className="text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap shrink-0"
+                          style={{ backgroundColor: sev.bg, color: sev.fg }}
+                        >
+                          {a.severity}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-center">
+                      <div className="text-[12px] font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">{a.title}</div>
+                    </div>
+                    <div className="text-[11px] text-gray-500 truncate">
+                      {isIncident ? (
+                        <>
+                          <span>{a.tagLabel}</span>
+                          {a.tagValue && <span className="ml-1 text-amber-500 font-medium">{a.tagValue}</span>}
+                        </>
+                      ) : (
+                        a.time
+                      )}
+                    </div>
+                  </div>
+                  {a.avatar && (
+                    <span className="w-6 h-6 rounded-full bg-[#5B5FC7] text-white text-[10px] font-bold flex items-center justify-center shrink-0">{a.avatar}</span>
+                  )}
+                  <ChevronRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-blue-500 transition-colors shrink-0" />
                 </div>
-                <span
-                  className="px-1.5 py-0.5 rounded text-[9px] font-medium text-white"
-                  style={{ background: a.severityColor }}
-                >
-                  {a.severity}
-                </span>
-              </div>
-              <div className="text-[12px] font-semibold text-gray-900 leading-tight">{a.title}</div>
-              {a.tagLabel && (
-                <div className="text-[10px] text-gray-600 mt-0.5">
-                  <span className="font-normal">{a.tagLabel}</span>
-                  {a.tagValue && <span className="ml-1 text-amber-500 font-medium">{a.tagValue}</span>}
-                </div>
-              )}
-              <div className="flex min-w-0 items-center justify-between mt-1 pt-1.5 border-t border-gray-100">
                 {(a.unit || a.asset) && (
-                  <div className="min-w-0 truncate text-[9px]">
-                    {a.unit && <span className="font-bold text-gray-700">{a.unit}</span>}
-                    {a.unit && a.asset && <span className="mx-1 text-gray-400">→</span>}
-                    {a.asset && <span className="font-bold text-gray-700">{a.asset}</span>}
+                  <div className="mt-2">
+                    <div className="text-[11px] text-gray-500 truncate">
+                      <span>{a.unit}</span>
+                      {a.asset && (
+                        <span>
+                          <span className="text-gray-400 mx-0.5">&gt;</span>
+                          {a.asset}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </div>

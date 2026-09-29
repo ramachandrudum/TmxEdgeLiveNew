@@ -70,7 +70,7 @@ function LegendSquare({ color, label, value }: { color: string; label: string; v
 
 function UnitTable({ units, onSelectUnit }: { units: UnitStat[]; onSelectUnit: (unitName: string) => void }) {
   return (
-    <div className="bg-white border border-gray-200 overflow-x-auto [&_th]:border-r [&_th]:border-gray-200 [&_td]:border-r [&_td]:border-gray-200 [&_th:last-child]:border-r-0 [&_td:last-child]:border-r-0">
+    <div className="bg-white border border-gray-200 overflow-x-auto">
       <table className="w-full border-collapse">
         <thead>
           <tr className="bg-[var(--theme-surface-header)]">
@@ -123,12 +123,12 @@ function UnitTable({ units, onSelectUnit }: { units: UnitStat[]; onSelectUnit: (
                   </div>
                 </td>
                 <td className="py-3 px-3 align-middle">
-                  <div className="flex items-center justify-center">
+                  <div className="flex items-center justify-start">
                     <RingPlot value={unit.health} color={color} />
                   </div>
                 </td>
-                <td className="py-3 px-3 text-center align-top">
-                  <div className="flex flex-col items-center">
+                <td className="py-3 px-3 text-left align-top">
+                  <div className="flex flex-col items-start">
                     <span className="text-gray-900 text-base">{unit.assets.total}</span>
                     <div className="flex items-center gap-2 whitespace-nowrap mt-1.5">
                       <LegendSquare color="var(--gm)" label="Healthy" value={unit.assets.healthy} />
@@ -138,7 +138,7 @@ function UnitTable({ units, onSelectUnit }: { units: UnitStat[]; onSelectUnit: (
                   </div>
                 </td>
                 <td className="py-3 px-3 align-top">
-                  <div className="flex flex-col gap-0.5 items-center">
+                  <div className="flex flex-col gap-0.5 items-start">
                     <span className="text-gray-900 text-base">{unit.incidents.total}</span>
                     <div className="flex items-center gap-2 whitespace-nowrap mt-1.5">
                       <LegendSquare color="var(--rm)" label="Critical" value={unit.incidents.critical} />
@@ -148,7 +148,7 @@ function UnitTable({ units, onSelectUnit }: { units: UnitStat[]; onSelectUnit: (
                   </div>
                 </td>
                 <td className="py-3 px-3 align-top">
-                  <div className="flex flex-col gap-0.5 items-center">
+                  <div className="flex flex-col gap-0.5 items-start">
                     <span className="text-gray-900 text-base">{unit.tasks.total}</span>
                     {unit.tasks.overdue > 0 ? (
                       <div className="whitespace-nowrap" style={{ color: 'var(--status-critical-text)' }}>
@@ -171,7 +171,7 @@ function UnitTable({ units, onSelectUnit }: { units: UnitStat[]; onSelectUnit: (
                   </div>
                 </td>
                 <td className="py-3 px-3 align-top">
-                  <div className="flex flex-col gap-0.5 items-center">
+                  <div className="flex flex-col gap-0.5 items-start">
                     <span className="text-gray-900 text-base">{unit.trips.total}</span>
                     <div className="flex items-center gap-2 whitespace-nowrap mt-1.5">
                       <LegendSquare color="var(--gm)" label="Planned" value={unit.trips.planned} />
@@ -179,10 +179,10 @@ function UnitTable({ units, onSelectUnit }: { units: UnitStat[]; onSelectUnit: (
                     </div>
                   </div>
                 </td>
-                <td className="py-3 px-3 text-gray-900 text-base align-top text-center">
+                <td className="py-3 px-3 text-gray-900 text-base align-top text-left">
                   {unit.pmActivity}
                 </td>
-                <td className="py-3 px-3 text-gray-900 text-base align-top text-center">
+                <td className="py-3 px-3 text-gray-900 text-base align-top text-left">
                   {unit.shutdown}
                 </td>
                 <td className="py-3 px-3 align-middle">

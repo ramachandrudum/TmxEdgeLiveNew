@@ -413,7 +413,7 @@ function seededRandom(seed: number): () => number {
   }
 }
 
-const unitNames = [
+export const unitNames = [
   'HVAC',
   'Compressors',
   'Chillers',

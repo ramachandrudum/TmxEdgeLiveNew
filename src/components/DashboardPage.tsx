@@ -25,6 +25,7 @@ import {
 } from '../data/dashboardPage'
 import AssetMonitor from './AssetMonitor'
 import AssetOverview from './AssetOverview'
+import { AttachmentsPanel, DashboardPanel, ProcessFlowPanel, TagsPanel } from './AssetTabPanels'
 import RightSidebar from './RightSidebar'
 
 type Props = {
@@ -35,6 +36,8 @@ type Props = {
 }
 
 const TABS = ['Overview', 'Process Flow', 'Attachments', 'Tags', 'Asset Monitor', 'Dashboard']
+
+const KPI_HIDDEN_TABS = ['Process Flow', 'Attachments', 'Tags', 'Dashboard', 'Asset Monitor']
 
 function Dot({ status, size = 8 }: { status: NodeStatus; size?: number }) {
   return (
@@ -76,6 +79,7 @@ function TreeBranch({
     return (
       <div
         onClick={() => onSelect(currentPath)}
+        data-active-node={isActive ? '' : undefined}
         className={`group flex items-center gap-2 py-1.5 pr-2 rounded-md text-[13px] cursor-pointer ${
           isActive
             ? 'theme-primary-text theme-primary-bg-soft font-semibold'
@@ -102,6 +106,7 @@ function TreeBranch({
             ? 'theme-primary-text font-semibold'
             : 'text-[var(--theme-text)] hover:bg-gray-50'
         }`}
+        data-active-node={isActive ? '' : undefined}
         style={{ paddingLeft: node.kind === 'system' ? 35 : pad }}
         onMouseEnter={(e) => onShowTooltip(node.name, e.currentTarget)}
         onMouseLeave={onHideTooltip}
@@ -138,7 +143,7 @@ function TreeBranch({
   )
 }
 
-function HierarchyPanel({ siteName, onSelect, selectedUnitPath, selectedPath, collapsed, setCollapsed }: { siteName: string; onSelect: (path: string[]) => void; selectedUnitPath?: string[]; selectedPath: string[]; collapsed: boolean; setCollapsed: (v: boolean) => void }) {
+function HierarchyPanel({ onSelect, selectedUnitPath, selectedPath, collapsed, setCollapsed }: { onSelect: (path: string[]) => void; selectedUnitPath?: string[]; selectedPath: string[]; collapsed: boolean; setCollapsed: (v: boolean) => void }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [tooltip, setTooltip] = useState<{ text: string; x: number; y: number } | null>(null)
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
@@ -150,6 +155,7 @@ function HierarchyPanel({ siteName, onSelect, selectedUnitPath, selectedPath, co
     cs2: true,
   })
   const [query, setQuery] = useState('')
+  const asideRef = useRef<HTMLElement>(null)
 
   const toggle = (id: string) => setExpanded((e) => ({ ...e, [id]: !e[id] }))
 
@@ -165,8 +171,12 @@ function HierarchyPanel({ siteName, onSelect, selectedUnitPath, selectedPath, co
     return []
   }
 
-  if (selectedUnitPath && selectedUnitPath.length > 1) {
-    const idsToExpand = findExpandIds(hierarchy.children || [], selectedUnitPath.slice(1), 0)
+  const expandSources = [
+    ...(selectedUnitPath && selectedUnitPath.length > 1 ? [selectedUnitPath] : []),
+    ...(selectedPath.length > 1 ? [selectedPath] : []),
+  ]
+  if (expandSources.length > 0) {
+    const idsToExpand = expandSources.flatMap((p) => findExpandIds(hierarchy.children || [], p.slice(1), 0))
     if (idsToExpand.length > 0) {
       const newExpanded = { ...expanded }
       idsToExpand.forEach((id) => { newExpanded[id] = true })
@@ -176,12 +186,25 @@ function HierarchyPanel({ siteName, onSelect, selectedUnitPath, selectedPath, co
     }
   }
 
+  useEffect(() => {
+    if (collapsed) return
+    const node = asideRef.current?.querySelector('[data-active-node]')
+    if (!node) return
+    let p = node.parentElement
+    while (p && p.scrollHeight <= p.clientHeight + 4) p = p.parentElement
+    if (!p) return
+    const nr = node.getBoundingClientRect()
+    const pr = p.getBoundingClientRect()
+    if (nr.top < pr.top) p.scrollTop -= pr.top - nr.top
+    else if (nr.bottom > pr.bottom) p.scrollTop += nr.bottom - pr.bottom
+  }, [selectedPath, collapsed])
+
   if (collapsed) {
     return null
   }
 
   return (
-    <aside className="w-[210px] shrink-0 border-r border-gray-200 bg-[var(--theme-background)] flex flex-col min-h-0">
+    <aside ref={asideRef} className="w-[210px] shrink-0 border-r border-gray-200 bg-[var(--theme-background)] flex flex-col min-h-0">
       <div className="h-11 flex items-center gap-2 px-3 border-b border-gray-100 shrink-0">
         <span className="text-[13px] font-bold text-gray-800 flex-1">Asset hierarchy</span>
         <button onClick={() => setCollapsed(true)} className="rp-collapse-btn" title="Collapse">
@@ -208,12 +231,12 @@ function HierarchyPanel({ siteName, onSelect, selectedUnitPath, selectedPath, co
       <div className="px-3 py-3 relative shrink-0">
         <button
           onClick={() => setMenuOpen((o) => !o)}
-          title={siteName}
+          title={hierarchy.name}
           className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg border border-gray-200 bg-[var(--theme-background)] hover:bg-gray-100 transition"
         >
           <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
           <span className="flex-1 text-left text-[12px] font-semibold text-gray-800 truncate">
-            {siteName}
+            {hierarchy.name}
           </span>
           <ChevronsUpDown className="w-3 h-3 text-gray-400 shrink-0" />
         </button>
@@ -684,15 +707,20 @@ function RiskGauge({ risk, color = 'var(--status-critical-text)' }: { risk: numb
   )
 }
 
-const assetTableRows = Array.from({ length: 5 }, () => ({
-  name: 'Chiller 10',
-  type: 'Chiller',
-  status: 'ON',
-  uptime: '89.6%',
-  risk: 10 + Math.floor(Math.random() * 86),
-  kpi: '89.6%',
-  kpiCount: 5 + Math.floor(Math.random() * 11),
-}))
+const assetTableRows = Array.from({ length: 5 }, () => {
+  const uptimeValue = 78 + Math.random() * 21
+  return {
+    name: 'Chiller 10',
+    type: 'Chiller',
+    status: 'ON',
+    uptime: `${uptimeValue.toFixed(1)}%`,
+    uptimeValue,
+    uptimeDelta: Math.round((Math.random() * 5 - 2) * 10) / 10,
+    risk: 10 + Math.floor(Math.random() * 86),
+    kpi: '89.6%',
+    kpiCount: 5 + Math.floor(Math.random() * 11),
+  }
+})
 
 type Severity = 'critical' | 'warning' | 'deviation'
 
@@ -717,23 +745,152 @@ type LastViewedItem = {
   avatar?: string
   severity?: Severity
   path: string[]
+  kpiLabel?: string
+  kpiValue?: string
+  kpiUnit?: string
+  kpiDelta?: string
 }
 
 const lastViewed: LastViewedItem[] = [
   { type: 'asset', title: 'Chiller 10', sub: 'Risk Score : 89.6% ▲ 10%', path: ['Nestle UAE', 'HVAC', 'Primary Cooling Water System'] },
-  { type: 'incident', time: '02/08/2026, 9:00 am', title: 'Compressor Specific Power High', sub: 'Compressor 3 Specific Power : 2.23kW/CFM ▲10%', severity: 'critical', path: ['Nestle UAE', 'HVAC', 'Chiller 10'] },
+  { type: 'incident', time: '02/08/2026, 9:00 am', title: 'Compressor Specific Power High', sub: 'Compressor 3 Specific Power : 2.23kW/CFM ▲10%', severity: 'critical', path: ['Nestle UAE', 'HVAC', 'Chiller 10'], kpiLabel: 'Compressor 3 Specific Power', kpiValue: '2.23', kpiUnit: 'kW/CFM', kpiDelta: '▲10%' },
   { type: 'task', title: 'Inspect Cooling Tower Fans', sub: 'Overdue by : 1d 4h', avatar: 'AJ', path: ['Nestle UAE', 'HVAC', 'Cooling Tower A'] },
-  { type: 'incident', time: '02/08/2026, 9:00 am', title: 'Compressor Specific Power High', sub: 'Compressor 3 Specific Power : 2.23kW/CFM ▲10%', severity: 'warning', path: ['Nestle UAE', 'HVAC', 'Chiller 10'] },
+  { type: 'incident', time: '02/08/2026, 9:00 am', title: 'Compressor Specific Power High', sub: 'Compressor 3 Specific Power : 2.23kW/CFM ▲10%', severity: 'warning', path: ['Nestle UAE', 'HVAC', 'Chiller 10'], kpiLabel: 'Specific Power', kpiValue: '2.10', kpiUnit: 'kW/CFM', kpiDelta: '▲8%' },
 ]
 
-function LastViewedCard() {
+const findPathByName = (nodes: TreeNode[], name: string, prefix: string[] = []): string[] | null => {
+  for (const node of nodes) {
+    const cur = [...prefix, node.name]
+    if (node.name === name) return cur
+    const hit = node.children ? findPathByName(node.children, name, cur) : null
+    if (hit) return hit
+  }
+  return null
+}
+
+const toIncidentItem = (item: LastViewedItem): IncidentItem => ({
+  id: `activity-${item.path.join('-')}-${item.title}`,
+  time: item.time ?? '',
+  title: item.title,
+  source: item.path.slice(1).join(' > '),
+  kpiLabel: item.kpiLabel ?? '',
+  kpiValue: item.kpiValue ?? '',
+  kpiDelta: item.kpiDelta ?? '',
+  status: item.severity === 'warning' ? 'wr' : 'cr',
+  cause: 'Compressor operating above the specific power threshold. Verify suction pressure, condenser approach and refrigerant charge, then clean condenser tubes if fouling is confirmed.',
+  severity: item.severity === 'warning' ? 'Warning' : 'Critical',
+  openStatus: 'Open',
+  startDate: item.time ?? '',
+  unitName: item.path[item.path.length - 1] ?? '',
+  equipment: item.path[item.path.length - 1] ?? '',
+  kpiName: item.kpiLabel ?? item.title,
+  dataTag: `${(item.kpiLabel ?? 'KPI').toUpperCase().replace(/\s+/g, '_')}_PV`,
+  value: item.kpiValue ?? '',
+  unit: item.kpiUnit ?? '',
+  timestamp: item.time ?? '',
+  badges: [
+    { label: 'B', color: 'bg-green-100 text-green-700' },
+    { label: 'E', color: 'bg-green-100 text-green-700' },
+    { label: 'V', color: 'bg-green-100 text-green-700' },
+    { label: 'H', color: 'bg-yellow-100 text-yellow-700' },
+  ],
+})
+
+const taskMask: React.CSSProperties = {
+  background: 'var(--status-healthy-text)',
+  WebkitMaskImage: 'url(/Tasks.svg)',
+  maskImage: 'url(/Tasks.svg)',
+  WebkitMaskRepeat: 'no-repeat',
+  maskRepeat: 'no-repeat',
+  WebkitMaskSize: 'contain',
+  maskSize: 'contain',
+  WebkitMaskPosition: 'center',
+  maskPosition: 'center',
+}
+
+function TaskOverlay({ task, onClose }: { task: LastViewedItem; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div className="bg-white rounded-lg shadow-2xl w-[560px] max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+          <div className="flex items-center gap-2">
+            <span className="w-7 h-7 rounded-md flex items-center justify-center shrink-0 theme-status-healthy-soft theme-status-healthy-text">
+              <span className="w-[13px] h-[13px] shrink-0" style={taskMask} />
+            </span>
+            <h3 className="text-[15px] font-bold text-gray-900">Task</h3>
+          </div>
+          <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 rounded transition-colors cursor-pointer">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="px-5 py-4 overflow-y-auto flex-1 min-h-0 space-y-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="py-0.5 px-2 rounded text-[11px] font-semibold" style={{ backgroundColor: 'var(--status-warning-surface)', color: 'var(--status-warning-text)' }}>Open</span>
+            <span className="py-0.5 px-2 rounded text-[11px] font-semibold" style={{ backgroundColor: 'var(--status-critical-surface)', color: 'var(--status-critical-text)' }}>Overdue</span>
+            <span className="text-[12px] text-gray-400">
+              Due: <span className="font-semibold text-gray-700">{task.sub.includes(':') ? task.sub.split(':').slice(1).join(':').trim() : task.sub}</span>
+            </span>
+          </div>
+          <div className="text-[15px] font-bold text-gray-900">{task.title}</div>
+          <div className="text-[12px] text-gray-500">{task.sub}</div>
+          <div className="border border-gray-200 rounded-lg overflow-hidden text-[13px]">
+            <table className="w-full border-collapse">
+              <tbody>
+                <tr className="border-b border-gray-200">
+                  <td className="px-3 py-2 font-bold bg-[var(--theme-surface-header)] w-[130px] text-gray-700">Assignee</td>
+                  <td className="px-3 py-2 bg-[var(--theme-surface-header)]">
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-full bg-[#5B5FC7] text-white text-[10px] font-bold flex items-center justify-center shrink-0">{task.avatar ?? 'RM'}</span>
+                      <span className="text-gray-900">{task.avatar ?? 'RM'}</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-3 py-2 font-bold text-gray-700 align-top">Location</td>
+                  <td className="px-3 py-2 text-gray-900">
+                    {task.path.map((p, i) => (
+                      <span key={i}>
+                        {i > 0 && <span className="text-gray-400 mx-0.5">&gt;</span>}
+                        {p}
+                      </span>
+                    ))}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <div className="px-3 py-2 border-b border-gray-200 text-[13px] font-bold text-gray-800">Description</div>
+            <div className="p-3 text-[12px] text-gray-600">
+              Review the readings for the asset above, capture the observation and record the corrective action taken in the maintenance log.
+            </div>
+          </div>
+        </div>
+        <div className="px-5 py-3 border-t border-gray-200 flex justify-end gap-2">
+          <button onClick={onClose} className="px-4 py-2 rounded-md border border-blue-600 text-blue-600 text-[13px] font-semibold hover:bg-blue-600 hover:text-white hover:shadow-md transition-colors cursor-pointer">
+            Acknowledge
+          </button>
+          <button onClick={onClose} className="px-4 py-2 rounded-md border border-blue-600 text-blue-600 text-[13px] font-semibold hover:bg-blue-600 hover:text-white hover:shadow-md transition-colors cursor-pointer">
+            Mark Complete
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function LastViewedCard({ onOpen }: { onOpen: (item: LastViewedItem) => void }) {
   return (
     <div className="bg-white border border-gray-200 rounded-md overflow-hidden h-[240px] flex flex-col hover-scroll-host">
       <div className="px-4 py-3 border-b border-gray-100 text-sm font-bold text-gray-800 shrink-0">Recent Activity</div>
       <div className="flex-1 min-h-0 overflow-y-auto hover-scroll">
         {lastViewed.map((item, i) => (
-          <div key={`${item.title}-${item.path.length}-${i}`} className="px-4 py-3 border-b border-gray-100 last:border-b-0">
-            <div className="flex items-center gap-2.5 cursor-pointer group">
+          <div
+            key={`${item.title}-${item.path.length}-${i}`}
+            onClick={() => onOpen(item)}
+            className="px-4 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50/60 transition-colors cursor-pointer group"
+          >
+            <div className="flex items-center gap-2.5 cursor-pointer">
               <span className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${item.type === 'asset' ? 'theme-status-info-soft theme-status-info-text' : item.type === 'incident' ? 'theme-status-critical-soft theme-status-critical-text' : 'theme-status-healthy-soft theme-status-healthy-text'}`}>
                 {item.type === 'asset' ? <Wrench className="w-3.5 h-3.5" strokeWidth={1.8} /> : item.type === 'incident' ? <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: 'var(--status-critical-text)', WebkitMaskImage: 'url(/incidents.svg)', maskImage: 'url(/incidents.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} /> : <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: 'var(--status-healthy-text)', WebkitMaskImage: 'url(/Tasks.svg)', maskImage: 'url(/Tasks.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} />}
               </span>
@@ -758,9 +915,28 @@ function LastViewedCard() {
   )
 }
 
-function OverviewTab({ onSelectAsset }: { onSelectAsset: (name: string) => void }) {
+function OverviewTab({ onSelectAsset, onNavigatePath }: { onSelectAsset: (name: string) => void; onNavigatePath: (path: string[]) => void }) {
   const [popupKpi, setPopupKpi] = useState<string | null>(null)
   const [selectedIncident, setSelectedIncident] = useState<IncidentItem | null>(null)
+  const [activityIncident, setActivityIncident] = useState<IncidentItem | null>(null)
+  const [activityTask, setActivityTask] = useState<LastViewedItem | null>(null)
+
+  const openActivity = (item: LastViewedItem) => {
+    setPopupKpi(null)
+    setSelectedIncident(null)
+    if (item.type === 'asset') {
+      const target = item.title || item.path[item.path.length - 1]
+      const full = findPathByName(hierarchy.children ?? [], target)
+      const rooted = full && full[0] !== hierarchy.name ? [hierarchy.name, ...full] : full
+      onNavigatePath(rooted ?? [...item.path, target])
+      return
+    }
+    if (item.type === 'incident') {
+      setActivityIncident(toIncidentItem(item))
+      return
+    }
+    setActivityTask(item)
+  }
 
   return (
     <>
@@ -778,10 +954,18 @@ function OverviewTab({ onSelectAsset }: { onSelectAsset: (name: string) => void 
           onClose={() => { setSelectedIncident(null); setPopupKpi(null) }}
         />
       )}
+      {activityIncident && (
+        <IncidentPopup
+          incident={activityIncident}
+          onBack={() => setActivityIncident(null)}
+          onClose={() => setActivityIncident(null)}
+        />
+      )}
+      {activityTask && <TaskOverlay task={activityTask} onClose={() => setActivityTask(null)} />}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 shrink-0">
-        <KpiStatusCard onKpiClick={(name) => { setPopupKpi(name); setSelectedIncident(null) }} />
+        <KpiStatusCard onKpiClick={(name) => { setPopupKpi(name); setSelectedIncident(null); setActivityIncident(null); setActivityTask(null) }} />
         <IncidentsTrendCard />
-        <LastViewedCard />
+        <LastViewedCard onOpen={openActivity} />
       </div>
 
       <div className="bg-white border border-gray-200 rounded-md overflow-hidden flex flex-col shrink-0">
@@ -821,7 +1005,12 @@ function OverviewTab({ onSelectAsset }: { onSelectAsset: (name: string) => void 
                     </div>
                   </td>
                   <td className="py-2.5 px-3 text-sm text-gray-600 whitespace-nowrap">{r.type}</td>
-                  <td className="py-2.5 px-3 text-sm text-gray-900 whitespace-nowrap">{r.uptime}</td>
+                  <td className="py-2.5 px-3 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{r.uptime}</div>
+                    <div className={`text-xs font-semibold ${r.uptimeValue > 85 ? 'text-green-600' : 'text-red-500'}`}>
+                      {r.uptimeDelta >= 0 ? '▲' : '▼'} {Math.abs(r.uptimeDelta).toFixed(1)}%
+                    </div>
+                  </td>
                   <td className="py-2.5 px-3">
                     <RiskGauge risk={r.risk} />
                   </td>
@@ -900,9 +1089,11 @@ const collectAssetNames = (nodes: TreeNode[], path: string[]): string[] => {
   return collectAssetNames(node.children ?? [], path.slice(1))
 }
 
-export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
+export default function DashboardPage({ selectedUnitPath }: Props) {
   const [tab, setTab] = useState('Overview')
-  const [selectedPath, setSelectedPath] = useState<string[]>(selectedUnitPath?.length ? selectedUnitPath : [siteName])
+  const [selectedPath, setSelectedPath] = useState<string[]>(() =>
+    selectedUnitPath?.length ? [hierarchy.name, ...selectedUnitPath.slice(1)] : [hierarchy.name],
+  )
   const [ahCollapsed, setAhCollapsed] = useState(false)
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -943,7 +1134,7 @@ export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
 
   return (
     <div className="flex flex-1 min-h-0 overflow-hidden bg-[var(--theme-background)]">
-      <HierarchyPanel siteName={siteName} onSelect={setSelectedPath} selectedUnitPath={selectedUnitPath} selectedPath={selectedPath} collapsed={ahCollapsed} setCollapsed={setAhCollapsed} />
+      <HierarchyPanel onSelect={setSelectedPath} selectedUnitPath={selectedUnitPath} selectedPath={selectedPath} collapsed={ahCollapsed} setCollapsed={setAhCollapsed} />
 
       <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-white">
         <div className="px-4 lg:px-6 pt-3 shrink-0">
@@ -978,16 +1169,19 @@ export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
                 </span>
               </span>
             ))}
-            <button
-              onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
-              className="ml-auto p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
-              title={rightSidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
-            >
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6">
-                <rect x="3" y="3" width="14" height="14" rx="2" />
-                <line x1="13" y1="3" x2="13" y2="17" />
-              </svg>
-            </button>
+            {tab === 'Overview' && !rightSidebarOpen && (
+              <button
+                onClick={() => setRightSidebarOpen(true)}
+                className="ml-auto p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                title="Show Priority Actions"
+              >
+                <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6">
+                  <rect x="3" y="3.5" width="14" height="13" rx="2"></rect>
+                  <line x1="7.5" y1="3.5" x2="7.5" y2="16.5"></line>
+                  <path d="M13 7.5l-2.5 2.5 2.5 2.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                </svg>
+              </button>
+            )}
           </div>
           <div className="border-b border-gray-200 mt-2" />
         </div>
@@ -1015,11 +1209,11 @@ export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
 
         <div
           ref={scrollRef}
-          className={`flex-1 min-h-0 px-4 lg:px-6 py-4 flex flex-col gap-4 ${
-            tab === 'Asset Monitor' ? 'overflow-hidden' : 'overflow-y-auto'
-          }`}
+          className={`flex-1 min-h-0 flex flex-col gap-4 ${
+            tab === 'Process Flow' || tab === 'Dashboard' ? 'px-0 py-0 bg-[#F7F9FA]' : 'px-4 lg:px-6 py-4'
+          } ${tab === 'Asset Monitor' ? 'overflow-hidden' : 'overflow-y-auto'}`}
         >
-          {isSiteSelected && tab !== 'Asset Monitor' && (
+          {isSiteSelected && !KPI_HIDDEN_TABS.includes(tab) && (
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 shrink-0">
               {kpis.map((k) => {
                 const iconMap: Record<string, { icon: React.ReactNode; bg: string }> = {
@@ -1100,6 +1294,14 @@ export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
                 if (card) setSelectedPath([...card.path, card.name])
               }}
             />
+          ) : tab === 'Process Flow' ? (
+            <ProcessFlowPanel />
+          ) : tab === 'Attachments' ? (
+            <AttachmentsPanel />
+          ) : tab === 'Tags' ? (
+            <TagsPanel />
+          ) : tab === 'Dashboard' ? (
+            <DashboardPanel />
           ) : isAssetSelected ? (
             <AssetOverview />
           ) : tab === 'Overview' ? (
@@ -1108,6 +1310,7 @@ export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
               const card = assetCards.find((a) => a.name === name)
               if (card) setSelectedPath([...card.path, card.name])
             }}
+            onNavigatePath={(path) => setSelectedPath(path)}
           />
           ) : (
             <Placeholder name={tab} />
@@ -1115,7 +1318,7 @@ export default function DashboardPage({ siteName, selectedUnitPath }: Props) {
         </div>
       </div>
 
-      {rightSidebarOpen && <RightSidebar onClose={() => setRightSidebarOpen(false)} />}
+      {rightSidebarOpen && tab === 'Overview' && <RightSidebar onClose={() => setRightSidebarOpen(false)} />}
     </div>
   )
 }
