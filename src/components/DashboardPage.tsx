@@ -1,5 +1,5 @@
 import {
-  ChevronLeft,
+  ArrowLeft,
   ChevronRight,
   ChevronsUpDown,
   MapPin,
@@ -26,6 +26,7 @@ import {
 import AssetMonitor from './AssetMonitor'
 import AssetOverview from './AssetOverview'
 import { AttachmentsPanel, DashboardPanel, ProcessFlowPanel, TagsPanel } from './AssetTabPanels'
+import { IncidentPopup, type IncidentItem } from './IncidentPopup'
 import RightSidebar from './RightSidebar'
 
 type Props = {
@@ -308,29 +309,6 @@ function HierarchyPanel({ onSelect, selectedUnitPath, selectedPath, collapsed, s
   )
 }
 
-type IncidentItem = {
-  id: string
-  time: string
-  title: string
-  source: string
-  kpiLabel: string
-  kpiValue: string
-  kpiDelta: string
-  status: 'cr' | 'wr' | 'dv'
-  cause?: string
-  severity: 'Critical' | 'Warning'
-  openStatus: 'Open' | 'Acknowledged' | 'Resolved'
-  startDate: string
-  unitName: string
-  equipment: string
-  kpiName: string
-  dataTag: string
-  value: string
-  unit: string
-  timestamp: string
-  badges: { label: string; color: string }[]
-}
-
 type IncidentPopupData = {
   title: string
   incidents: IncidentItem[]
@@ -473,133 +451,9 @@ function KpiIncidentsList({ kpiName, onSelectIncident, onClose }: { kpiName: str
   )
 }
 
-function IncidentPopup({ incident, onBack, onClose }: { incident: IncidentItem; onBack: () => void; onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="bg-white rounded-lg shadow-2xl w-[800px] max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="px-5 pt-4 pb-3 border-b border-gray-200">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <button onClick={onBack} className="p-1 text-gray-400 hover:text-gray-600 rounded transition-colors cursor-pointer shrink-0" title="Back to incidents">
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <span className="text-[15px] font-bold text-gray-900 truncate">{incident.unitName} - {incident.title}</span>
-            </div>
-            <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 rounded transition-colors cursor-pointer">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-          <div className="flex items-center justify-between gap-3 mt-3">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="py-0.5 px-2 rounded text-[11px] font-semibold bg-red-100 text-red-700">{incident.severity}</span>
-              <span className="py-0.5 px-2 rounded text-[11px] font-semibold bg-blue-100 text-blue-700">{incident.openStatus}</span>
-              <span className="text-[12px] text-gray-400">Start Date: <span className="font-semibold text-gray-700">{incident.startDate}</span></span>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-gray-200 text-[11px] text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6 9 17l-5-5" /></svg>
-                Approve
-              </button>
-              <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-gray-200 text-[11px] text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 17v5" /><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" /></svg>
-                Pin
-              </button>
-              <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-gray-200 text-[11px] text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><line x1="4" x2="4" y1="22" y2="15" /></svg>
-                Flag Noise
-              </button>
-              <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-gray-200 text-[11px] text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="19" x2="19" y1="8" y2="14" /><line x1="22" x2="16" y1="11" y2="11" /></svg>
-                Assign
-              </button>
-            </div>
-          </div>
-        </div>
-        <div className="px-5 py-4 overflow-y-auto flex-1 min-h-0 space-y-4">
-          <div className="border border-gray-200 rounded-lg overflow-hidden text-[13px]">
-            <table className="w-full border-collapse">
-              <tbody>
-                <tr className="border-b border-gray-200">
-                  <td className="px-3 py-2 font-bold bg-[var(--theme-surface-header)] w-[130px] text-gray-700">Unit Name</td>
-                  <td className="px-3 py-2 bg-[var(--theme-surface-header)] text-gray-900">{incident.unitName}</td>
-                  <td className="px-3 py-2 font-bold bg-[var(--theme-surface-header)] w-[180px] text-gray-700">Equipment</td>
-                  <td className="px-3 py-2 bg-[var(--theme-surface-header)] text-gray-900">{incident.equipment}</td>
-                </tr>
-                <tr>
-                  <td className="px-3 py-2 font-bold text-gray-700">KPI</td>
-                  <td colSpan={3} className="px-3 py-2">
-                    <div className="flex items-center justify-between">
-                      <div className="min-w-0">
-                        <div className="text-[13px] font-semibold text-gray-900 truncate">{incident.kpiName}</div>
-                        <div className="text-[12px] text-gray-500 truncate">{incident.dataTag}</div>
-                      </div>
-                      <div className="flex items-center gap-3 shrink-0">
-                        <div className="text-right">
-                          <div className="text-[13px] font-bold text-gray-900">{incident.value} <span className="text-[11px] font-normal text-gray-400">{incident.unit}</span></div>
-                          <div className="text-[11px] text-gray-400">{incident.timestamp}</div>
-                        </div>
-                        <div className="flex gap-0.5">
-                          {incident.badges.map((b, i) => (
-                            <span key={i} className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold ${b.color}`}>{b.label}</span>
-                          ))}
-        </div>
-      </div>
-    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div className="border border-gray-200 rounded-lg overflow-hidden">
-            <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200">
-              <span className="text-[13px] font-bold text-gray-800">Deviations</span>
-            </div>
-            <div className="p-3">
-              <div className="h-[200px] bg-white rounded border border-gray-100 overflow-hidden">
-                <svg viewBox="0 0 600 200" preserveAspectRatio="none" className="w-full h-full block">
-                  <line x1="0" y1="40" x2="600" y2="40" stroke="#dc3545" strokeWidth="1" strokeDasharray="4,4" opacity="0.5" />
-                  <line x1="0" y1="100" x2="600" y2="100" stroke="var(--theme-border)" strokeWidth="1" />
-                  <line x1="0" y1="160" x2="600" y2="160" stroke="var(--theme-border)" strokeWidth="1" />
-                  <polyline
-                    fill="none"
-                    stroke="#BD4F5B"
-                    strokeWidth="2"
-                    points="0,150 30,145 60,148 90,140 120,142 150,130 180,135 210,120 240,125 270,110 300,115 330,105 360,108 390,95 420,100 450,90 480,85 510,80 540,75 570,70 600,65"
-                  />
-                  <polyline
-                    fill="none"
-                    stroke="#000"
-                    strokeWidth="1"
-                    strokeDasharray="3,3"
-                    points="0,120 30,118 60,122 90,115 120,118 150,110 180,112 210,105 240,108 270,100 300,102 330,95 360,98 390,90 420,92 450,85 480,82 510,78 540,75 570,70 600,68"
-                    opacity="0.6"
-                  />
-                  <rect x="0" y="130" width="600" height="30" fill="rgb(251,177,74)" fillOpacity="0.3" />
-                  <text x="5" y="15" fontSize="10" fill="var(--theme-muted)">mm</text>
-                  <text x="570" y="15" fontSize="10" fill="var(--theme-muted)">Kg/cm²</text>
-                  <text x="100" y="195" fontSize="9" fill="var(--theme-muted)">08:30</text>
-                  <text x="250" y="195" fontSize="9" fill="var(--theme-muted)">09:30</text>
-                  <text x="400" y="195" fontSize="9" fill="var(--theme-muted)">10:00</text>
-                  <text x="530" y="195" fontSize="9" fill="var(--theme-muted)">10:30</text>
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="px-5 py-3 border-t border-gray-200 flex justify-end">
-          <button className="flex items-center gap-2 px-4 py-2 rounded-md border border-blue-600 text-blue-600 text-[13px] font-semibold hover:bg-blue-50 transition-colors cursor-pointer">
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>
-            More Details
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function KpiStatusCard({ onKpiClick }: { onKpiClick: (name: string) => void }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-md p-4 flex flex-col h-[240px] min-h-0 hover-scroll-host">
+    <div className="bg-white border border-gray-200 rounded-md p-4 flex flex-col h-[340px] min-h-0 hover-scroll-host">
       <div className="text-[13px] font-bold text-gray-800">KPI Status ({kpiStatus.total})</div>
       <div className="flex h-2 rounded-full overflow-hidden mt-3">
         <span style={{ width: '92%', background: 'var(--gm)' }} />
@@ -632,7 +486,7 @@ function KpiStatusCard({ onKpiClick }: { onKpiClick: (name: string) => void }) {
 
 function IncidentsTrendCard() {
   return (
-    <div className="bg-white border border-gray-200 rounded-md p-4 flex flex-col h-[240px] min-h-0">
+    <div className="bg-white border border-gray-200 rounded-md p-4 flex flex-col h-[340px] min-h-0">
       <div className="text-[13px] font-bold text-gray-800">Incidents Trend</div>
       <div className="flex-1 min-h-0 relative mt-3">
         <svg viewBox="0 0 460 210" preserveAspectRatio="none" className="w-full h-full block">
@@ -733,7 +587,12 @@ const SEVERITY: Record<Severity, { label: string; color: string; bg: string }> =
 function SeverityBadge({ severity }: { severity: Severity }) {
   const s = SEVERITY[severity]
   return (
-    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap shrink-0" style={{ backgroundColor: s.bg, color: s.color }}>{s.label}</span>
+    <span
+      className={`text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap shrink-0 ${severity === 'deviation' ? 'theme-status-deviation-badge' : ''}`}
+      style={{ backgroundColor: s.bg, color: s.color }}
+    >
+      {s.label}
+    </span>
   )
 }
 
@@ -881,7 +740,7 @@ function TaskOverlay({ task, onClose }: { task: LastViewedItem; onClose: () => v
 
 function LastViewedCard({ onOpen }: { onOpen: (item: LastViewedItem) => void }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-md overflow-hidden h-[240px] flex flex-col hover-scroll-host">
+    <div className="bg-white border border-gray-200 rounded-md overflow-hidden h-[340px] flex flex-col hover-scroll-host">
       <div className="px-4 py-3 border-b border-gray-100 text-sm font-bold text-gray-800 shrink-0">Recent Activity</div>
       <div className="flex-1 min-h-0 overflow-y-auto hover-scroll">
         {lastViewed.map((item, i) => (
@@ -1002,12 +861,13 @@ function OverviewTab({ onSelectAsset, onNavigatePath }: { onSelectAsset: (name: 
                         </span>
                       )}
                       <span className="text-sm font-medium text-gray-900">{r.name}</span>
+                      <ChevronRight className="w-3.5 h-3.5 text-gray-400 shrink-0" aria-hidden="true" />
                     </div>
                   </td>
                   <td className="py-2.5 px-3 text-sm text-gray-600 whitespace-nowrap">{r.type}</td>
                   <td className="py-2.5 px-3 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{r.uptime}</div>
-                    <div className={`text-xs font-semibold ${r.uptimeValue > 85 ? 'text-green-600' : 'text-red-500'}`}>
+                    <div className={`text-xs font-semibold ${r.uptimeDelta >= 0 ? 'text-green-600' : 'text-red-500'}`}>
                       {r.uptimeDelta >= 0 ? '▲' : '▼'} {Math.abs(r.uptimeDelta).toFixed(1)}%
                     </div>
                   </td>
@@ -1089,6 +949,18 @@ const collectAssetNames = (nodes: TreeNode[], path: string[]): string[] => {
   return collectAssetNames(node.children ?? [], path.slice(1))
 }
 
+const findNodeByPath = (nodes: TreeNode[], path: string[], depth: number): TreeNode | null => {
+  for (const node of nodes) {
+    if (node.name === path[depth]) {
+      if (depth < path.length - 1 && node.children) {
+        return findNodeByPath(node.children, path, depth + 1)
+      }
+      return node
+    }
+  }
+  return null
+}
+
 export default function DashboardPage({ selectedUnitPath }: Props) {
   const [tab, setTab] = useState('Overview')
   const [selectedPath, setSelectedPath] = useState<string[]>(() =>
@@ -1096,26 +968,22 @@ export default function DashboardPage({ selectedUnitPath }: Props) {
   )
   const [ahCollapsed, setAhCollapsed] = useState(false)
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true)
+  const [originPath, setOriginPath] = useState<string[]>(selectedPath)
   const scrollRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = 0
-  }, [tab])
 
   const isAssetSelected = selectedPath.length >= 4
   const isSiteSelected = selectedPath.length >= 1
 
-  const findNodeByPath = (nodes: TreeNode[], path: string[], depth: number): TreeNode | null => {
-    for (const node of nodes) {
-      if (node.name === path[depth]) {
-        if (depth < path.length - 1 && node.children) {
-          return findNodeByPath(node.children, path, depth + 1)
-        }
-        return node
-      }
-    }
-    return null
+  const navigateTo = (path: string[]) => {
+    const changed = path.length !== selectedPath.length || path.some((name, i) => name !== selectedPath[i])
+    if (changed && tab !== 'Overview') setTab('Overview')
+    if (path.length < 4) setOriginPath(path)
+    setSelectedPath(path)
   }
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0
+  }, [tab])
 
   const filteredBreadcrumb = selectedPath.filter((_name, i) => {
     if (i === 0 || i === selectedPath.length - 1) return true
@@ -1123,8 +991,21 @@ export default function DashboardPage({ selectedUnitPath }: Props) {
     return node && node.kind !== 'system'
   })
 
+  const showAssetBack = tab === 'Asset Monitor' && isAssetSelected
+
+  const assetOrigin = useMemo(() => {
+    if (!showAssetBack) return []
+    const captured = originPath
+    const base = captured.length >= 4 ? selectedPath.slice(0, -1) : captured
+    return base.filter((_name, i) => {
+      if (i === 0) return true
+      const node = findNodeByPath(hierarchy.children || [], base.slice(1, i + 1), 0)
+      return node && node.kind !== 'system'
+    })
+  }, [showAssetBack, originPath, selectedPath])
+
   const handleBreadcrumbClick = (index: number) => {
-    setSelectedPath(selectedPath.slice(0, index + 1))
+    navigateTo(selectedPath.slice(0, index + 1))
   }
 
   const monitorAssetList = useMemo(
@@ -1134,7 +1015,7 @@ export default function DashboardPage({ selectedUnitPath }: Props) {
 
   return (
     <div className="flex flex-1 min-h-0 overflow-hidden bg-[var(--theme-background)]">
-      <HierarchyPanel onSelect={setSelectedPath} selectedUnitPath={selectedUnitPath} selectedPath={selectedPath} collapsed={ahCollapsed} setCollapsed={setAhCollapsed} />
+      <HierarchyPanel onSelect={navigateTo} selectedUnitPath={selectedUnitPath} selectedPath={selectedPath} collapsed={ahCollapsed} setCollapsed={setAhCollapsed} />
 
       <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-white">
         <div className="px-4 lg:px-6 pt-3 shrink-0">
@@ -1158,17 +1039,37 @@ export default function DashboardPage({ selectedUnitPath }: Props) {
                 </span>
               </button>
             )}
-            {filteredBreadcrumb.map((item, i) => (
-              <span key={i} className="flex items-center gap-1.5">
-                {i > 0 && <span className="text-gray-300">/</span>}
-                <span
-                  onClick={() => handleBreadcrumbClick(i)}
-                  className={`cursor-pointer hover:text-blue-600 transition-colors ${i === filteredBreadcrumb.length - 1 ? 'font-semibold text-gray-800' : ''}`}
-                >
-                  {item}
+            {showAssetBack ? (
+              <button
+                onClick={() => navigateTo(assetOrigin)}
+                title={`Back to ${assetOrigin.join(' / ')}`}
+                className="group flex items-center gap-1.5 rounded-md pl-1 pr-2 py-1 -ml-1 text-[12px] text-gray-600 hover:bg-gray-100 hover:text-blue-600 transition-colors cursor-pointer"
+              >
+                <ArrowLeft className="h-3.5 w-3.5 shrink-0" />
+                <span className="flex items-center gap-1.5">
+                  {assetOrigin.map((item, i) => (
+                    <span key={i} className="flex items-center gap-1.5">
+                      {i > 0 && <span className="text-gray-300">/</span>}
+                      <span className={i === assetOrigin.length - 1 ? 'font-semibold text-gray-700 group-hover:text-blue-600' : ''}>
+                        {item}
+                      </span>
+                    </span>
+                  ))}
                 </span>
-              </span>
-            ))}
+              </button>
+            ) : (
+              filteredBreadcrumb.map((item, i) => (
+                <span key={i} className="flex items-center gap-1.5">
+                  {i > 0 && <span className="text-gray-300">/</span>}
+                  <span
+                    onClick={() => handleBreadcrumbClick(i)}
+                    className={`cursor-pointer hover:text-blue-600 transition-colors ${i === filteredBreadcrumb.length - 1 ? 'font-semibold text-gray-800' : ''}`}
+                  >
+                    {item}
+                  </span>
+                </span>
+              ))
+            )}
             {tab === 'Overview' && !rightSidebarOpen && (
               <button
                 onClick={() => setRightSidebarOpen(true)}
@@ -1291,7 +1192,7 @@ export default function DashboardPage({ selectedUnitPath }: Props) {
               isAsset={isAssetSelected}
               onOpenAsset={(name) => {
                 const card = assetCards.find((a) => a.name === name)
-                if (card) setSelectedPath([...card.path, card.name])
+                if (card) navigateTo([...card.path, card.name])
               }}
             />
           ) : tab === 'Process Flow' ? (
@@ -1308,9 +1209,9 @@ export default function DashboardPage({ selectedUnitPath }: Props) {
             <OverviewTab
             onSelectAsset={(name) => {
               const card = assetCards.find((a) => a.name === name)
-              if (card) setSelectedPath([...card.path, card.name])
+              if (card) navigateTo([...card.path, card.name])
             }}
-            onNavigatePath={(path) => setSelectedPath(path)}
+            onNavigatePath={(path) => navigateTo(path)}
           />
           ) : (
             <Placeholder name={tab} />

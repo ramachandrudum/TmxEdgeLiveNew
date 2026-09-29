@@ -169,6 +169,11 @@
   background-color: var(--status-deviation-surface);
 }
 
+.theme-status-deviation-badge {
+  background-color: #FFD542 !important;
+  color: #000 !important;
+}
+
 .theme-status-healthy-soft {
   background-color: var(--status-healthy-surface);
 }

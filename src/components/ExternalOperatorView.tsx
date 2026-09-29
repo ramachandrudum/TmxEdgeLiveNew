@@ -63,7 +63,12 @@ const SEVERITY: Record<Sev, { label: string; color: string; bg: string }> = {
 function SeverityBadge({ severity }: { severity: Sev }) {
   const s = SEVERITY[severity]
   return (
-    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap shrink-0" style={{ backgroundColor: s.bg, color: s.color }}>{s.label}</span>
+    <span
+      className={`text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap shrink-0 ${severity === 'deviation' ? 'theme-status-deviation-badge' : ''}`}
+      style={{ backgroundColor: s.bg, color: s.color }}
+    >
+      {s.label}
+    </span>
   )
 }
 

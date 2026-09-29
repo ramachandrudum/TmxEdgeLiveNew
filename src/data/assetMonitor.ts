@@ -260,6 +260,36 @@ export const monitorAssets: MonitorAsset[] = baseAssets
 export const filterMonitorAssets = (names: string[]) =>
   monitorAssets.filter((asset) => names.includes(asset.name))
 
+export type MonitorTask = {
+  id: string
+  assetId: string
+  title: string
+  time: string
+  unit: string
+  avatar: string
+}
+
+export const taskRows: MonitorTask[] = [
+  { id: 'ch10-t1', assetId: 'ch10', title: 'Condenser approach trending high — schedule tube cleaning', time: '09:19 AM', unit: 'Nestle UAE / HVAC', avatar: 'RM' },
+  { id: 'ch10-t2', assetId: 'ch10', title: 'Review Specific Power High alarm sources', time: '12:00 AM', unit: 'Nestle UAE / HVAC', avatar: 'AJ' },
+  { id: 'ch10-t3', assetId: 'ch10', title: 'Follow up on Evaporator DT deviation action owner', time: '26 Sep, 2026', unit: 'Nestle UAE / HVAC', avatar: 'KV' },
+  { id: 'ch20-t1', assetId: 'ch20', title: 'Investigate high power consumption after long run', time: '25 Sep, 2026', unit: 'Nestle UAE / HVAC', avatar: 'PS' },
+  { id: 'ch20-t2', assetId: 'ch20', title: 'Confirm chiller load deviation setpoints', time: '24 Sep, 2026', unit: 'Nestle UAE / HVAC', avatar: 'NG' },
+  { id: 'ch30-t1', assetId: 'ch30', title: 'Verify expansion valve settings on superheat deviation', time: '23 Sep, 2026', unit: 'Nestle UAE / HVAC', avatar: 'TL' },
+  { id: 'twa-t1', assetId: 'twa', title: 'Water flow drop — check basin level and makeup line', time: '08:47 AM', unit: 'Nestle UAE / HVAC', avatar: 'DB' },
+  { id: 'twa-t2', assetId: 'twa', title: 'Review CT efficiency drop with operations', time: '22 Sep, 2026', unit: 'Nestle UAE / HVAC', avatar: 'SM' },
+  { id: 'twb-t1', assetId: 'twb', title: 'Monitor minor approach deviation trend', time: '07:30 AM', unit: 'Nestle UAE / HVAC', avatar: 'RK' },
+  { id: 'twb-t2', assetId: 'twb', title: 'Fan speed deviation follow-up', time: '21 Sep, 2026', unit: 'Nestle UAE / HVAC', avatar: 'VH' },
+  { id: 'twb-t3', assetId: 'twb', title: 'Drift loss high — inspect eliminators', time: '20 Sep, 2026', unit: 'Nestle UAE / HVAC', avatar: 'AA' },
+  { id: 'p1-t1', assetId: 'p1', title: 'Motor temp deviation — inspect ventilation', time: '05:12 PM', unit: 'Nestle UAE / HVAC', avatar: 'KS' },
+  { id: 'p3-t1', assetId: 'p3', title: 'Vibration rising — schedule bearing inspection', time: '19 Sep, 2026', unit: 'Nestle UAE / HVAC', avatar: 'RM' },
+  { id: 'p3-t2', assetId: 'p3', title: 'Cavitation detected — review suction conditions', time: '18 Sep, 2026', unit: 'Nestle UAE / HVAC', avatar: 'AJ' },
+  { id: 'c1-t1', assetId: 'c1', title: 'Load spike — validate compressor staging logic', time: '17 Sep, 2026', unit: 'Nestle UAE / Compressors', avatar: 'PS' },
+  { id: 'c2-t1', assetId: 'c2', title: 'Risk of failure — review run hours and oil age', time: '16 Sep, 2026', unit: 'Nestle UAE / Compressors', avatar: 'KV' },
+  { id: 'c2-t2', assetId: 'c2', title: 'Vibration rising — inspect coupling balance', time: '15 Sep, 2026', unit: 'Nestle UAE / Compressors', avatar: 'NG' },
+  { id: 'c3-t1', assetId: 'c3', title: 'Filter differential high — replace inlet filter', time: '14 Sep, 2026', unit: 'Nestle UAE / Compressors', avatar: 'TL' },
+]
+
 export type MonitorRow = {
   key: string
   asset: MonitorAsset

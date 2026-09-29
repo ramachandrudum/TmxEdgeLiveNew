@@ -1,4 +1,4 @@
-import Gantt, { type GanttPopupContext, type GanttTask } from 'frappe-gantt'
+import Gantt, { type GanttTask } from 'frappe-gantt'
 import 'frappe-gantt/dist/frappe-gantt.css'
 import {
   ArrowUpRight,
@@ -22,8 +22,10 @@ import {
   riskRows,
   type MonitorAsset,
   type MonitorEvent,
+  type MonitorTask,
   type TrackRow,
 } from '../data/assetMonitor'
+import { TaskDetailPopup, TaskListPopup } from './TasksPopup'
 
 const INCIDENT = '#dc3545'
 const DEVIATION = '#f59e0b'
@@ -71,14 +73,6 @@ const dayStamp = (index: number) => ganttStamp(ATRK_START.getTime() + index * DA
 
 const shortDate = (index: number) =>
   new Date(ATRK_START.getTime() + index * DAY_MS).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-
-const formatSpan = (span: { start: string; end: string }) => {
-  const day = (stamp: string) => {
-    const [y, m, d] = stamp.slice(0, 10).split('-').map(Number)
-    return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-  }
-  return `${day(span.start)} → ${day(span.end)}`
-}
 
 type MonitorGroup = { asset: MonitorAsset; events: MonitorEvent[] }
 type MonitorBarTask = GanttTask & { event: MonitorEvent; asset: MonitorAsset }
@@ -154,14 +148,6 @@ const drawMonitorBars = (gantt: Gantt, groups: MonitorGroup[]) => {
       const x1 = columnOf(stampMs(span.start)) * cw
       const x2 = columnOf(stampMs(span.end)) * cw
       const width = Math.max(cw * 0.3, x2 - x1)
-      const task: MonitorBarTask = {
-        id: `${entry.asset.id}-${index}`,
-        name: event.title,
-        start: span.start,
-        end: span.end,
-        event,
-        asset: entry.asset,
-      }
 
       const rect = document.createElementNS(SVG_NS, 'rect')
       rect.setAttribute('x', String(x1))
@@ -171,19 +157,6 @@ const drawMonitorBars = (gantt: Gantt, groups: MonitorGroup[]) => {
       rect.setAttribute('rx', '1.5')
       rect.setAttribute('fill', event.kind === 'incident' ? INCIDENT : DEVIATION)
       rect.setAttribute('opacity', '0.92')
-      rect.style.cursor = 'pointer'
-      let hoverTimer: ReturnType<typeof setTimeout> | undefined
-      rect.addEventListener('mouseenter', (e) => {
-        const mouse = e as MouseEvent
-        hoverTimer = setTimeout(
-          () => gantt.show_popup({ x: mouse.offsetX, y: mouse.offsetY, task, target: rect }),
-          200,
-        )
-      })
-      rect.addEventListener('mouseleave', () => {
-        clearTimeout(hoverTimer)
-        gantt.popup?.hide()
-      })
       group.appendChild(rect)
     })
   })
@@ -192,18 +165,12 @@ const drawMonitorBars = (gantt: Gantt, groups: MonitorGroup[]) => {
 function useGantt(
   hostRef: RefObject<HTMLDivElement | null>,
   tasks: GanttTask[],
-  popup: (ctx: GanttPopupContext) => void | false,
   enabled = true,
   viewMode: 'Day' | 'Month' = 'Day',
   scrollTo: 'start' | 'today' = 'start',
   drawOverlay?: (gantt: Gantt) => void,
 ) {
-  const popupRef = useRef(popup)
   const overlayRef = useRef(drawOverlay)
-
-  useEffect(() => {
-    popupRef.current = popup
-  }, [popup])
 
   useEffect(() => {
     overlayRef.current = drawOverlay
@@ -222,14 +189,13 @@ function useGantt(
       view_mode_select: true,
       today_button: true,
       readonly: true,
-      popup_on: 'hover',
       lines: 'both',
       infinite_padding: false,
       scroll_to: scrollTo,
       bar_height: 5,
       padding: 43,
       bar_corner_radius: 0,
-      popup: (ctx) => popupRef.current(ctx),
+      popup: () => false,
       on_view_change: () => {
         if (ready) overlayRef.current?.(gantt)
       },
@@ -318,6 +284,8 @@ export default function AssetMonitor({ assets, isAsset = true, onOpenAsset }: Pr
   const [onlyActivity, setOnlyActivity] = useState(true)
   const [openInsights, setOpenInsights] = useState<string | null>(null)
   const [openMenu, setOpenMenu] = useState<string | null>(null)
+  const [openTasksId, setOpenTasksId] = useState<string | null>(null)
+  const [taskDetail, setTaskDetail] = useState<MonitorTask | null>(null)
   const [query, setQuery] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
   const hostRef = useRef<HTMLDivElement>(null)
@@ -327,6 +295,7 @@ export default function AssetMonitor({ assets, isAsset = true, onOpenAsset }: Pr
   const goInsights = (next: View, assetName: string) => {
     setOpenInsights(null)
     setOpenMenu(null)
+    setOpenTasksId(null)
     setView(next)
     if (!isAsset) onOpenAsset?.(assetName)
   }
@@ -373,18 +342,6 @@ export default function AssetMonitor({ assets, isAsset = true, onOpenAsset }: Pr
   useGantt(
     hostRef,
     tasks,
-    (ctx) => {
-      const task = ctx.task as MonitorBarTask
-      const { event, asset } = task
-      if (!event || !asset) return false
-      const span = eventSpan(event)
-      ctx.set_title(event.title)
-      ctx.set_subtitle(`${asset.name} · ${event.kind === 'incident' ? 'Incident' : 'Deviation'}`)
-      ctx.set_details(`${formatSpan(span)} · ${asset.risk}% risk (${asset.riskLevel})`)
-      ctx.add_action('View KPIs', () => goInsights('kpis', asset.name))
-      ctx.add_action('Asset History', () => goInsights('history', asset.name))
-      return undefined
-    },
     activeView === 'timeline',
     'Month',
     'today',
@@ -419,6 +376,7 @@ export default function AssetMonitor({ assets, isAsset = true, onOpenAsset }: Pr
                 onClick={() => {
                   setOpenInsights(null)
                   setOpenMenu(null)
+                  setOpenTasksId(null)
                   setView(chip.id)
                 }}
                 className={`badge badge-sm ${activeView === chip.id ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
@@ -538,6 +496,7 @@ export default function AssetMonitor({ assets, isAsset = true, onOpenAsset }: Pr
                           title="Actions"
                           onClick={() => {
                             setOpenInsights(null)
+                            setOpenTasksId(null)
                             setOpenMenu((id) => (id === asset.id ? null : asset.id))
                           }}
                           className={`flex h-5 w-5 shrink-0 items-center justify-center rounded transition-colors cursor-pointer ${
@@ -604,7 +563,17 @@ export default function AssetMonitor({ assets, isAsset = true, onOpenAsset }: Pr
                       )}
 
                       <div className="flex min-w-0 items-center gap-1.5 pl-4 text-[11px] leading-none">
-                        <button type="button" className="font-medium text-blue-600 hover:underline">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOpenMenu(null)
+                            setOpenInsights(null)
+                            setTaskDetail(null)
+                            setOpenTasksId((id) => (id === asset.id ? null : asset.id))
+                          }}
+                          className="font-medium text-blue-600 hover:underline"
+                          aria-expanded={openTasksId === asset.id}
+                        >
                           {asset.tasks} {asset.tasks === 1 ? 'task' : 'tasks'}
                         </button>
                         <span className="text-gray-300">|</span>
@@ -612,6 +581,7 @@ export default function AssetMonitor({ assets, isAsset = true, onOpenAsset }: Pr
                           type="button"
                           onClick={() => {
                             setOpenMenu(null)
+                            setOpenTasksId(null)
                             setOpenInsights((id) => (id === asset.id ? null : asset.id))
                           }}
                           className="flex items-center gap-0.5 font-medium text-blue-600 hover:underline"
@@ -655,6 +625,28 @@ export default function AssetMonitor({ assets, isAsset = true, onOpenAsset }: Pr
                 <div className="h-full min-w-0 flex-1">
                   <div ref={hostRef} className="h-full" />
                 </div>
+                {openTasksId && (() => {
+                  const tasksAsset = assets.find((a) => a.id === openTasksId)
+                  if (!tasksAsset) return null
+                  return (
+                    <>
+                      {!taskDetail ? (
+                        <TaskListPopup
+                          asset={tasksAsset}
+                          onSelect={setTaskDetail}
+                          onClose={() => setOpenTasksId(null)}
+                        />
+                      ) : (
+                        <TaskDetailPopup
+                          asset={tasksAsset}
+                          task={taskDetail}
+                          onBack={() => setTaskDetail(null)}
+                          onClose={() => { setOpenTasksId(null); setTaskDetail(null) }}
+                        />
+                      )}
+                    </>
+                  )
+                })()}
                 </div>
               </div>
             </div>
@@ -664,8 +656,8 @@ export default function AssetMonitor({ assets, isAsset = true, onOpenAsset }: Pr
 
       {activeView !== 'timeline' && (
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-          {activeView === 'kpis' && <TrackView rows={kpiRows} label="Measure" onTimeline={() => setView('timeline')} />}
-          {activeView === 'risk' && <TrackView rows={riskRows} label="Contributor" onTimeline={() => setView('timeline')} />}
+          {activeView === 'kpis' && <TrackView rows={kpiRows} label="Measure" />}
+          {activeView === 'risk' && <TrackView rows={riskRows} label="Contributor" />}
           {activeView === 'history' && <HistoryView />}
         </div>
       )}
@@ -682,7 +674,7 @@ type TrackEntry = {
   endIdx: number
 }
 
-function TrackView({ rows, label, onTimeline }: { rows: TrackRow[]; label: string; onTimeline: () => void }) {
+function TrackView({ rows, label }: { rows: TrackRow[]; label: string }) {
   const [failuresOnly, setFailuresOnly] = useState(false)
   const [windowDays, setWindowDays] = useState(ATRK_TOTAL_DAYS)
   const [query, setQuery] = useState('')
@@ -744,18 +736,7 @@ function TrackView({ rows, label, onTimeline }: { rows: TrackRow[]; label: strin
     }
   }, [rows, query, offset, failuresOnly])
 
-  const entryByKey = useMemo(() => new Map(entries.map((entry) => [entry.key, entry])), [entries])
-
-  useGantt(hostRef, tasks, (ctx) => {
-    const entry = entryByKey.get(ctx.task.id)
-    if (!entry) return false
-    const days = entry.endIdx - entry.startIdx + 1
-    ctx.set_title(entry.row.name)
-    ctx.set_subtitle(`${LEVEL_LABEL[entry.level]} · ${shortDate(entry.startIdx)} – ${shortDate(entry.endIdx)}`)
-    ctx.set_details(`${days} ${days === 1 ? 'day' : 'days'} · ${entry.row.share}% of total`)
-    ctx.add_action('View Timeline', onTimeline)
-    return undefined
-  })
+  useGantt(hostRef, tasks)
 
   return (
     <div className="flex flex-col gap-3">

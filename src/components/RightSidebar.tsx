@@ -1,5 +1,8 @@
 import { ChevronRight } from 'lucide-react'
 import { useState, type CSSProperties } from 'react'
+import type { MonitorAsset, MonitorTask } from '../data/assetMonitor'
+import { IncidentPopup, type IncidentItem } from './IncidentPopup'
+import { TaskDetailPopup } from './TasksPopup'
 
 const priorityRows: Record<string, { row: string; high: number; medium: number; low: number }[]> = {
   all: [
@@ -36,6 +39,7 @@ interface Alert {
   severityColor: string
   unit?: string
   asset?: string
+  equipment?: string
   tagLabel?: string
   tagValue?: string
   avatar?: string
@@ -44,8 +48,11 @@ interface Alert {
 const ALERT_SEVERITY: Record<Alert['severity'], { bg: string; fg: string }> = {
   HIGH: { bg: 'var(--status-critical-surface)', fg: 'var(--status-critical-text)' },
   MEDIUM: { bg: 'var(--status-warning-surface)', fg: 'var(--status-warning-text)' },
-  DEVIATION: { bg: 'var(--status-deviation-surface)', fg: 'var(--status-deviation-text)' },
+  DEVIATION: { bg: '#FFD542', fg: '#000' },
 }
+
+const deviationBadgeClass = (severity: Alert['severity']) =>
+  severity === 'DEVIATION' ? 'theme-status-deviation-badge' : ''
 
 const maskIcon = (src: string, color: string): CSSProperties => ({
   background: color,
@@ -60,17 +67,70 @@ const maskIcon = (src: string, color: string): CSSProperties => ({
 })
 
 const alerts: Alert[] = [
-  { type: 'Incident', title: 'BWRO Com Cartridge Filter 2 Anomaly', time: '22 Sep, 11:04 AM', severity: 'DEVIATION', severityColor: 'rgb(255, 193, 7)', unit: 'Indian Rayon WTP', asset: 'BWRO Common 2', tagLabel: 'BWRO Cartridge Filter B Feed Flow', tagValue: '50.62' },
-  { type: 'Incident', title: 'Mb 2-1 Anomaly', time: '22 Sep, 09:57 AM', severity: 'DEVIATION', severityColor: 'rgb(255, 193, 7)', unit: 'Indian Rayon WTP', asset: 'Mix Bed 2', tagLabel: 'Mixed Bed B DM Flow TOTAL FLOW', tagValue: '152291.87' },
-  { type: 'Task', title: 'High ORP in SWRO Feed (273.47)', time: '09:19 AM', severity: 'MEDIUM', severityColor: 'rgb(255, 113, 25)', unit: 'Indian Rayon WTP', avatar: 'RM' },
-  { type: 'Task', title: 'Chemicals Data not entered on 21 September 2026', time: '12:00 AM', severity: 'MEDIUM', severityColor: 'rgb(255, 113, 25)', unit: 'Indian Rayon WTP', avatar: 'AJ' },
-  { type: 'Task', title: 'Opening stock is negative on 21 September 2026', time: '12:00 AM', severity: 'HIGH', severityColor: 'rgb(255, 46, 25)', unit: 'Indian Rayon WTP', avatar: 'PS' },
-  { type: 'Task', title: 'SWRO Skid C High Feed Pressure (75.18)', time: '21 Sep, 2026', severity: 'MEDIUM', severityColor: 'rgb(255, 113, 25)', unit: 'Indian Rayon WTP', avatar: 'KV' },
-  { type: 'Task', title: 'BWRO Common Low Feed Flow (6.88)', time: '21 Sep, 2026', severity: 'MEDIUM', severityColor: 'rgb(255, 113, 25)', unit: 'Indian Rayon WTP', avatar: 'NG' },
+  { type: 'Incident', title: 'BWRO Com Cartridge Filter 2 Anomaly', time: '22 Sep, 11:04 AM', severity: 'DEVIATION', severityColor: 'rgb(255, 193, 7)', unit: 'Mock Plant Unit 01', asset: 'BWRO Common 2', tagLabel: 'BWRO Cartridge Filter B Feed Flow', tagValue: '50.62' },
+  { type: 'Incident', title: 'Mb 2-1 Anomaly', time: '22 Sep, 09:57 AM', severity: 'DEVIATION', severityColor: 'rgb(255, 193, 7)', unit: 'Mock Plant Unit 01', asset: 'Mix Bed 2', tagLabel: 'Mixed Bed B DM Flow TOTAL FLOW', tagValue: '152291.87' },
+  { type: 'Task', title: 'High ORP in SWRO Feed (273.47)', time: '09:19 AM', severity: 'MEDIUM', severityColor: 'rgb(255, 113, 25)', unit: 'Mock Plant Unit 01', equipment: 'SWRO Skid A', avatar: 'RM' },
+  { type: 'Task', title: 'Chemicals Data not entered on 21 September 2026', time: '12:00 AM', severity: 'MEDIUM', severityColor: 'rgb(255, 113, 25)', unit: 'Mock Plant Unit 01', equipment: 'Chemical Dosing Skid', avatar: 'AJ' },
+  { type: 'Task', title: 'Opening stock is negative on 21 September 2026', time: '12:00 AM', severity: 'HIGH', severityColor: 'rgb(255, 46, 25)', unit: 'Mock Plant Unit 01', equipment: 'Chemical Store', avatar: 'PS' },
+  { type: 'Task', title: 'SWRO Skid C High Feed Pressure (75.18)', time: '21 Sep, 2026', severity: 'MEDIUM', severityColor: 'rgb(255, 113, 25)', unit: 'Mock Plant Unit 01', equipment: 'SWRO Skid C', avatar: 'KV' },
+  { type: 'Task', title: 'BWRO Common Low Feed Flow (6.88)', time: '21 Sep, 2026', severity: 'MEDIUM', severityColor: 'rgb(255, 113, 25)', unit: 'Mock Plant Unit 01', equipment: 'BWRO Common', avatar: 'NG' },
 ]
+
+const dataTagOf = (label: string) => `${label.toUpperCase().replace(/[^A-Z0-9]+/g, '_')}_PV`
+
+const incidentBadges = [
+  { label: 'B', color: 'bg-green-100 text-green-700' },
+  { label: 'E', color: 'bg-green-100 text-green-700' },
+  { label: 'V', color: 'bg-green-100 text-green-700' },
+  { label: 'H', color: 'bg-yellow-100 text-yellow-700' },
+]
+
+const toIncidentItem = (a: Alert): IncidentItem => ({
+  id: `priority-${a.title}`,
+  time: a.time,
+  title: a.title,
+  source: a.asset ? `${a.unit} > ${a.asset}` : (a.unit ?? ''),
+  kpiLabel: a.tagLabel ?? '',
+  kpiValue: a.tagValue ?? '',
+  kpiDelta: '',
+  status: a.severity === 'HIGH' ? 'cr' : a.severity === 'MEDIUM' ? 'wr' : 'dv',
+  severity: a.severity === 'DEVIATION' ? 'Warning' : 'Critical',
+  openStatus: 'Open',
+  startDate: a.time,
+  unitName: a.unit ?? '',
+  equipment: a.asset ?? a.unit ?? '',
+  kpiName: a.tagLabel ?? a.title,
+  dataTag: dataTagOf(a.tagLabel ?? a.title),
+  value: a.tagValue ?? '',
+  unit: '',
+  timestamp: a.time,
+  badges: incidentBadges,
+})
+
+const toMonitorAsset = (a: Alert): MonitorAsset => ({
+  id: a.equipment ?? a.unit ?? a.title,
+  name: a.equipment ?? a.unit ?? a.title,
+  status: 'ar',
+  risk: 0,
+  riskLevel: 'Low',
+  on: true,
+  tasks: 1,
+  height: 0,
+  events: [],
+})
+
+const toMonitorTask = (a: Alert): MonitorTask => ({
+  id: `priority-${a.title}`,
+  assetId: a.equipment ?? a.unit ?? a.title,
+  title: a.title,
+  time: a.time,
+  unit: a.unit ?? '',
+  avatar: a.avatar ?? 'RM',
+})
 
 export default function RightSidebar({ onClose }: { onClose: () => void }) {
   const [filter, setFilter] = useState('all')
+  const [openAlert, setOpenAlert] = useState<Alert | null>(null)
 
   return (
     <div className="w-[300px] shrink-0 border-l border-gray-200 bg-white flex flex-col min-h-0">
@@ -141,7 +201,16 @@ export default function RightSidebar({ onClose }: { onClose: () => void }) {
             const isIncident = a.type === 'Incident'
             const sev = ALERT_SEVERITY[a.severity]
             return (
-              <div key={i} className="px-4 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 cursor-pointer group">
+              <div
+                key={i}
+                onClick={() => setOpenAlert(a)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') setOpenAlert(a)
+                }}
+                className="px-4 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 cursor-pointer group"
+              >
                 <div className="flex items-center gap-2.5">
                   <span
                     className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${
@@ -158,7 +227,7 @@ export default function RightSidebar({ onClose }: { onClose: () => void }) {
                       <div className="flex items-center justify-between gap-2">
                         <div className="text-[10px] text-gray-400">{a.time}</div>
                         <span
-                          className="text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap shrink-0"
+                          className={`text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap shrink-0 ${deviationBadgeClass(a.severity)}`}
                           style={{ backgroundColor: sev.bg, color: sev.fg }}
                         >
                           {a.severity}
@@ -202,6 +271,17 @@ export default function RightSidebar({ onClose }: { onClose: () => void }) {
           })}
         </div>
       </div>
+
+      {openAlert?.type === 'Incident' && (
+        <IncidentPopup incident={toIncidentItem(openAlert)} onClose={() => setOpenAlert(null)} />
+      )}
+      {openAlert?.type === 'Task' && (
+        <TaskDetailPopup
+          task={toMonitorTask(openAlert)}
+          asset={toMonitorAsset(openAlert)}
+          onClose={() => setOpenAlert(null)}
+        />
+      )}
     </div>
   )
 }
