@@ -176,10 +176,10 @@ export default function SummaryCards({ active, variant = '' }: { active: string;
                 </div>
               </div>
               <div className="shrink-0 pt-1 ml-auto">
-                {card.key === 'sites' && <VBars legends={card.legends} />}
+                {card.key === 'sites' && <Donut legends={card.legends} />}
                 {card.key === 'assets' && <Donut legends={card.legends} />}
                 {card.key === 'incidents' && <Donut legends={card.legends} />}
-                {card.key === 'tasks' && <VBars legends={card.legends} />}
+                {card.key === 'tasks' && <Donut legends={card.legends} />}
               </div>
               <div className="flex flex-col gap-px">
                 {card.legends.map((l) => (
