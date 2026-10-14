@@ -40,18 +40,18 @@ type ActivityItem = { id: string; kind: 'warn' | 'ok'; severity?: Sev; title: st
 type ViewedItem = { id: string; type: 'asset' | 'incident' | 'task'; time: string | null; title: string; sub: string; avatar: string | null; severity?: Sev; path: string[] }
 
 const recentActivity: ActivityItem[] = [
-  { id: 'ra1', kind: 'warn' as const, severity: 'warning' as const, title: '10 new incidents in HVAC', sub: 'Vibration levels are beyond the acceptable threshold', path: ['Nestle UAE', 'HVAC'] },
-  { id: 'ra2', kind: 'ok' as const, title: 'Chiller 10 preventive maintenance completed', sub: 'All tasks for August 2026 are completed', path: ['Nestle UAE', 'HVAC', 'Chiller 10'] },
-  { id: 'ra3', kind: 'ok' as const, title: 'Chiller 10 preventive maintenance completed', sub: 'All tasks for August 2026 are completed', path: ['Nestle UAE', 'HVAC', 'Chiller 10'] },
-  { id: 'ra4', kind: 'warn' as const, severity: 'warning' as const, title: '10 new incidents in Compressor', sub: 'Vibration levels are beyond the acceptable threshold', path: ['Nestle UAE', 'Compressors'] },
-  { id: 'ra5', kind: 'warn' as const, severity: 'warning' as const, title: '10 new incidents in Compressor', sub: 'Vibration levels are beyond the acceptable threshold', path: ['Nestle UAE', 'Compressors'] },
+  { id: 'ra1', kind: 'warn' as const, severity: 'warning' as const, title: '10 new incidents in HVAC', sub: 'Vibration levels are beyond the acceptable threshold', path: ['DCM Kota', 'HVAC'] },
+  { id: 'ra2', kind: 'ok' as const, title: 'Chiller 10 preventive maintenance completed', sub: 'All tasks for August 2026 are completed', path: ['DCM Kota', 'HVAC', 'Chiller 10'] },
+  { id: 'ra3', kind: 'ok' as const, title: 'Chiller 10 preventive maintenance completed', sub: 'All tasks for August 2026 are completed', path: ['DCM Kota', 'HVAC', 'Chiller 10'] },
+  { id: 'ra4', kind: 'warn' as const, severity: 'warning' as const, title: '10 new incidents in Compressor', sub: 'Vibration levels are beyond the acceptable threshold', path: ['DCM Kota', 'Compressors'] },
+  { id: 'ra5', kind: 'warn' as const, severity: 'warning' as const, title: '10 new incidents in Compressor', sub: 'Vibration levels are beyond the acceptable threshold', path: ['DCM Kota', 'Compressors'] },
 ]
 
 const lastViewed: ViewedItem[] = [
-  { id: 'lv1', type: 'asset' as const, time: null as string | null, title: 'Chiller 10', sub: 'Risk Score : 89.6% ▲ 10%', avatar: null as string | null, path: ['Nestle UAE', 'HVAC', 'Primary Cooling Water System'] },
-  { id: 'lv2', type: 'incident' as const, time: '02/08/2026, 9:00 am', title: 'Compressor Specific Power High', sub: 'Compressor 3 Specific Power : 2.23kW/CFM ▲10%', avatar: null, severity: 'critical', path: ['Nestle UAE', 'HVAC', 'Chiller 10'] },
-  { id: 'lv3', type: 'task' as const, time: null, title: 'Inspect Cooling Tower Fans', sub: 'Overdue by : 1d 4h', avatar: 'AJ', path: ['Nestle UAE', 'HVAC', 'Cooling Tower A'] },
-  { id: 'lv4', type: 'incident' as const, time: '02/08/2026, 9:00 am', title: 'Compressor Specific Power High', sub: 'Compressor 3 Specific Power : 2.23kW/CFM ▲10%', avatar: null, severity: 'deviation', path: ['Nestle UAE', 'HVAC', 'Chiller 10'] },
+  { id: 'lv1', type: 'asset' as const, time: null as string | null, title: 'Chiller 10', sub: 'Risk Score : 89.6% ▲ 10%', avatar: null as string | null, path: ['DCM Kota', 'HVAC', 'Primary Cooling Water System'] },
+  { id: 'lv2', type: 'incident' as const, time: '02/08/2026, 9:00 am', title: 'Compressor Specific Power High', sub: 'Compressor 3 Specific Power : 2.23kW/CFM ▲10%', avatar: null, severity: 'critical', path: ['DCM Kota', 'HVAC', 'Chiller 10'] },
+  { id: 'lv3', type: 'task' as const, time: null, title: 'Inspect Cooling Tower Fans', sub: 'Overdue by : 1d 4h', avatar: 'AJ', path: ['DCM Kota', 'HVAC', 'Cooling Tower A'] },
+  { id: 'lv4', type: 'incident' as const, time: '02/08/2026, 9:00 am', title: 'Compressor Specific Power High', sub: 'Compressor 3 Specific Power : 2.23kW/CFM ▲10%', avatar: null, severity: 'deviation', path: ['DCM Kota', 'HVAC', 'Chiller 10'] },
 ]
 
 const SEVERITY: Record<Sev, { label: string; color: string; bg: string }> = {
@@ -303,7 +303,7 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
       )}
 
       {!hideMetrics && (
-        <div style={{ marginTop: 28 }} className="mb-4">
+        <div style={{ marginTop: 28 }}>
           <div className="text-sm font-bold text-gray-800 mb-3">Performance Metrics</div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {metrics.map((m) => {

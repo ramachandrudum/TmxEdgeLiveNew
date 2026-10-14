@@ -611,10 +611,10 @@ type LastViewedItem = {
 }
 
 const lastViewed: LastViewedItem[] = [
-  { type: 'asset', title: 'Chiller 10', sub: 'Risk Score : 89.6% ▲ 10%', path: ['Nestle UAE', 'HVAC', 'Primary Cooling Water System'] },
-  { type: 'incident', time: '02/08/2026, 9:00 am', title: 'Compressor Specific Power High', sub: 'Compressor 3 Specific Power : 2.23kW/CFM ▲10%', severity: 'critical', path: ['Nestle UAE', 'HVAC', 'Chiller 10'], kpiLabel: 'Compressor 3 Specific Power', kpiValue: '2.23', kpiUnit: 'kW/CFM', kpiDelta: '▲10%' },
-  { type: 'task', title: 'Inspect Cooling Tower Fans', sub: 'Overdue by : 1d 4h', avatar: 'AJ', path: ['Nestle UAE', 'HVAC', 'Cooling Tower A'] },
-  { type: 'incident', time: '02/08/2026, 9:00 am', title: 'Compressor Specific Power High', sub: 'Compressor 3 Specific Power : 2.23kW/CFM ▲10%', severity: 'warning', path: ['Nestle UAE', 'HVAC', 'Chiller 10'], kpiLabel: 'Specific Power', kpiValue: '2.10', kpiUnit: 'kW/CFM', kpiDelta: '▲8%' },
+  { type: 'asset', title: 'Chiller 10', sub: 'Risk Score : 89.6% ▲ 10%', path: ['DCM Kota', 'HVAC', 'Primary Cooling Water System'] },
+  { type: 'incident', time: '02/08/2026, 9:00 am', title: 'Compressor Specific Power High', sub: 'Compressor 3 Specific Power : 2.23kW/CFM ▲10%', severity: 'critical', path: ['DCM Kota', 'HVAC', 'Chiller 10'], kpiLabel: 'Compressor 3 Specific Power', kpiValue: '2.23', kpiUnit: 'kW/CFM', kpiDelta: '▲10%' },
+  { type: 'task', title: 'Inspect Cooling Tower Fans', sub: 'Overdue by : 1d 4h', avatar: 'AJ', path: ['DCM Kota', 'HVAC', 'Cooling Tower A'] },
+  { type: 'incident', time: '02/08/2026, 9:00 am', title: 'Compressor Specific Power High', sub: 'Compressor 3 Specific Power : 2.23kW/CFM ▲10%', severity: 'warning', path: ['DCM Kota', 'HVAC', 'Chiller 10'], kpiLabel: 'Specific Power', kpiValue: '2.10', kpiUnit: 'kW/CFM', kpiDelta: '▲8%' },
 ]
 
 const findPathByName = (nodes: TreeNode[], name: string, prefix: string[] = []): string[] | null => {

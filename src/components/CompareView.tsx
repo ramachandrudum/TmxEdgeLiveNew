@@ -18,7 +18,7 @@ const mockData: Record<string, { level: string; incidents: number; atRisk: numbe
   'ABSORBER': { level: 'Equipment', incidents: 2, atRisk: 1, availability: 95.7, totalAssets: 0, offline: 0, critical: 1, warning: 1, healthy: 0, color: '#0968db' },
   'HVAC': { level: 'Unit', incidents: 6, atRisk: 2, availability: 94.5, totalAssets: 12, offline: 1, critical: 2, warning: 3, healthy: 7, color: '#0968db' },
   'Compressors': { level: 'Unit', incidents: 3, atRisk: 1, availability: 97.2, totalAssets: 8, offline: 0, critical: 1, warning: 1, healthy: 6, color: '#0968db' },
-  'Nestle UAE': { level: 'Site', incidents: 10, atRisk: 3, availability: 93.8, totalAssets: 20, offline: 2, critical: 3, warning: 4, healthy: 13, color: '#0968db' },
+  'DCM Kota': { level: 'Site', incidents: 10, atRisk: 3, availability: 93.8, totalAssets: 20, offline: 2, critical: 3, warning: 4, healthy: 13, color: '#0968db' },
   'Cairo Plant': { level: 'Site', incidents: 8, atRisk: 2, availability: 95.1, totalAssets: 18, offline: 1, critical: 2, warning: 3, healthy: 12, color: '#0968db' },
   'Lagos Plant': { level: 'Site', incidents: 5, atRisk: 1, availability: 96.7, totalAssets: 15, offline: 0, critical: 1, warning: 2, healthy: 12, color: '#0968db' },
   'Riyadh Plant': { level: 'Site', incidents: 7, atRisk: 2, availability: 94.9, totalAssets: 16, offline: 1, critical: 2, warning: 2, healthy: 11, color: '#0968db' },

@@ -143,7 +143,7 @@ export function TaskDetailPopup({ task, asset, onBack, onClose }: { task: Monito
                   </tr>
                   <tr className="border-b border-gray-200">
                     <td className={DETAIL_FIELD_STYLE}>Site</td>
-                    <td className="px-4 py-3 text-gray-900">Nestle UAE</td>
+                    <td className="px-4 py-3 text-gray-900">DCM Kota</td>
                     <td className={DETAIL_FIELD_STYLE}>Unit</td>
                     <td className="px-4 py-3 text-gray-900">{task.unit.includes('/') ? task.unit.split('/').slice(1).join('/').trim() : task.unit}</td>
                   </tr>

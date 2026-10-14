@@ -29,7 +29,7 @@ const compareTypes = [
 ]
 
 const compareItems: Record<string, string[]> = {
-  site: ['Nestle UAE', 'Cairo Plant', 'Lagos Plant', 'Riyadh Plant'],
+  site: ['DCM Kota', 'Cairo Plant', 'Lagos Plant', 'Riyadh Plant'],
   unit: ['HVAC', 'Compressors'],
   system: ['Primary Cooling Water System', 'Secondary Cooling Water System', 'Cooling Water Condensor', 'Compressor System 1', 'Compressor System 2'],
   asset: ['Chiller 10', 'Chiller 20', 'Chiller 30', 'Cooling Tower A', 'Cooling Tower B', 'Primary Pump 1', 'Pump 3', 'Compressor 1', 'Compressor 2', 'Compressor 3'],
@@ -43,7 +43,7 @@ const systemGroups: GroupItem[] = [
 ]
 
 const assetGroups: { name: string; children: { name: string; children: { name: string; children: string[] }[] }[] }[] = [
-  { name: 'Nestle UAE', children: [
+  { name: 'DCM Kota', children: [
     { name: 'HVAC', children: [
       { name: 'Primary Cooling Water System', children: ['Chiller 10', 'Chiller 20', 'Chiller 30', 'Cooling Tower A', 'Cooling Tower B', 'Primary Pump 1'] },
       { name: 'Secondary Cooling Water System', children: ['Pump 3'] },
@@ -55,10 +55,8 @@ const assetGroups: { name: string; children: { name: string; children: { name: s
   ]},
 ]
 
-export default function Header({ customer, customers, isDashboard, persona, profileImage, onOpenAICopilot, onOpenSettings, onSwitchCustomer, onSelectPersona, onCompare, buIconVisible, onToggleBu, buGradient, onToggleBuGradient }: Props) {
+export default function Header({ customer, persona, profileImage, onOpenAICopilot, onOpenSettings, onSelectPersona, onCompare, buIconVisible, onToggleBu, buGradient, onToggleBuGradient }: Props) {
   const [profileOpen, setProfileOpen] = useState(false)
-  const [customerOpen, setCustomerOpen] = useState(false)
-  const [customerQuery, setCustomerQuery] = useState('')
   const [compareOpen, setCompareOpen] = useState(false)
   const [compareStep, setCompareStep] = useState<1 | 2>(1)
   const [compareType, setCompareType] = useState('')
@@ -110,49 +108,6 @@ export default function Header({ customer, customers, isDashboard, persona, prof
                 <CustomerLogo customer={customer} size="lg" />
               </div>
             </>
-          )}
-          {isDashboard && customers && persona?.type !== 'external' && (
-            <div className="relative shrink-0">
-              <button
-                onClick={() => setCustomerOpen((o) => !o)}
-                className="flex items-center gap-2 px-2 pt-1 pb-1 rounded-lg border border-gray-200 bg-[var(--theme-card)] text-[15px] hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer"
-              >
-                <span className="flex flex-col items-start leading-none">
-                  <span className="text-[10px] text-gray-400 leading-tight">Customer</span>
-                  <span className="max-w-[160px] truncate text-gray-800 font-medium text-sm">{customer?.name ?? customers[0]?.name}</span>
-                </span>
-                <ChevronDown className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-              </button>
-              {customerOpen && (
-                <div className="absolute left-0 top-full mt-1 w-64 bg-[var(--theme-card)] rounded-lg shadow-xl border border-gray-200 py-2 z-50">
-                  <div className="px-3 pb-2 border-b border-gray-100">
-                    <input
-                      autoFocus
-                      value={customerQuery}
-                      onChange={(e) => setCustomerQuery(e.target.value)}
-                      placeholder="Search customers..."
-                      className="w-full px-3 py-1.5 rounded-md border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/10 focus:border-blue-600 focus:bg-[var(--theme-card)] transition-all"
-                    />
-                  </div>
-                  <div className="max-h-64 overflow-y-auto">
-                  {customers.filter((c) => c.name.toLowerCase().includes(customerQuery.toLowerCase())).map((c) => (
-                    <button
-                      key={c.id}
-                      onClick={() => {
-                        onSwitchCustomer?.(c.id)
-                        setCustomerOpen(false)
-                        setCustomerQuery('')
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-gray-700 hover:bg-gray-50 cursor-pointer"
-                    >
-                      <span className="flex-1 text-left truncate">{c.name}</span>
-                      {c.id === customer?.id && <span className="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0" />}
-                    </button>
-                  ))}
-                  </div>
-                </div>
-              )}
-            </div>
           )}
         </div>
       </div>
