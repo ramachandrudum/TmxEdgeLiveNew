@@ -52,36 +52,6 @@ function Donut({ legends, size = 60, thickness = 12 }: { legends: Legend[]; size
   )
 }
 
-function VBars({ legends, maxH = 50 }: { legends: Legend[]; maxH?: number }) {
-  const sorted = [...legends].sort((a, b) => b.value - a.value)
-  const maxVal = Math.max(...sorted.map((l) => l.value), 1)
-  const gap = 4
-  const totalW = 50
-  const barW = (totalW - (sorted.length - 1) * gap) / sorted.length
-
-  return (
-    <div className="shrink-0 flex flex-col items-center">
-      <svg width={totalW} height={maxH} viewBox={`0 0 ${totalW} ${maxH}`}>
-        {sorted.map((l, i) => {
-          const h = Math.max((l.value / maxVal) * maxH, 4)
-          const x = i * (barW + gap)
-          const y = maxH - h
-          return (
-            <rect key={l.label} x={x} y={y} width={barW} height={h} rx={2} fill={l.color} />
-          )
-        })}
-      </svg>
-      <div className="flex" style={{ gap }}>
-        {sorted.map((l) => (
-          <div key={l.label} className="flex flex-col items-center" style={{ width: barW }}>
-            <span className="text-[9px] font-bold text-gray-900">{l.value}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 export default function SummaryCards({ active, variant = '' }: { active: string; variant?: string }) {
   const s = getCustomerSummary(active, variant)
   const isAll = active === 'all'
