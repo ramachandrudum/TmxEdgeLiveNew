@@ -409,7 +409,7 @@ export default function CustomerTable({
                   title={isOpen ? 'Collapse' : 'Expand'}
                 >
                   <ChevronDown
-                    className={`w-4 h-4 transition-transform ${isOpen ? '' : '-rotate-90'}`}
+                    className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : '-rotate-90'}`}
                   />
                 </button>
                 <CustomerLogo customer={c} />

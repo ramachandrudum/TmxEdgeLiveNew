@@ -16,7 +16,9 @@ import {
 } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { generateSites, type Customer, type UnitStat } from '../data/dashboard'
+import { IncidentPopup, type IncidentItem } from './IncidentPopup'
 import SummaryCards from './SummaryCards'
+import { TaskPopup, type TaskPopupData } from './TaskPopup'
 import { hashSeed, seededRandom } from '../lib/vary'
 
 type Props = {
@@ -187,10 +189,68 @@ function UnitTable({ units }: { units: UnitStat[] }) {
   )
 }
 
+const incidentBadges = [
+  { label: 'B', color: 'bg-green-100 text-green-700' },
+  { label: 'E', color: 'bg-green-100 text-green-700' },
+  { label: 'V', color: 'bg-green-100 text-green-700' },
+  { label: 'H', color: 'bg-yellow-100 text-yellow-700' },
+]
+
+const toIncidentItem = (item: { id: string; title: string; sub: string; path: string[]; severity?: Sev; time?: string | null }): IncidentItem => {
+  const sev: Sev = item.severity ?? 'warning'
+  const hasLabel = item.sub.includes(':')
+  const [label, ...restParts] = item.sub.split(':')
+  const rest = (hasLabel ? restParts.join(':') : item.sub).trim()
+  const tokens = rest.split(/\s+/).filter(Boolean)
+  const kpiName = hasLabel ? label.trim() : item.title
+  return {
+    id: `activity-${item.id}`,
+    time: item.time ?? '',
+    title: item.title,
+    source: item.path.slice(1).join(' > '),
+    kpiLabel: kpiName,
+    kpiValue: tokens[0] ?? '',
+    kpiDelta: tokens.slice(1).join(' ') || '▲10%',
+    status: sev === 'critical' ? 'cr' : sev === 'warning' ? 'wr' : 'dv',
+    cause: 'Reading is above the configured threshold. Verify the sensor readings, inspect the equipment and schedule corrective maintenance if the deviation continues.',
+    severity: sev === 'critical' ? 'Critical' : 'Warning',
+    openStatus: 'Open',
+    startDate: item.time ?? '',
+    unitName: item.path[item.path.length - 1] ?? '',
+    equipment: item.path[item.path.length - 1] ?? '',
+    kpiName,
+    dataTag: `${kpiName.toUpperCase().replace(/\s+/g, '_')}_PV`,
+    value: tokens[0] ?? '',
+    unit: tokens[1] ?? '',
+    timestamp: item.time ?? '',
+    badges: incidentBadges,
+  }
+}
+
 export default function ExternalOperatorView({ customer, onOpenDashboard, hideMetrics, hideSiteDetails, variant = '' }: Props) {
   const sites = generateSites(customer.id, variant)
   const [activeSite, setActiveSite] = useState<string>('all')
   const [openSites, setOpenSites] = useState<Set<string>>(new Set())
+  const [activeIncident, setActiveIncident] = useState<IncidentItem | null>(null)
+  const [activeTask, setActiveTask] = useState<TaskPopupData | null>(null)
+
+  const openActivityItem = (item: ActivityItem) => {
+    if (item.kind === 'warn') {
+      setActiveIncident(toIncidentItem(item))
+    } else {
+      setActiveTask({ title: item.title, sub: item.sub, path: item.path })
+    }
+  }
+
+  const openViewedItem = (item: ViewedItem) => {
+    if (item.type === 'incident') {
+      setActiveIncident(toIncidentItem(item))
+    } else if (item.type === 'task') {
+      setActiveTask({ title: item.title, sub: item.sub, avatar: item.avatar ?? undefined, path: item.path })
+    } else {
+      onOpenDashboard(sites[0]?.name ?? '')
+    }
+  }
 
   const metrics = useMemo(() => {
     const rnd = seededRandom(hashSeed(`ext-${customer.id}-${variant}`))
@@ -247,7 +307,7 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
             <div className="px-4 py-3 border-b border-gray-100 text-sm font-bold text-gray-800">Recent Activity</div>
             <div>
               {recentActivity.map((item) => (
-                <div key={item.id} className="px-4 py-3 border-b border-gray-100 last:border-b-0">
+                <div key={item.id} onClick={() => openActivityItem(item)} className="px-4 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50/60 transition-colors cursor-pointer">
                   <div className="flex items-center gap-2.5 cursor-pointer group">
 <span className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${item.kind === 'warn' ? 'theme-status-warning-soft' : 'theme-status-healthy-soft'}`}>
   {item.kind === 'warn' ? <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: 'var(--status-warning-text)', WebkitMaskImage: 'url(/incidents.svg)', maskImage: 'url(/incidents.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} /> : <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: 'var(--status-healthy-text)', WebkitMaskImage: 'url(/Tasks.svg)', maskImage: 'url(/Tasks.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} />}
@@ -267,7 +327,7 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
             <div className="px-4 py-3 border-b border-gray-100 text-sm font-bold text-gray-800">Last Viewed</div>
             <div>
               {lastViewed.map((item) => (
-                <div key={item.id} className="px-4 py-3 border-b border-gray-100 last:border-b-0">
+                <div key={item.id} onClick={() => openViewedItem(item)} className="px-4 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50/60 transition-colors cursor-pointer">
                   <div className="flex items-center gap-2.5 cursor-pointer group">
                     <span className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${item.type === 'asset' ? 'theme-status-info-soft theme-status-info-text' : item.type === 'incident' ? 'theme-status-critical-soft theme-status-critical-text' : 'theme-status-healthy-soft theme-status-healthy-text'}`}>
                       {item.type === 'asset' ? <Wrench className="w-3.5 h-3.5" strokeWidth={1.8} /> : item.type === 'incident' ? <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: 'var(--status-critical-text)', WebkitMaskImage: 'url(/incidents.svg)', maskImage: 'url(/incidents.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} /> : <span className="w-[13px] h-[13px] shrink-0 transition-all opacity-70 group-hover:opacity-100" style={{ background: 'var(--status-healthy-text)', WebkitMaskImage: 'url(/Tasks.svg)', maskImage: 'url(/Tasks.svg)', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskPosition: 'center', maskPosition: 'center' }} />}
@@ -362,7 +422,7 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
                 >
                   {hideSiteDetails ? <span /> : (
                     <div className="flex justify-start">
-                      <ChevronDown className={`w-4 h-4 text-gray-300 group-hover/site:text-blue-500 transition-transform ${isOpen ? '' : '-rotate-90'}`} />
+                      <ChevronDown className={`w-4 h-4 text-gray-300 group-hover/site:text-blue-500 transition-transform ${isOpen ? 'rotate-180' : '-rotate-90'}`} />
                     </div>
                   )}
                   <div className="min-w-0 max-w-[180px]">
@@ -418,6 +478,10 @@ export default function ExternalOperatorView({ customer, onOpenDashboard, hideMe
           })}
         </div>
       </div>
+      {activeIncident && (
+        <IncidentPopup incident={activeIncident} onClose={() => setActiveIncident(null)} />
+      )}
+      {activeTask && <TaskPopup task={activeTask} onClose={() => setActiveTask(null)} />}
     </>
   )
 }

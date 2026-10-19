@@ -28,6 +28,7 @@ import AssetOverview from './AssetOverview'
 import { AttachmentsPanel, DashboardPanel, ProcessFlowPanel, TagsPanel } from './AssetTabPanels'
 import { IncidentPopup, type IncidentItem } from './IncidentPopup'
 import RightSidebar from './RightSidebar'
+import { TaskPopup } from './TaskPopup'
 
 type Props = {
   siteName: string
@@ -39,6 +40,8 @@ type Props = {
 const TABS = ['Overview', 'Process Flow', 'Attachments', 'Tags', 'Asset Monitor', 'Dashboard']
 
 const KPI_HIDDEN_TABS = ['Process Flow', 'Attachments', 'Tags', 'Dashboard', 'Asset Monitor']
+
+const SHOW_CONSUMPTION_METRICS = false
 
 function Dot({ status, size = 8 }: { status: NodeStatus; size?: number }) {
   return (
@@ -119,7 +122,7 @@ function TreeBranch({
           >
             <ChevronRight
               className={`w-3 h-3 text-gray-400 transition-transform ${
-                hasKids ? (open ? 'rotate-90' : '') : 'opacity-0'
+                hasKids ? (open ? '-rotate-90' : '') : 'opacity-0'
               }`}
             />
           </span>
@@ -571,6 +574,7 @@ const assetTableRows = Array.from({ length: 5 }, () => {
     uptimeValue,
     uptimeDelta: Math.round((Math.random() * 5 - 2) * 10) / 10,
     risk: 10 + Math.floor(Math.random() * 86),
+    riskDelta: Math.round((Math.random() * 8 - 4) * 10) / 10,
     kpi: '89.6%',
     kpiCount: 5 + Math.floor(Math.random() * 11),
   }
@@ -655,89 +659,6 @@ const toIncidentItem = (item: LastViewedItem): IncidentItem => ({
   ],
 })
 
-const taskMask: React.CSSProperties = {
-  background: 'var(--status-healthy-text)',
-  WebkitMaskImage: 'url(/Tasks.svg)',
-  maskImage: 'url(/Tasks.svg)',
-  WebkitMaskRepeat: 'no-repeat',
-  maskRepeat: 'no-repeat',
-  WebkitMaskSize: 'contain',
-  maskSize: 'contain',
-  WebkitMaskPosition: 'center',
-  maskPosition: 'center',
-}
-
-function TaskOverlay({ task, onClose }: { task: LastViewedItem; onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="bg-white rounded-lg shadow-2xl w-[560px] max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-          <div className="flex items-center gap-2">
-            <span className="w-7 h-7 rounded-md flex items-center justify-center shrink-0 theme-status-healthy-soft theme-status-healthy-text">
-              <span className="w-[13px] h-[13px] shrink-0" style={taskMask} />
-            </span>
-            <h3 className="text-[15px] font-bold text-gray-900">Task</h3>
-          </div>
-          <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 rounded transition-colors cursor-pointer">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="px-5 py-4 overflow-y-auto flex-1 min-h-0 space-y-3">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="py-0.5 px-2 rounded text-[11px] font-semibold" style={{ backgroundColor: 'var(--status-warning-surface)', color: 'var(--status-warning-text)' }}>Open</span>
-            <span className="py-0.5 px-2 rounded text-[11px] font-semibold" style={{ backgroundColor: 'var(--status-critical-surface)', color: 'var(--status-critical-text)' }}>Overdue</span>
-            <span className="text-[12px] text-gray-400">
-              Due: <span className="font-semibold text-gray-700">{task.sub.includes(':') ? task.sub.split(':').slice(1).join(':').trim() : task.sub}</span>
-            </span>
-          </div>
-          <div className="text-[15px] font-bold text-gray-900">{task.title}</div>
-          <div className="text-[12px] text-gray-500">{task.sub}</div>
-          <div className="border border-gray-200 rounded-lg overflow-hidden text-[13px]">
-            <table className="w-full border-collapse">
-              <tbody>
-                <tr className="border-b border-gray-200">
-                  <td className="px-3 py-2 font-bold bg-[var(--theme-surface-header)] w-[130px] text-gray-700">Assignee</td>
-                  <td className="px-3 py-2 bg-[var(--theme-surface-header)]">
-                    <div className="flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full bg-[#5B5FC7] text-white text-[10px] font-bold flex items-center justify-center shrink-0">{task.avatar ?? 'RM'}</span>
-                      <span className="text-gray-900">{task.avatar ?? 'RM'}</span>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-3 py-2 font-bold text-gray-700 align-top">Location</td>
-                  <td className="px-3 py-2 text-gray-900">
-                    {task.path.map((p, i) => (
-                      <span key={i}>
-                        {i > 0 && <span className="text-gray-400 mx-0.5">&gt;</span>}
-                        {p}
-                      </span>
-                    ))}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div className="border border-gray-200 rounded-lg overflow-hidden">
-            <div className="px-3 py-2 border-b border-gray-200 text-[13px] font-bold text-gray-800">Description</div>
-            <div className="p-3 text-[12px] text-gray-600">
-              Review the readings for the asset above, capture the observation and record the corrective action taken in the maintenance log.
-            </div>
-          </div>
-        </div>
-        <div className="px-5 py-3 border-t border-gray-200 flex justify-end gap-2">
-          <button onClick={onClose} className="px-4 py-2 rounded-md border border-blue-600 text-blue-600 text-[13px] font-semibold hover:bg-blue-600 hover:text-white hover:shadow-md transition-colors cursor-pointer">
-            Acknowledge
-          </button>
-          <button onClick={onClose} className="px-4 py-2 rounded-md border border-blue-600 text-blue-600 text-[13px] font-semibold hover:bg-blue-600 hover:text-white hover:shadow-md transition-colors cursor-pointer">
-            Mark Complete
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function LastViewedCard({ onOpen }: { onOpen: (item: LastViewedItem) => void }) {
   return (
     <div className="bg-white border border-gray-200 rounded-md overflow-hidden h-[340px] flex flex-col hover-scroll-host">
@@ -820,7 +741,7 @@ function OverviewTab({ onSelectAsset, onNavigatePath }: { onSelectAsset: (name: 
           onClose={() => setActivityIncident(null)}
         />
       )}
-      {activityTask && <TaskOverlay task={activityTask} onClose={() => setActivityTask(null)} />}
+      {activityTask && <TaskPopup task={activityTask} onClose={() => setActivityTask(null)} />}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 shrink-0">
         <KpiStatusCard onKpiClick={(name) => { setPopupKpi(name); setSelectedIncident(null); setActivityIncident(null); setActivityTask(null) }} />
         <IncidentsTrendCard />
@@ -873,6 +794,9 @@ function OverviewTab({ onSelectAsset, onNavigatePath }: { onSelectAsset: (name: 
                   </td>
                   <td className="py-2.5 px-3">
                     <RiskGauge risk={r.risk} />
+                    <div className={`text-xs font-semibold text-center ${r.riskDelta >= 0 ? 'text-red-500' : 'text-green-600'}`}>
+                      {r.riskDelta >= 0 ? '▲' : '▼'} {Math.abs(r.riskDelta).toFixed(1)}%
+                    </div>
                   </td>
                   <td className="py-2.5 px-3">
                     <KpiSquares count={r.kpiCount} />
@@ -1114,7 +1038,7 @@ export default function DashboardPage({ selectedUnitPath }: Props) {
             tab === 'Process Flow' || tab === 'Dashboard' ? 'px-0 py-0 bg-[#F7F9FA]' : 'px-4 lg:px-6 py-4'
           } ${tab === 'Asset Monitor' ? 'overflow-hidden' : 'overflow-y-auto'}`}
         >
-          {isSiteSelected && !KPI_HIDDEN_TABS.includes(tab) && (
+          {SHOW_CONSUMPTION_METRICS && isSiteSelected && !KPI_HIDDEN_TABS.includes(tab) && (
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 shrink-0">
               {kpis.map((k) => {
                 const iconMap: Record<string, { icon: React.ReactNode; bg: string }> = {

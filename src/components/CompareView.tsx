@@ -1,5 +1,6 @@
 import { ArrowLeft, ChevronLeft, ChevronRight, Maximize2, Plus, RotateCcw, X } from 'lucide-react'
 import { useState } from 'react'
+import CompareSelectPopup from './CompareSelectPopup'
 
 type Props = {
   compareType: string
@@ -65,13 +66,25 @@ function SparkArea() {
 export default function CompareView({ compareType, items, addableItems, onBack, onReset }: Props) {
   const [columns, setColumns] = useState<Column[]>(() => items.map((name, i) => ({ key: `c-${i}`, name })))
   const [removed, setRemoved] = useState<string[]>([])
+  const [pickerOpen, setPickerOpen] = useState(false)
   const typeLabel = compareType === 'site' ? 'Sites' : compareType === 'unit' ? 'Units' : compareType === 'system' ? 'Systems' : 'Equipments'
   const typeSingular = typeLabel.slice(0, -1)
 
   const visible = columns.filter((c) => !removed.includes(c.key))
 
-  const addColumn = () =>
-    setColumns((cols) => [...cols, { key: `added-${cols.length}-${Date.now()}`, name: null }])
+  const addColumns = (selected: string[]) => {
+    setColumns((cols) => {
+      const used = new Set(cols.map((c) => c.name).filter(Boolean))
+      const next = [...cols]
+      selected.forEach((name) => {
+        if (used.has(name)) return
+        used.add(name)
+        next.push({ key: `added-${name}-${Date.now()}`, name })
+      })
+      return next
+    })
+    setPickerOpen(false)
+  }
 
   const setColumnName = (key: string, name: string | null) =>
     setColumns((cols) => cols.map((c) => (c.key === key ? { ...c, name } : c)))
@@ -122,7 +135,7 @@ export default function CompareView({ compareType, items, addableItems, onBack, 
               <ArrowLeft className="w-3 h-3" />
               Back
             </button>
-            <button onClick={addColumn} className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer text-white bg-blue-600 hover:bg-blue-700">
+            <button onClick={() => setPickerOpen(true)} className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer text-white bg-blue-600 hover:bg-blue-700">
               <Plus className="w-3 h-3" />
               Add More
             </button>
@@ -225,6 +238,14 @@ export default function CompareView({ compareType, items, addableItems, onBack, 
           </div>
         </section>
       </div>
+      {pickerOpen && (
+        <CompareSelectPopup
+          actionLabel="Add"
+          initialType={compareType}
+          onClose={() => setPickerOpen(false)}
+          onConfirm={(_type, selected) => addColumns(selected)}
+        />
+      )}
     </div>
   )
 }

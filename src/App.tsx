@@ -14,15 +14,9 @@ import DashboardPage from './components/DashboardPage'
 import CalendarPage from './components/CalendarPage'
 import ExternalOperatorView from './components/ExternalOperatorView'
 import { budgetUnits, customers, generateSites, unitNames } from './data/dashboard'
+import { compareItems } from './data/compare'
 import { personaKey, personaNav, type Persona, type PersonaType, type PersonaView } from './data/personas'
 import { defaultTheme, type ThemeConfig } from './data/themes'
-
-const compareItems: Record<string, string[]> = {
-  site: ['Nestle UAE', 'Cairo Plant', 'Lagos Plant', 'Riyadh Plant'],
-  unit: ['HVAC', 'Compressors'],
-  system: ['Primary Cooling Water System', 'Secondary Cooling Water System', 'Cooling Water Condensor', 'Compressor System 1', 'Compressor System 2'],
-  asset: ['Chiller 10', 'Chiller 20', 'Chiller 30', 'Cooling Tower A', 'Cooling Tower B', 'Primary Pump 1', 'Pump 3', 'Compressor 1', 'Compressor 2', 'Compressor 3'],
-}
 
 const addableItems: Record<string, string[]> = {
   site: compareItems.site,

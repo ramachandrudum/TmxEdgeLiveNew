@@ -155,31 +155,31 @@ export default function AssetOverview() {
           {/* Asset Summary Card */}
           <div className="mb-4">
             <div className="bg-white border border-gray-200 rounded-md px-5 py-3 flex items-center gap-0">
-              <div className="flex flex-col items-center px-5">
+              <div className="flex flex-col items-start justify-center px-5 flex-1 min-w-0">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Asset Type</span>
                 <span className="text-[14px] font-bold text-gray-900 mt-0.5">📦 Chiller</span>
               </div>
-              <span className="w-px h-8 bg-gray-200" />
-              <div className="flex flex-col items-center px-5">
+              <span className="w-px h-8 bg-gray-200 shrink-0" />
+              <div className="flex flex-col items-start justify-center px-5 flex-1 min-w-0">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Status</span>
                 <span className="text-[14px] font-bold text-gray-900 mt-0.5">On</span>
               </div>
-              <span className="w-px h-8 bg-gray-200" />
-              <div className="flex flex-col items-center px-5">
+              <span className="w-px h-8 bg-gray-200 shrink-0" />
+              <div className="flex flex-col items-start justify-center px-5 flex-1 min-w-0">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Uptime</span>
                 <span className="text-[14px] font-bold text-gray-900 mt-0.5">
                   65% <span style={{ color: 'var(--gm)', fontSize: 12, fontWeight: 700 }}>↑ 5%</span>
                 </span>
               </div>
-              <span className="w-px h-8 bg-gray-200" />
-              <div className="flex flex-col items-center px-5">
+              <span className="w-px h-8 bg-gray-200 shrink-0" />
+              <div className="flex flex-col items-start justify-center px-5 flex-1 min-w-0">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Risk Score</span>
                 <span className="text-[14px] font-bold text-gray-900 mt-0.5">
                   87% <span style={{ color: 'var(--rm)', fontSize: 12, fontWeight: 700 }}>↑ 10%</span>
                 </span>
               </div>
-              <span className="w-px h-8 bg-gray-200" />
-              <div className="flex flex-col items-center px-5">
+              <span className="w-px h-8 bg-gray-200 shrink-0" />
+              <div className="flex flex-col items-start justify-center px-5 flex-1 min-w-0">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">KPIs</span>
                 <div className="flex items-center gap-1 mt-1">
                   <span className="w-2 h-2 rounded-[2px]" style={{ background: 'var(--rm)' }} />
